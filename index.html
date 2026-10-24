@@ -43,14 +43,14 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 h2{font-size:15px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);margin:22px 4px 10px}
 h2:first-child{margin-top:4px}
 /* search */
-.hero{background:linear-gradient(135deg,var(--teal),var(--blue));color:#fff;border-radius:22px;padding:20px 16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.hero:before{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;border:26px solid rgba(255,255,255,.12)}
+.hero{background:linear-gradient(135deg,var(--teal),var(--blue));color:#fff;border-radius:22px;padding:20px 16px 18px;box-shadow:var(--shadow);position:relative;z-index:6}
+.hero:before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at calc(100% + 0px) 0,transparent 74px,rgba(255,255,255,.12) 75px,rgba(255,255,255,.12) 100px,transparent 101px)}
 .hero h1{font-size:23px;font-weight:900;line-height:1.15;position:relative}
 .hero p{opacity:.9;font-weight:700;font-size:14px;margin-top:4px;position:relative}
 .search{position:relative;margin-top:14px}
 .search input{width:100%;font:inherit;font-size:17px;font-weight:700;padding:14px 16px 14px 46px;border-radius:16px;border:0;outline:0;color:var(--ink);background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .search svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--mute)}
-.sugg{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden;z-index:5;color:var(--ink)}
+.sugg{position:absolute;left:0;right:0;top:calc(100% + 6px);max-height:60vh;overflow-y:auto;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden;z-index:5;color:var(--ink)}
 .sugg button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 14px;font-weight:800}
 .sugg button:not(:last-child){border-bottom:1px solid var(--line)}
 .sugg small{margin-left:auto;color:var(--mute);font-weight:700}
@@ -125,6 +125,7 @@ h2:first-child{margin-top:4px}
 .slots{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .slot{aspect-ratio:1;border-radius:14px;background:var(--slot);position:relative;display:grid;place-items:center;cursor:pointer}
 .slot img{width:92%;height:92%;object-fit:contain}
+.slot.shy{background:linear-gradient(150deg,rgba(255,236,170,.95),rgba(255,206,120,.75));box-shadow:inset 0 0 0 2px rgba(255,200,60,.9)}
 .slot.e{background:var(--slotE);cursor:default}
 .slot.miss{background:var(--slotE)}
 .slot.miss span{color:rgba(255,255,255,.85);font-size:10px;font-weight:900}
@@ -270,7 +271,7 @@ function build(data){
   D = data; const dex = data.dex || {}, av = data.av || {}, wk = (data.week || {}).n || {};
   T = Object.entries(dex).map(([u, d]) => {
     const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0).map(Number);
-    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: d.sh || [], own, dex: own.length, leg: own.filter(id => LEG.has(id)).length,
+    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, dex: own.length, leg: own.filter(id => LEG.has(id)).length,
       team: (d.team || []).filter(id => M.n[id]), st: d.st || 0, last: d.last, title: d.title || null, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
@@ -344,7 +345,7 @@ function bindSearch(){
     const hit = T.filter(t => t.u.toLowerCase().includes(v)).sort((a, b) => (b.u.toLowerCase().startsWith(v) - a.u.toLowerCase().startsWith(v)) || b.n - a.n).slice(0, 6);
     sg.innerHTML = hit.length ? hit.map(t => `<button data-u="${esc(t.u)}">${avatar(t)}<span>${esc(t.u)}</span><small>${fmt(t.n)} caught</small></button>`).join('') : `<div class="none">No trainer found. Catch something in the live first!</div>`;
     sg.hidden = false; };
-  q.addEventListener('input', run);
+  q.addEventListener('input', run); q.addEventListener('focus', run); q.addEventListener('blur', () => setTimeout(() => sg.hidden = true, 250));
   q.addEventListener('keydown', e => { if (e.key === 'Enter'){ const b = sg.querySelector('button'); if (b) location.hash = link(b.dataset.u); } });
   sg.addEventListener('click', e => { const b = e.target.closest('button'); if (b) location.hash = link(b.dataset.u); });
 }
@@ -363,13 +364,18 @@ function viewHof(){
 
 /* trainer + box */
 let BOXSTATE = {u: null, f: 'caught', p: 0};
+const shN = (t, id) => Math.min(t.c[id] || 0, t.sc[id] !== undefined ? +t.sc[id] || 0 : t.sh.includes(+id) ? 1 : 0);      // shiny copies (included in c)
+const nrN = (t, id) => Math.max(0, (t.c[id] || 0) - shN(t, id));      // normal copies
 function boxList(t, f){
-  if (f === 'dex') return IDS.map(id => ({id, has: t.c[id] > 0}));
+  if (f === 'dex') return IDS.map(id => ({id, has: t.c[id] > 0, sh: t.c[id] > 0 && !nrN(t, id), cnt: 0}));
   let ids = t.own.slice().sort((a, b) => a - b);
-  if (f === 'shiny') ids = Object.keys(t.sc).filter(k => t.sc[k] > 0).map(Number).sort((a, b) => a - b).concat(t.sh.filter(id => !t.sc[id])).filter((v, i, a) => a.indexOf(v) === i);
   if (f === 'legend') ids = ids.filter(id => LEG.has(id) || UB.has(id));
   if (f === 'rare') ids = ids.filter(id => RARE.has(id));
-  return ids.map(id => ({id, has: true, sh: f === 'shiny'}));
+  const out = [];
+  for (const id of ids){ const n = nrN(t, id), sh = shN(t, id);
+    if (f !== 'shiny' && n) out.push({id, has: true, sh: false, cnt: n});
+    if (sh) out.push({id, has: true, sh: true, cnt: sh}); }      // shiny in its own slot, right after the normal one
+  return out;
 }
 function regionOf(id){ const r = REGIONS.find(r => id >= r.ids[0] && id <= r.ids[r.ids.length - 1]); return r ? r.n : ''; }
 function renderBox(){
@@ -379,8 +385,7 @@ function renderBox(){
   const label = BOXSTATE.f === 'dex' && items.length ? regionOf(items[0].id) + ' · ' + (BOXSTATE.p + 1) : 'BOX ' + (BOXSTATE.p + 1);
   let slots = items.map(x => {
     if (!x.has) return `<div class="slot miss" data-id="${x.id}"><span>${String(x.id).padStart(4, '0')}</span></div>`;
-    const cnt = x.sh ? t.sc[x.id] || 1 : t.c[x.id] || 0, shOwned = t.sc[x.id] > 0 || t.sh.includes(x.id);
-    return `<button class="slot" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}${!x.sh && shOwned ? '<span class="star">✦</span>' : ''}${cnt > 1 ? `<span class="cnt">x${cnt}</span>` : ''}</button>`;
+    return `<button class="slot ${x.sh ? 'shy' : ''}" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}${x.sh ? '<span class="star">✦</span>' : ''}${x.cnt > 1 ? `<span class="cnt">x${x.cnt}</span>` : ''}</button>`;
   }).join('');
   for (let i = items.length; i < 30; i++) slots += '<div class="slot e"></div>';
   const dots = pages <= 14 ? Array.from({length: pages}, (_, i) => `<i class="${i === BOXSTATE.p ? 'on' : ''}"></i>`).join('') : `<span style="color:#fff;font-weight:900;font-size:12px">${BOXSTATE.p + 1} / ${pages}</span>`;
@@ -404,13 +409,13 @@ function viewTrainer(u){
   if (BOXSTATE.u !== t.u) BOXSTATE = {u: t.u, f: 'caught', p: 0};
   const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id]), wish = (P.wish || []).filter(id => M.n[id]), partner = M.n[P.partner] ? P.partner : 0;
   const F = [['caught', 'Caught ' + t.dex], ['shiny', 'Shiny ' + t.s], ['legend', 'Legendary ' + t.leg], ['rare', 'Rare'], ['dex', 'Full Pokédex']];
-  const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], t.sc[arr[i]] > 0)}</button>` : '<div class="tm e"></div>').join('');
+  const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], shN(t, arr[i]) > 0)}</button>` : '<div class="tm e"></div>').join('');
   const regs = REGIONS.map(r => { const have = r.ids.filter(id => t.c[id] > 0).length, done = t.badges.includes(r.n) || have >= r.ids.length;
     return `<div class="reg ${done ? 'done' : ''}"><span>${r.n}</span><div class="bar"><i style="width:${Math.round(have / r.ids.length * 100)}%"></i></div><em>${done ? 'BADGE' : have + '/' + r.ids.length}</em></div>`; }).join('');
   const meta = [`#${t.rank} all time`, t.st > 1 ? t.st + '-day streak' : '', t.last ? 'last catch ' + t.last.split('-').reverse().slice(0, 2).join('/') : ''].filter(Boolean);
   const act = isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : `<button class="btn ghost" id="claim">This is me</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
-    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, t.sc[partner] > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
+    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
       <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div>
       <div class="acts">${act}</div></div>
     ${fav.length ? `<h2>Favorites</h2><div class="card"><div class="team">${six(fav, '')}</div></div>` : ''}
@@ -428,18 +433,18 @@ function bindTrainer(){
   const bf = document.getElementById('bf'); if (!bf) return;
   bf.onclick = e => { const b = e.target.closest('.chip'); if (!b) return; BOXSTATE.f = b.dataset.f; BOXSTATE.p = 0; bf.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); renderBox(); };
   const t = BY[BOXSTATE.u.toLowerCase()];
-  document.querySelectorAll('.tm[data-id],.tm2[data-id]').forEach(s => s.onclick = () => sheet(t, +s.dataset.id, t.sc[s.dataset.id] > 0));
+  document.querySelectorAll('.tm[data-id],.tm2[data-id]').forEach(s => s.onclick = () => sheet(t, +s.dataset.id, shN(t, +s.dataset.id) > 0));
   renderBox();
 }
 function sheet(t, id, sh){
-  const c = t.c[id] || 0, s = t.sc[id] || (t.sh.includes(id) ? 1 : 0), rr = rarity(id), types = (M.t[id] || '').split('/').filter(Boolean);
+  const c = nrN(t, id), s = shN(t, id), rr = rarity(id), types = (M.t[id] || '').split('/').filter(Boolean);
   const bg = document.createElement('div'); bg.className = 'sheet-bg';
   const draw = () => { bg.innerHTML = `<div class="sheet"><div class="grab"></div>
     <img class="big" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})" alt="">
     <div class="no">${pad(id)} · ${regionOf(id)}</div><h3>${sh ? '✦ ' : ''}${esc(name(id))}</h3>
     ${rr ? `<span class="tag ${rr[0]}">${rr[1]}</span>` : ''}
     <div class="types">${types.map(x => `<span class="type" style="background:${TYPEC[x] || '#999'}">${x}</span>`).join('')}</div>
-    <div class="sgrid"><div class="stat"><b>${c}</b><span>Caught</span></div><div class="stat s"><b>${s}</b><span>Shiny</span></div></div>
+    <div class="sgrid"><div class="stat"><b>${c}</b><span>Normal</span></div><div class="stat s"><b>${s}</b><span>Shiny</span></div></div>
     ${s ? `<button class="tog" id="tog">${sh ? 'Show normal' : 'Show shiny'}</button>` : ''}</div>`;
     const tg = bg.querySelector('#tog'); if (tg) tg.onclick = e => { e.stopPropagation(); sh = !sh; draw(); }; };
   draw(); bg.onclick = e => { if (e.target === bg) bg.remove(); };
