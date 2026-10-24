@@ -153,6 +153,58 @@ h2:first-child{margin-top:4px}
 .back{text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-weight:900;color:var(--mute);margin-bottom:10px;font-size:14px}
 .back svg{width:18px;height:18px}
 .foot{text-align:center;color:var(--mute);font-size:12px;font-weight:700;margin:26px 0 8px}
+
+/* phase 2 */
+.pcard{position:relative}
+.partner{position:absolute;right:10px;top:8px;width:84px;height:84px;cursor:pointer}
+.partner img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.18))}
+.prof.hasp{padding-right:80px}
+.prof.hasp h1{font-size:20px}
+.acts{margin-top:12px;display:flex;gap:8px}
+.btn{flex:1;font-weight:900;font-size:15px;padding:12px 16px;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--blue));color:#fff;box-shadow:0 4px 12px rgba(47,111,224,.25)}
+.btn.ghost{background:#f1f5f9;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.6}
+.wish{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.tm.want img{opacity:.95}
+.sheet .sub{color:var(--mute);font-weight:700;font-size:14px;margin:4px 0 10px}
+.sheet h3+.sub b{color:var(--ink)}
+.code{font-size:34px;font-weight:900;letter-spacing:2px;background:#f1f7f6;border:2px dashed var(--teal);border-radius:16px;padding:14px;margin:6px 0 12px;color:var(--ink)}
+.status{font-weight:800;font-size:14px;color:var(--teal);display:flex;align-items:center;justify-content:center;gap:8px}
+.spin{width:16px;height:16px;border-radius:50%;border:3px solid #cdeee9;border-top-color:var(--teal);animation:sp 1s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.warn{font-size:12px;font-weight:700;color:#b5612a;background:#fff4ea;border-radius:12px;padding:8px 10px;margin:12px 0}
+.sheet.edit{max-height:92vh;overflow:auto;text-align:center;padding-bottom:0}
+.chips.ctr{justify-content:center;flex-wrap:wrap}
+.chip:disabled{opacity:.4}
+.hint{font-size:12px;font-weight:700;color:var(--mute);margin:6px 0;text-align:center}
+.sheet .team,.sheet .wish{margin-top:6px}
+.tm.rm,.pbig .rm{cursor:pointer}
+.pbig{height:110px;display:grid;place-items:center;color:var(--mute);font-weight:800}
+.pbig img{width:110px;height:110px;object-fit:contain}
+.search.sm{margin:8px 0}
+.search.sm input{font-size:15px;padding:11px 14px 11px 42px;box-shadow:none;background:#f1f5f9}
+.picker{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:38vh;overflow:auto;padding:2px}
+.slot.pk{background:#f3f7fa;flex-direction:column;display:flex;align-items:center;justify-content:center;padding:4px 2px;aspect-ratio:auto}
+.slot.pk img{width:56px;height:56px}
+.slot.pk span{font-size:10px;font-weight:800;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.slot.pk.sel{background:#dff5f1;box-shadow:inset 0 0 0 2px var(--teal)}
+.savebar{position:sticky;bottom:0;background:#fff;display:flex;gap:8px;padding:12px 0 calc(14px + env(safe-area-inset-bottom));margin-top:10px;border-top:1px solid var(--line)}
+.sw{display:flex;gap:12px;align-items:flex-start;text-align:left;background:#f3f7fa;border-radius:16px;padding:14px;cursor:pointer;margin-top:8px}
+.sw input{display:none}
+.sw>span{flex:none;width:46px;height:28px;border-radius:99px;background:#cfd8e2;position:relative;transition:.2s}
+.sw>span:after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw input:checked+span{background:var(--teal)}
+.sw input:checked+span:after{left:21px}
+.sw b{display:block;font-weight:900}
+.sw small{display:block;color:var(--mute);font-weight:700;font-size:12px;margin-top:2px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:800;font-size:14px;padding:12px 18px;border-radius:14px;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:up .2s;max-width:90vw;text-align:center}
+.mepill{display:inline-block;margin-left:8px;background:#e3f6f3;color:var(--teal);font-weight:900;font-size:12px;padding:3px 10px;border-radius:99px;text-decoration:none;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.foot a{color:var(--mute);font-weight:800}
+.legal h1{font-size:24px;font-weight:900}
+.legal h4{margin:16px 0 4px;font-weight:900;font-size:15px}
+.legal p{font-size:14px;font-weight:600;line-height:1.5;color:#3a4757}
+@media(max-width:420px){.upd{font-size:11px}.mepill{display:block;margin:3px 0 0 auto;max-width:120px}}
+@media(min-width:860px){.toast{bottom:30px}}
 /* desktop */
 @media(min-width:860px){
   body{padding-bottom:0}
@@ -187,6 +239,7 @@ h2:first-child{margin-top:4px}
    Default: live data from Supabase (sent by the game every 5 min).
    Add ?demo to the address to see the fake demo data. */
 const CONFIG = { SOURCE: /[?&]demo/.test(location.search) ? 'demo' : 'supabase', REFRESH_MIN: 5,
+  CONTACT: 'a private message to the host of the live on TikTok',
   SB_URL: 'https://pdkxuxpvglrupzacpjdg.supabase.co',
   SB_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBka3h1eHB2Z2xydXB6YWNwamRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NjM4MTMsImV4cCI6MjEwODMzOTgxM30.sBaf9mCEu_0pgSWIo7qhaSJtmhWxtPvNHC5THXangAw' };
 
@@ -244,7 +297,7 @@ function nav(active){
   document.getElementById('btabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${ICON[k]}${l}</a>`).join('');
   document.getElementById('dtabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${l}</a>`).join('');
 }
-function setUpd(){ document.getElementById('upd').innerHTML = D && D.t ? `<b></b>Updated ${ago(D.t)}` : ''; }
+function setUpd(){ document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}">@${esc(AUTH.u)}</a>` : ''); }
 
 /* ===== RANKINGS ===== */
 const RANKS = {
@@ -344,17 +397,25 @@ function renderBox(){
 function viewTrainer(u){
   const t = BY[u.toLowerCase()];
   nav('home');
-  if (!t) return `<a class="back" href="#/">${ICON.left}Back</a><div class="card"><b>Trainer not found</b><p class="empty">Check the spelling of the TikTok name, or catch your first Pokémon in the live.</p></div>`;
+  if (!t){
+    if (isMe(u) && ME.hidden) return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="card"><b>Your page is hidden</b><p class="empty">Nobody can see your box, and you are not in the rankings. Only you see this message.</p><button class="btn" id="editme" style="margin-top:12px">Edit my page</button></div>`;
+    return `<a class="back" href="#/">${ICON.left}Back</a><div class="card"><b>Trainer not found</b><p class="empty">Check the spelling of the TikTok name, or catch your first Pokémon in the live.</p></div>`;
+  }
   if (BOXSTATE.u !== t.u) BOXSTATE = {u: t.u, f: 'caught', p: 0};
+  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id]), wish = (P.wish || []).filter(id => M.n[id]), partner = M.n[P.partner] ? P.partner : 0;
   const F = [['caught', 'Caught ' + t.dex], ['shiny', 'Shiny ' + t.s], ['legend', 'Legendary ' + t.leg], ['rare', 'Rare'], ['dex', 'Full Pokédex']];
-  const team = Array.from({length: 6}, (_, i) => t.team[i] ? `<button class="tm" data-id="${t.team[i]}">${img(t.team[i], t.sc[t.team[i]] > 0)}</button>` : '<div class="tm e"></div>').join('');
+  const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], t.sc[arr[i]] > 0)}</button>` : '<div class="tm e"></div>').join('');
   const regs = REGIONS.map(r => { const have = r.ids.filter(id => t.c[id] > 0).length, done = t.badges.includes(r.n) || have >= r.ids.length;
     return `<div class="reg ${done ? 'done' : ''}"><span>${r.n}</span><div class="bar"><i style="width:${Math.round(have / r.ids.length * 100)}%"></i></div><em>${done ? 'BADGE' : have + '/' + r.ids.length}</em></div>`; }).join('');
   const meta = [`#${t.rank} all time`, t.st > 1 ? t.st + '-day streak' : '', t.last ? 'last catch ' + t.last.split('-').reverse().slice(0, 2).join('/') : ''].filter(Boolean);
+  const act = isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : `<button class="btn ghost" id="claim">This is me</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
-    <div class="card"><div class="prof">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
-      <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div></div>
-    <h2>Team</h2><div class="card">${t.team.length ? `<div class="team">${team}</div>` : `<div class="team">${team}</div><p class="empty">No team yet. Write F + Pokémon name in the live chat to build it.</p>`}</div>
+    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, t.sc[partner] > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
+      <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div>
+      <div class="acts">${act}</div></div>
+    ${fav.length ? `<h2>Favorites</h2><div class="card"><div class="team">${six(fav, '')}</div></div>` : ''}
+    <h2>Team</h2><div class="card"><div class="team">${six(t.team, '')}</div>${t.team.length ? '' : `<p class="empty">No team yet. Write F + Pokémon name in the live chat to build it.</p>`}</div>
+    ${wish.length ? `<h2>Looking for</h2><div class="card"><div class="wish">${wish.map(id => `<button class="tm ${t.c[id] > 0 ? '' : 'want'}" data-id="${id}" title="${esc(name(id))}">${img(id, false)}</button>`).join('')}</div></div>` : ''}
     <h2>Regions</h2><div class="card regs">${regs}</div>
   </div><div>
     <h2>Pokémon box</h2><div class="chips" id="bf">${F.map(([k, l]) => `<button class="chip ${k === BOXSTATE.f ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
@@ -362,10 +423,12 @@ function viewTrainer(u){
   </div></div>`;
 }
 function bindTrainer(){
+  const em = document.getElementById('editme'); if (em) em.onclick = openEdit;
+  const cl = document.getElementById('claim'); if (cl) cl.onclick = () => openClaim(BOXSTATE.u);
   const bf = document.getElementById('bf'); if (!bf) return;
   bf.onclick = e => { const b = e.target.closest('.chip'); if (!b) return; BOXSTATE.f = b.dataset.f; BOXSTATE.p = 0; bf.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); renderBox(); };
   const t = BY[BOXSTATE.u.toLowerCase()];
-  document.querySelectorAll('.tm[data-id]').forEach(s => s.onclick = () => sheet(t, +s.dataset.id, t.sc[s.dataset.id] > 0));
+  document.querySelectorAll('.tm[data-id],.tm2[data-id]').forEach(s => s.onclick = () => sheet(t, +s.dataset.id, t.sc[s.dataset.id] > 0));
   renderBox();
 }
 function sheet(t, id, sh){
@@ -383,23 +446,154 @@ function sheet(t, id, sh){
   document.body.appendChild(bg);
 }
 
+/* ===== PHASE 2: profiles + verification with !home ===== */
+const LS = { get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+const DEMO = CONFIG.SOURCE === 'demo';
+let PROF = {}, AUTH = LS.get('lch_auth', null), ME = null;      // AUTH = {u, token} saved on this phone after !home
+const demoProf = {giulia_shinyhunt: {fav: [448, 445, 700, 282, 6, 94], wish: [384, 483, 484, 249], partner: 448}}, demoClaims = {};
+function devId(){ let d = LS.get('lch_dev', null); if (!d){ d = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''); LS.set('lch_dev', d); } return d; }
+const SBH = () => ({'Content-Type': 'application/json', apikey: CONFIG.SB_KEY, Authorization: 'Bearer ' + CONFIG.SB_KEY});
+async function rpc(fn, body){
+  if (DEMO) return demoRpc(fn, body);
+  const r = await fetch(CONFIG.SB_URL + '/rest/v1/rpc/' + fn, {method: 'POST', headers: SBH(), body: JSON.stringify(body)});
+  const txt = await r.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch(e){}
+  if (!r.ok) throw new Error((j && j.message) || 'Something went wrong'); return j;
+}
+function demoRpc(fn, b){      // ?demo only: fakes the server (verification completes by itself after 4 s)
+  const du = tk => (tk || '').replace(/^demo-/, '');
+  if (fn === 'request_code'){ const c = String(1000 + Math.floor(Math.random() * 9000)); demoClaims[b.p_u] = {c, t: Date.now()}; return c; }
+  if (fn === 'check_claim'){ const k = demoClaims[b.p_u]; if (k && Date.now() - k.t > 4000){ delete demoClaims[b.p_u]; return 'demo-' + b.p_u; } return null; }
+  if (fn === 'my_profile'){ const u = du(b.p_token), p = demoProf[u] || {}; return {u, fav: p.fav || [], wish: p.wish || [], partner: p.partner || null, hidden: !!p.hidden}; }
+  if (fn === 'save_profile'){ demoProf[du(b.p_token)] = {fav: b.p_fav, wish: b.p_wish, partner: b.p_partner, hidden: b.p_hidden}; return null; }
+  return null;
+}
+async function loadProfiles(){
+  if (DEMO){ PROF = {}; for (const [u, p] of Object.entries(demoProf)) if (!p.hidden) PROF[u.toLowerCase()] = p; return; }
+  try { const r = await fetch(CONFIG.SB_URL + '/rest/v1/profiles?select=u,fav,wish,partner', {cache: 'no-store', headers: SBH()});
+    if (r.ok){ const P = {}; for (const p of await r.json()) P[p.u.toLowerCase()] = p; PROF = P; } } catch(e){}
+}
+async function loadMe(){
+  if (!AUTH){ ME = null; return; }
+  try { ME = await rpc('my_profile', {p_token: AUTH.token}); if (!ME){ AUTH = null; LS.set('lch_auth', null); } } catch(e){}
+}
+const isMe = u => !!(AUTH && ME && ME.u.toLowerCase() === String(u).toLowerCase());
+function openSheet(html, cls = ''){
+  const bg = document.createElement('div'); bg.className = 'sheet-bg';
+  bg.innerHTML = `<div class="sheet ${cls}"><div class="grab"></div>${html}</div>`;
+  bg.onclick = e => { if (e.target === bg) close(); };
+  const close = () => { bg.remove(); bg.closed = true; }; bg.close = close;
+  document.body.appendChild(bg); return bg;
+}
+function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+
+/* "This is me": code on the site -> "!home 1234" in the live chat from that TikTok account -> this phone is linked */
+async function openClaim(u){
+  const bg = openSheet(`<h3>Is this you?</h3><p class="sub">Getting your code...</p>`);
+  let code;
+  try { code = await rpc('request_code', {p_u: u, p_dev: devId()}); }
+  catch(e){ bg.querySelector('.sub').textContent = 'Could not get a code: ' + e.message; return; }
+  LS.set('lch_pending', {u, until: Date.now() + 10 * 60000});
+  bg.querySelector('.sheet').innerHTML = `<div class="grab"></div><h3>Link your page</h3>
+    <p class="sub">During the live, write this in the TikTok chat from <b>@${esc(u)}</b> within 10 minutes:</p>
+    <div class="code">!home ${code}</div>
+    <p class="status" id="cst"><i class="spin"></i>Waiting for your message in the live...</p>
+    <p class="warn">The code only works if it is written by @${esc(u)}. Never type a code that someone else gives you.</p>
+    <button class="btn ghost" id="cclose">Close</button>`;
+  bg.querySelector('#cclose').onclick = bg.close;
+  pollClaim(u, bg);
+}
+let pollT = null;
+function pollClaim(u, bg){
+  clearInterval(pollT);
+  pollT = setInterval(async () => {
+    const pend = LS.get('lch_pending', null);
+    if (!pend || pend.u !== u || Date.now() > pend.until){ clearInterval(pollT); LS.set('lch_pending', null); if (bg && !bg.closed){ const s = bg.querySelector('#cst'); if (s) s.textContent = 'Code expired. Close and try again.'; } return; }
+    let tok = null; try { tok = await rpc('check_claim', {p_u: u, p_dev: devId()}); } catch(e){}
+    if (!tok) return;
+    clearInterval(pollT); LS.set('lch_pending', null);
+    AUTH = {u, token: tok}; LS.set('lch_auth', AUTH); await loadMe();
+    if (bg && !bg.closed) bg.close();
+    toast('Verified! Now you can edit your page.'); route();
+  }, DEMO ? 1500 : 4000);
+}
+
+/* Edit my page: partner, favorites, wishlist, privacy */
+function openEdit(){
+  if (!ME) return;
+  const t = BY[ME.u.toLowerCase()], own = t ? t.own.slice().sort((a, b) => a - b) : [];
+  const E = {fav: [...(ME.fav || [])], wish: [...(ME.wish || [])], partner: ME.partner || 0, hidden: !!ME.hidden}, st = {tab: t ? 'partner' : 'privacy', q: ''};
+  const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
+  const TABS = [['partner', 'Partner'], ['fav', 'Favorites'], ['wish', 'Wishlist'], ['privacy', 'Privacy']];
+  const pick = id => `<button class="slot pk ${(st.tab === 'fav' ? E.fav.includes(id) : st.tab === 'wish' ? E.wish.includes(id) : E.partner === id) ? 'sel' : ''}" data-id="${id}">${img(id, false)}<span>${esc(name(id))}</span></button>`;
+  const draw = () => {
+    const pool = st.tab === 'wish' ? IDS : own, q = st.q.trim().toLowerCase();
+    const list = pool.filter(id => !q || name(id).toLowerCase().includes(q) || String(id) === q), shown = list.slice(0, 120);
+    const sel = st.tab === 'fav' ? `<div class="team">${Array.from({length: 6}, (_, i) => E.fav[i] ? `<button class="tm rm" data-rm="${E.fav[i]}">${img(E.fav[i], false)}</button>` : '<div class="tm e"></div>').join('')}</div><p class="hint">${E.fav.length}/6 · tap to remove</p>`
+      : st.tab === 'wish' ? (E.wish.length ? `<div class="wish">${E.wish.map(id => `<button class="tm rm" data-rm="${id}">${img(id, false)}</button>`).join('')}</div>` : '') + `<p class="hint">${E.wish.length}/30 · the Pokémon you are looking for</p>`
+      : st.tab === 'partner' ? `<div class="pbig">${E.partner ? `<button class="rm" data-rm="${E.partner}">${img(E.partner, false)}</button>` : '<span>No partner</span>'}</div><p class="hint">Shown next to your name</p>` : '';
+    sh.innerHTML = `<div class="grab"></div><h3>Edit my page</h3><p class="sub">@${esc(ME.u)}</p>
+      <div class="chips ctr">${TABS.map(([k, l]) => `<button class="chip ${k === st.tab ? 'on' : ''}" data-tab="${k}" ${!t && k !== 'privacy' ? 'disabled' : ''}>${l}</button>`).join('')}</div>
+      ${st.tab === 'privacy' ? `<label class="sw"><input type="checkbox" id="hid" ${E.hidden ? 'checked' : ''}><span></span><div><b>Hide my page</b><small>Your box disappears from the site and the rankings. You stay in the live game as usual.</small></div></label>
+        <button class="btn ghost" id="logout" style="margin-top:14px">Log out on this phone</button>`
+      : `${sel}<div class="search sm">${ICON.home}<input id="pq" type="search" placeholder="${st.tab === 'wish' ? 'Search any Pokémon' : 'Search your Pokémon'}" value="${esc(st.q)}" autocomplete="off"></div>
+        <div class="picker">${shown.map(pick).join('') || '<p class="hint">No Pokémon found</p>'}</div>${list.length > shown.length ? `<p class="hint">${list.length - shown.length} more: type a name to search</p>` : ''}`}
+      <div class="savebar"><button class="btn ghost" id="cancel">Cancel</button><button class="btn" id="save">Save</button></div>`;
+    sh.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { if (b.disabled) return; st.tab = b.dataset.tab; st.q = ''; draw(); });
+    sh.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const id = +b.dataset.rm; if (st.tab === 'fav') E.fav = E.fav.filter(x => x !== id); else if (st.tab === 'wish') E.wish = E.wish.filter(x => x !== id); else E.partner = 0; draw(); });
+    sh.querySelectorAll('.pk').forEach(b => b.onclick = () => { const id = +b.dataset.id;
+      if (st.tab === 'partner') E.partner = E.partner === id ? 0 : id;
+      else { const k = st.tab, max = k === 'fav' ? 6 : 30, a = E[k]; if (a.includes(id)) E[k] = a.filter(x => x !== id); else if (a.length < max) a.push(id); else return toast('Max ' + max + ' Pokémon'); }
+      draw(); });
+    const pq = sh.querySelector('#pq'); if (pq) pq.oninput = () => { st.q = pq.value; const p = pq.selectionStart; draw(); const n = sh.querySelector('#pq'); n.focus(); n.setSelectionRange(p, p); };
+    const hid = sh.querySelector('#hid'); if (hid) hid.onchange = () => E.hidden = hid.checked;
+    const lo = sh.querySelector('#logout'); if (lo) lo.onclick = async () => { try { await rpc('logout', {p_token: AUTH.token}); } catch(e){} AUTH = null; ME = null; LS.set('lch_auth', null); bg.close(); toast('Logged out on this phone'); route(); };
+    sh.querySelector('#cancel').onclick = bg.close;
+    sh.querySelector('#save').onclick = async e => { e.target.disabled = true; e.target.textContent = 'Saving...';
+      try { await rpc('save_profile', {p_token: AUTH.token, p_fav: E.fav, p_wish: E.wish, p_partner: E.partner || null, p_hidden: E.hidden});
+        const wasHidden = ME.hidden; await loadMe(); await loadProfiles(); if (E.hidden !== wasHidden && !DEMO) build(await load()); else if (DEMO && E.hidden) { delete BY[ME.u.toLowerCase()]; T = T.filter(x => x.u !== ME.u); }
+        bg.close(); toast(E.hidden ? 'Saved. Your page is now hidden.' : 'Saved!'); route(); }
+      catch(err){ e.target.disabled = false; e.target.textContent = 'Save'; toast(/verified/.test(err.message) ? 'Please verify again with !home' : 'Could not save, try again'); if (/verified/.test(err.message)){ AUTH = null; ME = null; LS.set('lch_auth', null); bg.close(); route(); } } };
+  };
+  draw();
+}
+
+function viewPrivacy(){
+  nav('');
+  return `<div class="rankg"><a class="back" href="#/">${ICON.left}Back</a><div class="card legal">
+  <h1>Privacy</h1><p class="hint" style="text-align:left">Last update: 24 October 2026</p>
+  <h4>Who runs this page</h4><p>Live Catch HOME is a free, non-commercial fan page for the players of the Live Catch game on TikTok, run by the host of the live. Contact: ${CONFIG.CONTACT}.</p>
+  <h4>What is shown</h4><p>Only your TikTok username, your public TikTok profile picture and your game data from the live (Pokémon caught, shiny, legendaries, team, streak, rankings). No gift or coin amounts are shown.</p>
+  <h4>Where it comes from</h4><p>The Live Catch game reads the public events of the live (username, public profile picture and the game commands written in chat) to run the game. Chat messages are not published on this page.</p>
+  <h4>If you link your page</h4><p>When you use "This is me" and write <b>!home</b> in the live chat, we save a random key in your browser to keep you logged in, and your choices (partner, favorites, wishlist, privacy). No email, no password, no other personal data.</p>
+  <h4>Why</h4><p>To run the community features of the game (boxes, rankings, Hall of Fame), which is the legitimate interest of the game and of its players.</p>
+  <h4>Where the data is kept</h4><p>Game data is kept in a Supabase database. The page is hosted on GitHub Pages. Pokémon images are loaded from jsDelivr (PokeAPI) and profile pictures from TikTok's servers: these services may see your IP address, as for any website.</p>
+  <h4>Cookies</h4><p>No ads, no tracking, no analytics. Only technical browser storage to keep you logged in.</p>
+  <h4>How long</h4><p>As long as the Live Catch game runs. Verification codes expire after 15 minutes.</p>
+  <h4>Your rights</h4><p>You can hide your page at any time: link it with !home, then Edit my page → Privacy → Hide my page. You can ask to see, correct or delete your data by contacting the host. You can also complain to your data protection authority (in Italy: Garante per la protezione dei dati personali).</p>
+  <h4>Not official</h4><p>This page is not affiliated with or endorsed by TikTok, Nintendo, The Pokémon Company, Game Freak or Creatures. Pokémon and Pokémon names are trademarks of their respective owners. Images: PokeAPI.</p>
+  </div></div>`;
+}
+
 /* ===== ROUTER ===== */
 function route(){
   const app = document.getElementById('app'); if (!D) return;
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), [a, b] = [h.split('/')[0], h.split('/').slice(1).join('/')];
   document.querySelectorAll('.sheet-bg').forEach(x => x.remove());
-  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : viewHome())
-    + `<div class="foot">Fan-made page for the Live Catch community · data from the live game</div>`;
+  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : viewHome())
+    + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br><a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', route);
 async function start(){
-  try { build(await load()); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
+  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
   route();
+  const pend = LS.get('lch_pending', null); if (pend && Date.now() < pend.until && !AUTH) pollClaim(pend.u, null);
   setInterval(setUpd, 30000);
-  if (CONFIG.SOURCE !== 'demo') setInterval(async () => { try { const d = await load(); if (d && d.t !== D.t){ build(d); if (!document.querySelector('.sheet-bg') && document.activeElement.id !== 'q') route(); else setUpd(); } } catch(e){} }, CONFIG.REFRESH_MIN * 60000);
+  if (!DEMO) setInterval(async () => { try { const [d] = await Promise.all([load(), loadProfiles()]); if (d && d.t !== D.t){ build(d); if (!document.querySelector('.sheet-bg') && document.activeElement.id !== 'q') route(); else setUpd(); } } catch(e){} }, CONFIG.REFRESH_MIN * 60000);
 }
 start();
 </script>
+
 </body>
 </html>
