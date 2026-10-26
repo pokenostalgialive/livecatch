@@ -235,10 +235,14 @@ h2:first-child{margin-top:4px}
 .trinfo .sts{color:var(--teal)}.st-failed .sts,.st-declined .sts,.st-expired .sts,.st-cancelled .sts{color:#b5612a}
 .trb{display:flex;flex-direction:column;gap:4px}
 .mini{font-weight:900;font-size:12px;padding:7px 10px;border-radius:10px;background:var(--teal);color:#fff}.mini.ghost{background:#f1f5f9;color:var(--ink)}
-.wanted{position:absolute;top:3px;left:3px;right:3px;font-size:7px;font-weight:900;background:var(--teal);color:#fff;border-radius:6px;padding:1px 2px;white-space:nowrap;overflow:hidden}
+.wanted{z-index:2;position:absolute;top:3px;left:3px;right:3px;font-size:7px;font-weight:900;background:var(--teal);color:#fff;border-radius:6px;padding:1px 2px;white-space:nowrap;overflow:hidden}
 .slot.pk{position:relative}
 .trbig{display:flex;justify-content:center;align-items:center;gap:10px;margin:10px 0}.trbig .trm{width:110px;height:110px;border-radius:22px}.trbig .arr{font-size:28px}
 #recent .row{gap:10px}#recent .who a{color:inherit;text-decoration:none}
+.wanted.need{background:#7a5cf0}
+.slot.pk .wanted{color:#fff;font-size:8px;font-weight:900;max-width:none;letter-spacing:.2px;text-align:center}
+.onlyn{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:800;color:var(--mute);margin:0 0 8px;cursor:pointer}
+.onlyn input{width:18px;height:18px;accent-color:var(--teal)}
 /* desktop */
 @media(min-width:860px){
   body{padding-bottom:0}
@@ -722,14 +726,16 @@ function wishMatch(t){ const w = (ME && ME.wish) || []; return w.filter(id => t.
 function openPropose(other){
   const me = BY[ME.u.toLowerCase()]; if (!me){ toast('Your page has no Pokémon yet'); return; }
   const theirWish = ((PROF[other.u.toLowerCase()] || {}).wish || []), myWish = (ME.wish || []);
-  const st = {step: 'give', give: null, want: null, q: ''};
+  const st = {step: 'give', give: null, want: null, q: '', only: false};
+  const lacks = (t, x) => x.sh ? !(shN(t, x.id) > 0) : !(t.c[x.id] > 0);      // the other side does not have it (shiny counts apart)
   const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
   const draw = () => {
     const q = st.q.trim().toLowerCase(), match = x => !q || name(x.id).toLowerCase().includes(q);
     let list = [], title = '', sub = '';
-    if (st.step === 'give'){ list = boxList(me, 'caught').filter(match); list.sort((a, b) => theirWish.includes(b.id) - theirWish.includes(a.id)); title = 'What do you give?'; sub = 'Pick one of your Pokémon'; }
-    else if (st.step === 'want'){ list = boxList(other, 'caught').filter(x => x.sh === st.give.sh && CAT(x.id) === CAT(st.give.id)).filter(match); list.sort((a, b) => myWish.includes(b.id) - myWish.includes(a.id)); title = 'What do you want?'; sub = `From @${esc(other.u)} · only ${st.give.sh ? 'shiny ' : ''}${CATN[CAT(st.give.id)]} Pokémon`; }
-    const shown = list.slice(0, 120), tag = x => (st.step === 'give' ? theirWish : myWish).includes(x.id) ? `<span class="wanted">${st.step === 'give' ? 'THEY WANT IT' : 'IN YOUR WISHLIST'}</span>` : '';
+    const rank = (x, wl, t) => (wl.includes(x.id) ? 2 : 0) + (lacks(t, x) ? 1 : 0);
+    if (st.step === 'give'){ list = boxList(me, 'caught').filter(match).filter(x => !st.only || lacks(other, x)); list.sort((a, b) => rank(b, theirWish, other) - rank(a, theirWish, other)); title = 'What do you give?'; sub = 'Pick one of your Pokémon'; }
+    else if (st.step === 'want'){ list = boxList(other, 'caught').filter(x => x.sh === st.give.sh && CAT(x.id) === CAT(st.give.id)).filter(match).filter(x => !st.only || lacks(me, x)); list.sort((a, b) => rank(b, myWish, me) - rank(a, myWish, me)); title = 'What do you want?'; sub = `From @${esc(other.u)} · only ${st.give.sh ? 'shiny ' : ''}${CATN[CAT(st.give.id)]} Pokémon`; }
+    const shown = list.slice(0, 120), tag = x => (st.step === 'give' ? theirWish : myWish).includes(x.id) ? `<span class="wanted">${st.step === 'give' ? 'THEY WANT IT' : 'IN YOUR WISHLIST'}</span>` : lacks(st.step === 'give' ? other : me, x) ? `<span class="wanted need">${st.step === 'give' ? 'THEY NEED IT' : 'NEW FOR YOU'}</span>` : '';
     sh.innerHTML = `<div class="grab"></div>` + (st.step === 'confirm' ? `<h3>Send this offer?</h3><p class="sub">to @${esc(other.u)}</p>
       <div class="trbig">${trMon(st.give.id, st.give.sh)}<span class="arr">⇄</span>${trMon(st.want.id, st.want.sh)}</div>
       <p class="sub">You give <b>${esc(name(st.give.id))}${st.give.sh ? ' ✦' : ''}</b> and get <b>${esc(name(st.want.id))}${st.want.sh ? ' ✦' : ''}</b></p>
@@ -737,10 +743,12 @@ function openPropose(other){
       <div class="savebar"><button class="btn ghost" id="back">Back</button><button class="btn" id="send">Send offer</button></div>`
     : `<h3>${title}</h3><p class="sub">${sub}</p>
       <div class="search sm">${ICON.home}<input id="pq" type="search" placeholder="Search" value="${esc(st.q)}" autocomplete="off"></div>
+      <label class="onlyn"><input type="checkbox" id="only" ${st.only ? 'checked' : ''}> Only ${st.step === 'give' ? `what @${esc(other.u)} doesn't have` : `what you don't have`}</label>
       <div class="picker">${shown.map(x => `<button class="slot pk ${x.sh ? 'shy' : ''} ${isMega(x.id) ? 'mg' : ''}" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}${tag(x)}<span>${x.sh ? '✦ ' : ''}${esc(name(x.id))}${x.cnt > 1 ? ' x' + x.cnt : ''}</span></button>`).join('') || `<p class="hint">${st.step === 'want' ? 'They have nothing of the same kind to trade' : 'No Pokémon found'}</p>`}</div>
       <div class="savebar"><button class="btn ghost" id="back">${st.step === 'give' ? 'Cancel' : 'Back'}</button></div>`);
     sh.querySelectorAll('.pk').forEach(b => b.onclick = () => { const v = {id: +b.dataset.id, sh: b.dataset.sh === '1'}; if (st.step === 'give'){ st.give = v; st.step = 'want'; } else { st.want = v; st.step = 'confirm'; } st.q = ''; draw(); });
     const pq = sh.querySelector('#pq'); if (pq) pq.oninput = () => { st.q = pq.value; const p = pq.selectionStart; draw(); const n = sh.querySelector('#pq'); n.focus(); n.setSelectionRange(p, p); };
+    const on = sh.querySelector('#only'); if (on) on.onchange = () => { st.only = on.checked; draw(); };
     sh.querySelector('#back').onclick = () => { if (st.step === 'give') bg.close(); else { st.step = st.step === 'confirm' ? 'want' : 'give'; draw(); } };
     const sd = sh.querySelector('#send'); if (sd) sd.onclick = async () => { sd.disabled = true; sd.textContent = 'Sending...';
       try { await rpc('propose_trade', {p_token: AUTH.token, p_to: other.u, p_give: st.give.id, p_give_sh: st.give.sh, p_want: st.want.id, p_want_sh: st.want.sh}); bg.close(); toast('Offer sent to @' + other.u); await loadTrades(); }
