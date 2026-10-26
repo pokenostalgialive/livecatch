@@ -207,8 +207,38 @@ h2:first-child{margin-top:4px}
 .legal h1{font-size:24px;font-weight:900}
 .legal h4{margin:16px 0 4px;font-weight:900;font-size:15px}
 .legal p{font-size:14px;font-weight:600;line-height:1.5;color:#3a4757}
-@media(max-width:420px){.upd{font-size:11px}.mepill{display:block;margin:3px 0 0 auto;max-width:120px}}
+@media(max-width:420px){.logo{white-space:nowrap;font-size:17px}.logo small{display:none}.mepill{max-width:140px!important}.upd{font-size:11px}.mepill{display:block;margin:3px 0 0 auto;max-width:120px}}
 @media(min-width:860px){.toast{bottom:30px}}
+.goal+.goal{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.goalh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.goalh b{font-weight:900;font-size:15px}.goalh span{font-weight:900;color:var(--mute);font-size:12px}
+.gmiss{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}
+.gm{aspect-ratio:1;background:#f3f7fa;border-radius:12px;display:grid;place-items:center}
+.gm img{width:86%;height:86%;object-fit:contain;filter:brightness(0) opacity(.22)}
+.gmore{aspect-ratio:1;border-radius:12px;background:#eef3f7;display:grid;place-items:center;font-weight:900;color:var(--mute);font-size:13px}
+.cardimg{width:100%;max-width:360px;border-radius:18px;margin:6px auto 4px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.acts .btn{font-size:14px;padding:12px 10px}
+.wmatch{margin-top:10px;font-size:12px;font-weight:800;color:var(--teal);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.gm2 img{width:28px;height:28px;object-fit:contain}
+.mepill{display:inline-flex!important;align-items:center;max-width:170px!important}.mepill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.mepill em{flex:none;font-style:normal;background:var(--pink);color:#fff;border-radius:99px;padding:0 6px;margin-left:2px}
+.trades h4{font-size:12px;font-weight:900;color:var(--mute);letter-spacing:.6px;text-transform:uppercase;margin:14px 0 6px}
+.trtop{font-weight:800;color:var(--mute);font-size:13px}.trtop b{color:var(--ink);font-size:16px}
+.trow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.trx{display:flex;align-items:center;gap:4px;flex:none}
+.trm{width:46px;height:46px;border-radius:12px;background:#f3f7fa;display:grid;place-items:center;position:relative}
+.trm img{width:90%;height:90%;object-fit:contain}
+.trm.shy{background:linear-gradient(150deg,#ffecaa,#ffce78)}.trm.mg{box-shadow:inset 0 0 0 2px #ff6fb5}
+.trm i{position:absolute;left:3px;top:0;font-style:normal;font-size:11px;color:#ffcf3a;text-shadow:0 0 3px rgba(150,90,0,.8)}
+.arr{font-weight:900;color:var(--mute)}
+.trinfo{flex:1;min-width:0}.trinfo b{display:block;font-weight:900;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.trinfo a{color:inherit;text-decoration:none}
+.trinfo small{display:block;font-size:11px;font-weight:700;color:var(--mute)}
+.trinfo .sts{color:var(--teal)}.st-failed .sts,.st-declined .sts,.st-expired .sts,.st-cancelled .sts{color:#b5612a}
+.trb{display:flex;flex-direction:column;gap:4px}
+.mini{font-weight:900;font-size:12px;padding:7px 10px;border-radius:10px;background:var(--teal);color:#fff}.mini.ghost{background:#f1f5f9;color:var(--ink)}
+.wanted{position:absolute;top:3px;left:3px;right:3px;font-size:7px;font-weight:900;background:var(--teal);color:#fff;border-radius:6px;padding:1px 2px;white-space:nowrap;overflow:hidden}
+.slot.pk{position:relative}
+.trbig{display:flex;justify-content:center;align-items:center;gap:10px;margin:10px 0}.trbig .trm{width:110px;height:110px;border-radius:22px}.trbig .arr{font-size:28px}
+#recent .row{gap:10px}#recent .who a{color:inherit;text-decoration:none}
 /* desktop */
 @media(min-width:860px){
   body{padding-bottom:0}
@@ -303,7 +333,7 @@ function nav(active){
   document.getElementById('btabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${ICON[k]}${l}</a>`).join('');
   document.getElementById('dtabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${l}</a>`).join('');
 }
-function setUpd(){ document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}">@${esc(AUTH.u)}</a>` : ''); }
+function setUpd(){ document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}"><span>@${esc(AUTH.u)}</span>${incoming().length ? `<em>${incoming().length}</em>` : ''}</a>` : ''); }
 
 /* ===== RANKINGS ===== */
 const RANKS = {
@@ -364,6 +394,7 @@ function viewHof(){
   const masters = T.filter(t => t.badges.length).sort((a, b) => b.badges.length - a.badges.length);
   return `<div class="rankg"><h2>Hall of Fame</h2>${hofCards()}
     <h2>Record holders</h2><div class="list">${top('catches', 'Most catches')}${top('dex', 'Biggest Pokédex')}${top('shiny', 'Most shiny')}${top('legend', 'Most legendaries')}</div>
+    <h2>Recent trades</h2><div id="recent"><div class="card empty" style="margin:0">Loading...</div></div>
     <h2>Region masters</h2>${masters.length ? `<div class="list">${masters.map(t => `<a class="row" href="${link(t.u)}" style="text-decoration:none;color:inherit">${avatar(t)}<span class="who"><b>${esc(t.u)}</b><small style="color:var(--gold)">${t.badges.map(esc).join(' · ')}</small></span></a>`).join('')}</div>` : `<div class="card empty" style="margin:0">Nobody has completed a region yet.</div>`}</div>`;
 }
 
@@ -420,14 +451,17 @@ function viewTrainer(u){
   const regs = REGIONS.map(r => { const have = r.ids.filter(id => t.c[id] > 0).length, done = t.badges.includes(r.n) || have >= r.ids.length;
     return `<div class="reg ${done ? 'done' : ''}"><span>${r.n}</span><div class="bar"><i style="width:${Math.round(have / r.ids.length * 100)}%"></i></div><em>${done ? 'BADGE' : have + '/' + r.ids.length}</em></div>`; }).join('');
   const meta = [`#${t.rank} all time`, t.st > 1 ? t.st + '-day streak' : '', t.last ? 'last catch ' + t.last.split('-').reverse().slice(0, 2).join('/') : ''].filter(Boolean);
-  const act = isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : `<button class="btn ghost" id="claim">This is me</button>`;
+  const wm = !isMe(t.u) && ME ? wishMatch(t) : [];
+  const act = (isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : ME ? `<button class="btn" id="propose">Propose trade</button>` : `<button class="btn ghost" id="claim">This is me</button>`) + `<button class="btn ghost" id="sharec">Share card</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
     <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
       <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div>
-      <div class="acts">${act}</div></div>
+      <div class="acts">${act}</div>${wm.length ? `<div class="wmatch">Has ${wm.length} Pokémon from your wishlist: ${wm.slice(0, 6).map(id => `<span class="gm2">${img(id, false)}</span>`).join('')}</div>` : ''}</div>
+    ${isMe(t.u) ? tradesHtml() : ''}
     ${fav.length ? `<h2>Favorites</h2><div class="card"><div class="team">${six(fav, '')}</div></div>` : ''}
     <h2>Team</h2><div class="card"><div class="team">${six(t.team, '')}</div>${t.team.length ? '' : `<p class="empty">No team yet. Write F + Pokémon name in the live chat to build it.</p>`}</div>
     ${wish.length ? `<h2>Looking for</h2><div class="card"><div class="wish">${wish.map(id => `<button class="tm ${t.c[id] > 0 ? '' : 'want'}" data-id="${id}" title="${esc(name(id))}">${img(id, false)}</button>`).join('')}</div></div>` : ''}
+    ${goalsHtml(t)}
     <h2>Regions</h2><div class="card regs">${regs}</div>
   </div><div>
     <h2>Pokémon box</h2><div class="chips" id="bf">${F.map(([k, l]) => `<button class="chip ${k === BOXSTATE.f ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
@@ -436,6 +470,9 @@ function viewTrainer(u){
 }
 function bindTrainer(){
   const em = document.getElementById('editme'); if (em) em.onclick = openEdit;
+  const pp = document.getElementById('propose'); if (pp) pp.onclick = () => openPropose(BY[BOXSTATE.u.toLowerCase()]);
+  bindTrades();
+  const sc = document.getElementById('sharec'); if (sc) sc.onclick = () => shareCard(BY[BOXSTATE.u.toLowerCase()], sc);
   const cl = document.getElementById('claim'); if (cl) cl.onclick = () => openClaim(BOXSTATE.u);
   const bf = document.getElementById('bf'); if (!bf) return;
   bf.onclick = e => { const b = e.target.closest('.chip'); if (!b) return; BOXSTATE.f = b.dataset.f; BOXSTATE.p = 0; bf.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); renderBox(); };
@@ -473,6 +510,7 @@ async function rpc(fn, body){
   if (!r.ok) throw new Error((j && j.message) || 'Something went wrong'); return j;
 }
 function demoRpc(fn, b){      // ?demo only: fakes the server (verification completes by itself after 4 s)
+  if (/trade/.test(fn)) return demoTrades(fn, b);
   const du = tk => (tk || '').replace(/^demo-/, '');
   if (fn === 'request_code'){ const c = String(1000 + Math.floor(Math.random() * 9000)); demoClaims[b.p_u] = {c, t: Date.now()}; return c; }
   if (fn === 'check_claim'){ const k = demoClaims[b.p_u]; if (k && Date.now() - k.t > 4000){ delete demoClaims[b.p_u]; return 'demo-' + b.p_u; } return null; }
@@ -524,7 +562,7 @@ function pollClaim(u, bg){
     let tok = null; try { tok = await rpc('check_claim', {p_u: u, p_dev: devId()}); } catch(e){}
     if (!tok) return;
     clearInterval(pollT); LS.set('lch_pending', null);
-    AUTH = {u, token: tok}; LS.set('lch_auth', AUTH); await loadMe();
+    AUTH = {u, token: tok}; LS.set('lch_auth', AUTH); await loadMe(); await loadTrades();
     if (bg && !bg.closed) bg.close();
     toast('Verified! Now you can edit your page.'); route();
   }, DEMO ? 1500 : 4000);
@@ -587,6 +625,144 @@ function viewPrivacy(){
   </div></div>`;
 }
 
+/* ===== GOALS: what is missing for the next badges ===== */
+function goalsHtml(t){
+  const rows = REGIONS.map(r => ({r, miss: r.ids.filter(id => !(t.c[id] > 0))})).filter(x => x.miss.length && !t.badges.includes(x.r.n)).sort((a, b) => a.miss.length - b.miss.length).slice(0, 2);
+  const mg = MEGAIDS.filter(id => !(t.c[id] > 0));
+  const line = (title, sub, miss) => `<div class="goal"><div class="goalh"><b>${title}</b><span>${sub}</span></div><div class="gmiss">${miss.slice(0, miss.length > 6 ? 5 : 6).map(id => `<span class="gm" title="${esc(name(id))}">${img(id, false)}</span>`).join('')}${miss.length > 6 ? `<span class="gmore">+${miss.length - 5}</span>` : ''}</div></div>`;
+  let h = rows.map(x => line(`${x.miss.length} left for the ${x.r.n} badge`, `${x.r.ids.length - x.miss.length}/${x.r.ids.length}`, x.miss)).join('');
+  if (t.mg && mg.length) h += line(`${mg.length} Mega left`, `${t.mg}/${MEGAIDS.length}`, mg);
+  return h ? `<h2>Next goals</h2><div class="card goals">${h}<p class="hint" style="text-align:left;margin-top:8px">Catch them in the next live!</p></div>` : '';
+}
+
+/* ===== SHARE CARD: image to post on TikTok / stories ===== */
+function loadImg(src){ return new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
+async function makeCard(t){
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+  try { await document.fonts.ready; } catch(e){}
+  const F = (w, s) => `${w} ${s}px Nunito, system-ui, sans-serif`;
+  const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#16a99e'); bg.addColorStop(1, '#2f6fe0'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(255,255,255,.10)'; g.lineWidth = 70; g.beginPath(); g.arc(W - 40, 60, 260, 0, 7); g.stroke(); g.beginPath(); g.arc(60, H - 40, 200, 0, 7); g.stroke();
+  const rr = (x, y, w, h, r, fill) => { g.beginPath(); g.roundRect(x, y, w, h, r); g.fillStyle = fill; g.fill(); };
+  g.fillStyle = '#fff'; g.font = F(900, 46); g.textAlign = 'left'; g.fillText('LIVE CATCH HOME', 70, 110);
+  g.font = F(700, 28); g.globalAlpha = .85; g.fillText('My Pokémon from the live', 70, 152); g.globalAlpha = 1;
+  rr(50, 200, W - 100, 1000, 48, '#ffffff');
+  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, partner = (M.n[P.partner] || MEGA[P.partner]) ? P.partner : (t.team[0] || Object.keys(t.c).filter(k => M.n[k] || MEGA[k]).sort((a, b) => t.c[b] - t.c[a])[0]);
+  const six = ((P.fav || []).length ? P.fav : t.team).filter(id => M.n[id] || MEGA[id]).slice(0, 6);
+  const sh = id => shN(t, id) > 0;
+  const [pimg, ...simgs] = await Promise.all([partner ? loadImg(spr(+partner, sh(+partner))) : null, ...six.map(id => loadImg(spr(id, sh(id))))]);
+  if (pimg) g.drawImage(pimg, W - 470, 190, 400, 400);
+  const nm = t.u.length > 16 ? t.u.slice(0, 15) + '…' : t.u; let fs = 68; g.font = F(900, fs); while (g.measureText(nm).width > 560 && fs > 36){ fs -= 2; g.font = F(900, fs); }
+  g.fillStyle = '#1d2a3a'; g.fillText(nm, 100, 320);
+  if (t.title){ g.font = F(900, 28); const tw = g.measureText(t.title).width + 40; rr(100, 350, tw, 50, 25, '#fde7ee'); g.fillStyle = '#e5587e'; g.fillText(t.title, 120, 385); }
+  g.fillStyle = '#6c7a8c'; g.font = F(800, 30); g.fillText(`#${t.rank} all time` + (t.st > 1 ? `  ·  ${t.st}-day streak` : ''), 100, 450);
+  const st = [[fmt(t.n), 'CAUGHT', '#1d2a3a'], [fmt(t.dex), 'POKÉDEX', '#1d2a3a'], [fmt(t.s), 'SHINY', '#e8a917'], [fmt(t.leg), 'LEGENDS', '#7a5cf0']];
+  st.forEach(([v, l, c], i) => { const x = 100 + i * 225; rr(x, 610, 205, 150, 28, '#f3f7fa'); g.textAlign = 'center'; g.fillStyle = c; g.font = F(900, 52); g.fillText(v, x + 102, 690); g.fillStyle = '#6c7a8c'; g.font = F(900, 22); g.fillText(l, x + 102, 730); });
+  g.textAlign = 'left'; g.fillStyle = '#6c7a8c'; g.font = F(900, 26); g.fillText((P.fav || []).length ? 'FAVORITES' : 'TEAM', 100, 820);
+  for (let i = 0; i < 6; i++){ const x = 100 + i * 150; rr(x, 845, 130, 130, 26, '#f3f7fa'); if (simgs[i]) g.drawImage(simgs[i], x + 7, 852, 116, 116); }
+  const badges = t.badges.length, mg = t.mg;
+  g.fillStyle = '#1d2a3a'; g.font = F(800, 30);
+  g.fillText([badges ? badges + (badges > 1 ? ' region badges' : ' region badge') : '', mg ? mg + ' Mega' : '', t.s ? t.s + ' shiny caught' : ''].filter(Boolean).join('  ·  ') || 'Just started the adventure!', 100, 1050);
+  g.fillStyle = '#16a99e'; g.font = F(900, 34); g.fillText('Catch Pokémon with me in the TikTok live!', 100, 1130);
+  g.fillStyle = '#fff'; g.font = F(800, 32); g.textAlign = 'center'; g.fillText('pokenostalgialive.github.io/livecatch', W / 2, 1275);
+  return new Promise(res => cv.toBlob(res, 'image/png'));
+}
+async function shareCard(t, btn){
+  const old = btn.textContent; btn.disabled = true; btn.textContent = 'Creating...';
+  try {
+    const blob = await makeCard(t), file = new File([blob], 'livecatch_' + t.u.replace(/[^a-z0-9_.-]/gi, '') + '.png', {type: 'image/png'});
+    const url = URL.createObjectURL(blob);
+    const bg = openSheet(`<h3>Your card</h3><img src="${url}" class="cardimg" alt="">
+      <div class="savebar" style="position:static;border:0"><a class="btn ghost" href="${url}" download="${file.name}" style="text-decoration:none">Download</a>${navigator.canShare && navigator.canShare({files: [file]}) ? '<button class="btn" id="dosh">Share</button>' : ''}</div>`);
+    const b = bg.querySelector('#dosh'); if (b) b.onclick = () => navigator.share({files: [file], title: 'Live Catch HOME'}).catch(() => {});
+  } catch(e){ toast('Could not create the card'); }
+  btn.disabled = false; btn.textContent = old;
+}
+
+/* ===== TRADES (phase 3): proposed and accepted on the site, executed by the live game ===== */
+const CAT = id => isMega(id) ? 'mega' : LEG.has(id) ? 'legend' : 'normal';
+const CATN = {mega: 'Mega', legend: 'legendary', normal: 'normal'};
+let MYTR = null, RECENT = null;      // MYTR = {today, list}
+const demoTr = []; let demoTrId = 1;
+async function loadTrades(){
+  if (!AUTH){ MYTR = null; return; }
+  try { MYTR = await rpc('my_trades', {p_token: AUTH.token}); } catch(e){}
+}
+const incoming = () => MYTR ? MYTR.list.filter(x => x.status === 'open' && ME && x.b === ME.u) : [];
+function trMon(id, sh){ return `<span class="trm ${sh ? 'shy' : ''} ${isMega(id) ? 'mg' : ''}" title="${esc(name(id))}">${img(id, sh)}${sh ? '<i>✦</i>' : ''}</span>`; }
+const ST = {open: 'Waiting for an answer', accepted: 'Done ✓', done: 'Done', failed: 'Failed', declined: 'Declined', cancelled: 'Cancelled', expired: 'Expired'};
+function trRow(x){
+  const mine = ME && x.a === ME.u, other = mine ? x.b : x.a, give = mine ? [x.a_id, x.a_sh] : [x.b_id, x.b_sh], get = mine ? [x.b_id, x.b_sh] : [x.a_id, x.a_sh];
+  const btns = x.status === 'open' ? (mine ? `<button class="mini ghost" data-cancel="${x.id}">Cancel</button>` : `<button class="mini" data-acc="${x.id}">Accept</button><button class="mini ghost" data-dec="${x.id}">Decline</button>`) : '';
+  return `<div class="trow st-${x.status}"><div class="trx">${trMon(...give)}<span class="arr">⇄</span>${trMon(...get)}</div>
+    <div class="trinfo"><b>${mine ? 'You → ' : ''}<a href="${link(other)}">@${esc(other)}</a></b><small>You give ${esc(name(give[0]))}${give[1] ? ' ✦' : ''} · you get ${esc(name(get[0]))}${get[1] ? ' ✦' : ''}</small><small class="sts">${ST[x.status] || x.status}${x.note && x.status === 'failed' ? ': ' + esc(x.note) : ''}</small></div>
+    ${btns ? `<div class="trb">${btns}</div>` : ''}</div>`;
+}
+function tradesHtml(){
+  if (!MYTR) return '';
+  const L = MYTR.list, inc = L.filter(x => x.status === 'open' && x.b === ME.u), act = L.filter(x => !inc.includes(x) && (x.status === 'open' || x.status === 'accepted')), old = L.filter(x => !inc.includes(x) && !act.includes(x)).slice(0, 6);
+  return `<h2>Trades</h2><div class="card trades"><div class="trtop"><b>${MYTR.today}/7</b> trades today</div>
+    ${inc.length ? `<h4>Offers for you</h4>${inc.map(trRow).join('')}` : ''}
+    ${act.length ? `<h4>In progress</h4>${act.map(trRow).join('')}` : ''}
+    ${old.length ? `<h4>Recent</h4>${old.map(trRow).join('')}` : ''}
+    ${L.length ? '' : `<p class="hint" style="text-align:left">No trades yet. Open the page of another trainer and tap "Propose trade".</p>`}
+    <p class="hint" style="text-align:left">Shiny only for shiny · legendary only for legendary · Mega only for Mega · max 7 per day. Accepted trades are done right away.</p></div>`;
+}
+function bindTrades(){
+  const app = document.getElementById('app');
+  app.querySelectorAll('[data-acc],[data-dec]').forEach(b => b.onclick = async () => { b.disabled = true;
+    try { const r = await rpc('respond_trade', {p_token: AUTH.token, p_id: +(b.dataset.acc || b.dataset.dec), p_accept: !!b.dataset.acc});
+      if (r === 'accepted' && !DEMO){ try { build(await load()); } catch(e){} }
+      toast(r === 'accepted' ? 'Trade done! Check your box.' : r === 'failed' ? 'Not possible: one of the Pokémon is not available anymore' : 'Declined'); }
+    catch(e){ toast(e.message); } await loadTrades(); route(); });
+  app.querySelectorAll('[data-cancel]').forEach(b => b.onclick = async () => { b.disabled = true; try { await rpc('cancel_trade', {p_token: AUTH.token, p_id: +b.dataset.cancel}); toast('Offer cancelled'); } catch(e){ toast(e.message); } await loadTrades(); route(); });
+}
+// what the other trainer has from MY wishlist
+function wishMatch(t){ const w = (ME && ME.wish) || []; return w.filter(id => t.c[id] > 0); }
+function openPropose(other){
+  const me = BY[ME.u.toLowerCase()]; if (!me){ toast('Your page has no Pokémon yet'); return; }
+  const theirWish = ((PROF[other.u.toLowerCase()] || {}).wish || []), myWish = (ME.wish || []);
+  const st = {step: 'give', give: null, want: null, q: ''};
+  const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
+  const draw = () => {
+    const q = st.q.trim().toLowerCase(), match = x => !q || name(x.id).toLowerCase().includes(q);
+    let list = [], title = '', sub = '';
+    if (st.step === 'give'){ list = boxList(me, 'caught').filter(match); list.sort((a, b) => theirWish.includes(b.id) - theirWish.includes(a.id)); title = 'What do you give?'; sub = 'Pick one of your Pokémon'; }
+    else if (st.step === 'want'){ list = boxList(other, 'caught').filter(x => x.sh === st.give.sh && CAT(x.id) === CAT(st.give.id)).filter(match); list.sort((a, b) => myWish.includes(b.id) - myWish.includes(a.id)); title = 'What do you want?'; sub = `From @${esc(other.u)} · only ${st.give.sh ? 'shiny ' : ''}${CATN[CAT(st.give.id)]} Pokémon`; }
+    const shown = list.slice(0, 120), tag = x => (st.step === 'give' ? theirWish : myWish).includes(x.id) ? `<span class="wanted">${st.step === 'give' ? 'THEY WANT IT' : 'IN YOUR WISHLIST'}</span>` : '';
+    sh.innerHTML = `<div class="grab"></div>` + (st.step === 'confirm' ? `<h3>Send this offer?</h3><p class="sub">to @${esc(other.u)}</p>
+      <div class="trbig">${trMon(st.give.id, st.give.sh)}<span class="arr">⇄</span>${trMon(st.want.id, st.want.sh)}</div>
+      <p class="sub">You give <b>${esc(name(st.give.id))}${st.give.sh ? ' ✦' : ''}</b> and get <b>${esc(name(st.want.id))}${st.want.sh ? ' ✦' : ''}</b></p>
+      <p class="hint">If @${esc(other.u)} accepts, the trade is done right away. Offers expire after 48 hours.</p>
+      <div class="savebar"><button class="btn ghost" id="back">Back</button><button class="btn" id="send">Send offer</button></div>`
+    : `<h3>${title}</h3><p class="sub">${sub}</p>
+      <div class="search sm">${ICON.home}<input id="pq" type="search" placeholder="Search" value="${esc(st.q)}" autocomplete="off"></div>
+      <div class="picker">${shown.map(x => `<button class="slot pk ${x.sh ? 'shy' : ''} ${isMega(x.id) ? 'mg' : ''}" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}${tag(x)}<span>${x.sh ? '✦ ' : ''}${esc(name(x.id))}${x.cnt > 1 ? ' x' + x.cnt : ''}</span></button>`).join('') || `<p class="hint">${st.step === 'want' ? 'They have nothing of the same kind to trade' : 'No Pokémon found'}</p>`}</div>
+      <div class="savebar"><button class="btn ghost" id="back">${st.step === 'give' ? 'Cancel' : 'Back'}</button></div>`);
+    sh.querySelectorAll('.pk').forEach(b => b.onclick = () => { const v = {id: +b.dataset.id, sh: b.dataset.sh === '1'}; if (st.step === 'give'){ st.give = v; st.step = 'want'; } else { st.want = v; st.step = 'confirm'; } st.q = ''; draw(); });
+    const pq = sh.querySelector('#pq'); if (pq) pq.oninput = () => { st.q = pq.value; const p = pq.selectionStart; draw(); const n = sh.querySelector('#pq'); n.focus(); n.setSelectionRange(p, p); };
+    sh.querySelector('#back').onclick = () => { if (st.step === 'give') bg.close(); else { st.step = st.step === 'confirm' ? 'want' : 'give'; draw(); } };
+    const sd = sh.querySelector('#send'); if (sd) sd.onclick = async () => { sd.disabled = true; sd.textContent = 'Sending...';
+      try { await rpc('propose_trade', {p_token: AUTH.token, p_to: other.u, p_give: st.give.id, p_give_sh: st.give.sh, p_want: st.want.id, p_want_sh: st.want.sh}); bg.close(); toast('Offer sent to @' + other.u); await loadTrades(); }
+      catch(e){ sd.disabled = false; sd.textContent = 'Send offer'; toast(e.message); } };
+  };
+  draw();
+}
+async function recentHtml(){
+  try { RECENT = await rpc('recent_trades', {}); } catch(e){ RECENT = []; }
+  const el = document.getElementById('recent'); if (!el) return;
+  el.innerHTML = RECENT && RECENT.length ? `<div class="list">${RECENT.map(x => `<div class="row"><div class="trx">${trMon(x.a_id, x.a_sh)}<span class="arr">⇄</span>${trMon(x.b_id, x.b_sh)}</div><span class="who"><b><a href="${link(x.a)}">@${esc(x.a)}</a> ⇄ <a href="${link(x.b)}">@${esc(x.b)}</a></b><small style="color:var(--mute)">${esc(name(x.a_id))} for ${esc(name(x.b_id))}</small></span></div>`).join('')}</div>` : `<div class="card empty" style="margin:0">No trades yet. Verify your page and propose the first one!</div>`;
+}
+function demoTrades(fn, b){      // ?demo only
+  const me = (b.p_token || '').replace(/^demo-/, '');
+  if (fn === 'my_trades') return {today: demoTr.filter(x => (x.a === me || x.b === me) && x.status === 'accepted').length, list: demoTr.filter(x => x.a === me || x.b === me).slice().reverse()};
+  if (fn === 'propose_trade'){ demoTr.push({id: demoTrId++, a: me, b: b.p_to, a_id: b.p_give, a_sh: b.p_give_sh, b_id: b.p_want, b_sh: b.p_want_sh, status: 'open'}); demoTr.push({id: demoTrId++, a: b.p_to, b: me, a_id: b.p_want, a_sh: b.p_want_sh, b_id: b.p_give, b_sh: b.p_give_sh, status: 'open'}); return 1; }
+  if (fn === 'respond_trade'){ const x = demoTr.find(x => x.id === b.p_id); x.status = b.p_accept ? 'accepted' : 'declined'; return x.status; }
+  if (fn === 'cancel_trade'){ const x = demoTr.find(x => x.id === b.p_id); x.status = 'cancelled'; return null; }
+  if (fn === 'recent_trades') return [{a: 'pkmn.luca', b: 'giulia_shinyhunt', a_id: 445, a_sh: false, b_id: 448, b_sh: false}, {a: 'marco.trainer98', b: 'sara.pokefan', a_id: 133, a_sh: true, b_id: 25, b_sh: true}];
+  return null;
+}
+
 /* ===== ROUTER ===== */
 function route(){
   const app = document.getElementById('app'); if (!D) return;
@@ -595,10 +771,11 @@ function route(){
   app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : viewHome())
     + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br><a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
+  if (a === 'hof') recentHtml();
 }
 window.addEventListener('hashchange', route);
 async function start(){
-  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
+  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); await loadTrades(); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
   route();
   const pend = LS.get('lch_pending', null); if (pend && Date.now() < pend.until && !AUTH) pollClaim(pend.u, null);
   setInterval(setUpd, 30000);
