@@ -126,6 +126,9 @@ h2:first-child{margin-top:4px}
 .slot{aspect-ratio:1;border-radius:14px;background:var(--slot);position:relative;display:grid;place-items:center;cursor:pointer}
 .slot img{width:92%;height:92%;object-fit:contain}
 .slot.shy{background:linear-gradient(150deg,rgba(255,236,170,.95),rgba(255,206,120,.75));box-shadow:inset 0 0 0 2px rgba(255,200,60,.9)}
+.slot.mg{box-shadow:inset 0 0 0 2px #ff6fb5}
+.slot.shy.mg{box-shadow:inset 0 0 0 2px #ff6fb5,inset 0 0 0 4px rgba(255,200,60,.9)}
+.mgl{position:absolute;right:3px;top:3px;font-size:7.5px;font-weight:900;letter-spacing:.3px;background:#ff4fa3;color:#fff;border-radius:6px;padding:1px 4px;line-height:11px}
 .slot.e{background:var(--slotE);cursor:default}
 .slot.miss{background:var(--slotE)}
 .slot.miss span{color:rgba(255,255,255,.85);font-size:10px;font-weight:900}
@@ -146,7 +149,7 @@ h2:first-child{margin-top:4px}
 .types{display:flex;gap:6px;justify-content:center;margin:8px 0}
 .type{padding:3px 12px;border-radius:99px;color:#fff;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
 .tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:900;letter-spacing:.6px;margin-top:4px}
-.tag.legend{background:#ece6ff;color:var(--violet)}.tag.rare{background:#e3f0ff;color:var(--blue)}
+.tag.mega{background:linear-gradient(90deg,#ffe0f0,#e6e0ff);color:#b0308a}.tag.legend{background:#ece6ff;color:var(--violet)}.tag.rare{background:#e3f0ff;color:var(--blue)}
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .tog{margin-top:12px;font-weight:900;font-size:13px;padding:9px 16px;border-radius:99px;background:#fff6dc;color:#9b6c00}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
@@ -247,14 +250,16 @@ const CONFIG = { SOURCE: /[?&]demo/.test(location.search) ? 'demo' : 'supabase',
 const M = window.META, LEG = new Set(M.leg), RARE = new Set(M.rare), UB = new Set(M.ub), PARALEG = new Set(M.paraleg), PARADOX = new Set(M.paradox), EVENT = new Set(M.event);
 const IDS = Object.keys(M.n).map(Number).sort((a, b) => a - b);
 const REGIONS = M.reg.map(([n, a, b]) => ({n, ids: IDS.filter(id => id >= a && id <= b && !EVENT.has(id))}));
-const name = id => M.n[id] || ('#' + id);
+const MEGA = M.mega || {}, MEGAIDS = Object.keys(MEGA).map(Number).sort((a, b) => a - b);      // Live Catch ids 1101-1150 -> [name, base, types, pokeapi id]
+const isMega = id => !!MEGA[id], pid = id => MEGA[id] ? MEGA[id][3] : id;
+const name = id => M.n[id] || (MEGA[id] && MEGA[id][0]) || ('#' + id);
 const pad = id => '#' + String(id).padStart(4, '0');
 const SPR = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
-const spr = (id, sh) => SPR + 'other/home/' + (sh ? 'shiny/' : '') + id + '.png';
-const sprFallback = (img, id, sh) => { img.onerror = null; img.src = SPR + (sh ? 'shiny/' : '') + id + '.png'; };
+const spr = (id, sh) => SPR + 'other/home/' + (sh ? 'shiny/' : '') + pid(id) + '.png';
+const sprFallback = (img, id, sh) => { img.onerror = null; img.src = isMega(id) ? SPR + 'other/showdown/' + (sh ? 'shiny/' : '') + pid(id) + '.gif' : SPR + (sh ? 'shiny/' : '') + id + '.png'; };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const fmt = n => (n || 0).toLocaleString('en-US');
-const rarity = id => UB.has(id) ? ['legend', 'ULTRA BEAST'] : PARALEG.has(id) ? ['legend', 'PARADOX LEGEND'] : LEG.has(id) ? ['legend', 'LEGENDARY'] : PARADOX.has(id) ? ['rare', 'PARADOX'] : RARE.has(id) ? ['rare', 'RARE'] : null;
+const rarity = id => isMega(id) ? ['mega', /^Primal/.test(MEGA[id][0]) ? 'PRIMAL' : 'MEGA'] : UB.has(id) ? ['legend', 'ULTRA BEAST'] : PARALEG.has(id) ? ['legend', 'PARADOX LEGEND'] : LEG.has(id) ? ['legend', 'LEGENDARY'] : PARADOX.has(id) ? ['rare', 'PARADOX'] : RARE.has(id) ? ['rare', 'RARE'] : null;
 const TYPEC = {normal:'#9fa19f',fire:'#e62829',water:'#2980ef',grass:'#3fa129',electric:'#d6b400',ice:'#3dcef3',fighting:'#ff8000',poison:'#9141cb',ground:'#915121',flying:'#81b9ef',psychic:'#ef4179',bug:'#91a119',rock:'#afa981',ghost:'#704170',dragon:'#5060e1',dark:'#624d4e',steel:'#60a1b8',fairy:'#ef70ef'};
 const img = (id, sh, cls = '') => `<img class="${cls}" loading="lazy" alt="${esc(name(id))}" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})">`;
 const ICON = {
@@ -270,9 +275,9 @@ let D = null, T = [], BY = {};
 function build(data){
   D = data; const dex = data.dex || {}, av = data.av || {}, wk = (data.week || {}).n || {};
   T = Object.entries(dex).map(([u, d]) => {
-    const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0).map(Number);
-    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, dex: own.length, leg: own.filter(id => LEG.has(id)).length,
-      team: (d.team || []).filter(id => M.n[id]), st: d.st || 0, last: d.last, title: d.title || null, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
+    const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0 && M.n[k]).map(Number), mega = Object.keys(c).filter(k => c[k] > 0 && MEGA[k]).map(Number).sort((a, b) => a - b);
+    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length,
+      team: (d.team || []).filter(id => M.n[id] || MEGA[id]), st: d.st || 0, last: d.last, title: d.title || null, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -320,7 +325,7 @@ function rankRows(key, limit){
 
 /* ===== VIEWS ===== */
 function hofCards(){
-  const h = D.hof || {}, card = (e, cls, lab) => e && M.n[e.id] ? `<a class="hofc ${cls}" href="${link(e.u)}" style="text-decoration:none">
+  const h = D.hof || {}, card = (e, cls, lab) => e && (M.n[e.id] || MEGA[e.id]) ? `<a class="hofc ${cls}" href="${link(e.u)}" style="text-decoration:none">
     <div class="lab">${lab}</div>${img(e.id, e.sh)}<div class="nm">${e.sh ? '✦ ' : ''}${esc(name(e.id))}</div><div class="by">by ${esc(e.u)}</div></a>`
     : `<div class="hofc ${cls}"><div class="lab">${lab}</div><div style="padding:40px 0;font-weight:800;opacity:.9">Not yet</div></div>`;
   return `<div class="hof">${card(h.shiny, 'sh', 'LAST SHINY')}${card(h.legend, 'lg', 'LAST LEGENDARY')}</div>`;
@@ -368,11 +373,13 @@ const shN = (t, id) => Math.min(t.c[id] || 0, t.sc[id] !== undefined ? +t.sc[id]
 const nrN = (t, id) => Math.max(0, (t.c[id] || 0) - shN(t, id));      // normal copies
 function boxList(t, f){
   if (f === 'dex') return IDS.map(id => ({id, has: t.c[id] > 0, sh: t.c[id] > 0 && !nrN(t, id), cnt: 0}));
-  let ids = t.own.slice().sort((a, b) => a - b);
-  if (f === 'legend') ids = ids.filter(id => LEG.has(id) || UB.has(id));
-  if (f === 'rare') ids = ids.filter(id => RARE.has(id));
+  const base = id => isMega(id) ? MEGA[id][1] : id;      // family = base Pokémon: Charizard, Charizard shiny, Mega X, Mega Y...
+  let ids = f === 'mega' ? MEGAIDS.slice().sort((a, b) => base(a) - base(b) || a - b) : t.own.concat(t.mega).sort((a, b) => base(a) - base(b) || a - b);
+  if (f === 'legend') ids = ids.filter(id => LEG.has(base(id)) || UB.has(base(id)));
+  if (f === 'rare') ids = ids.filter(id => RARE.has(base(id)));
   const out = [];
   for (const id of ids){ const n = nrN(t, id), sh = shN(t, id);
+    if (f === 'mega' && !(t.c[id] > 0)){ out.push({id, has: false}); continue; }
     if (f !== 'shiny' && n) out.push({id, has: true, sh: false, cnt: n});
     if (sh) out.push({id, has: true, sh: true, cnt: sh}); }      // shiny in its own slot, right after the normal one
   return out;
@@ -382,10 +389,10 @@ function renderBox(){
   const t = BY[BOXSTATE.u.toLowerCase()], L = boxList(t, BOXSTATE.f), pages = Math.max(1, Math.ceil(L.length / 30));
   BOXSTATE.p = Math.min(Math.max(0, BOXSTATE.p), pages - 1);
   const items = L.slice(BOXSTATE.p * 30, BOXSTATE.p * 30 + 30), el = document.getElementById('box');
-  const label = BOXSTATE.f === 'dex' && items.length ? regionOf(items[0].id) + ' · ' + (BOXSTATE.p + 1) : 'BOX ' + (BOXSTATE.p + 1);
+  const label = BOXSTATE.f === 'dex' && items.length ? regionOf(items[0].id) + ' · ' + (BOXSTATE.p + 1) : BOXSTATE.f === 'mega' ? 'MEGA · ' + (BOXSTATE.p + 1) : 'BOX ' + (BOXSTATE.p + 1);
   let slots = items.map(x => {
-    if (!x.has) return `<div class="slot miss" data-id="${x.id}"><span>${String(x.id).padStart(4, '0')}</span></div>`;
-    return `<button class="slot ${x.sh ? 'shy' : ''}" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}${x.sh ? '<span class="star">✦</span>' : ''}${x.cnt > 1 ? `<span class="cnt">x${x.cnt}</span>` : ''}</button>`;
+    if (!x.has) return isMega(x.id) ? `<div class="slot miss" title="${esc(name(x.id))}">${img(x.id, false)}</div>` : `<div class="slot miss" data-id="${x.id}"><span>${String(x.id).padStart(4, '0')}</span></div>`;
+    return `<button class="slot ${x.sh ? 'shy' : ''} ${isMega(x.id) ? 'mg' : ''}" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}${x.sh ? '<span class="star">✦</span>' : ''}${isMega(x.id) ? '<span class="mgl">MEGA</span>' : ''}${x.cnt > 1 ? `<span class="cnt">x${x.cnt}</span>` : ''}</button>`;
   }).join('');
   for (let i = items.length; i < 30; i++) slots += '<div class="slot e"></div>';
   const dots = pages <= 14 ? Array.from({length: pages}, (_, i) => `<i class="${i === BOXSTATE.p ? 'on' : ''}"></i>`).join('') : `<span style="color:#fff;font-weight:900;font-size:12px">${BOXSTATE.p + 1} / ${pages}</span>`;
@@ -407,8 +414,8 @@ function viewTrainer(u){
     return `<a class="back" href="#/">${ICON.left}Back</a><div class="card"><b>Trainer not found</b><p class="empty">Check the spelling of the TikTok name, or catch your first Pokémon in the live.</p></div>`;
   }
   if (BOXSTATE.u !== t.u) BOXSTATE = {u: t.u, f: 'caught', p: 0};
-  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id]), wish = (P.wish || []).filter(id => M.n[id]), partner = M.n[P.partner] ? P.partner : 0;
-  const F = [['caught', 'Caught ' + t.dex], ['shiny', 'Shiny ' + t.s], ['legend', 'Legendary ' + t.leg], ['rare', 'Rare'], ['dex', 'Full Pokédex']];
+  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id] || MEGA[id]), wish = (P.wish || []).filter(id => M.n[id] || MEGA[id]), partner = (M.n[P.partner] || MEGA[P.partner]) ? P.partner : 0;
+  const F = [['caught', 'Caught ' + t.dex], ['shiny', 'Shiny ' + t.s], ['legend', 'Legendary ' + t.leg], ['mega', 'Mega ' + t.mg + '/' + MEGAIDS.length], ['rare', 'Rare'], ['dex', 'Full Pokédex']];
   const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], shN(t, arr[i]) > 0)}</button>` : '<div class="tm e"></div>').join('');
   const regs = REGIONS.map(r => { const have = r.ids.filter(id => t.c[id] > 0).length, done = t.badges.includes(r.n) || have >= r.ids.length;
     return `<div class="reg ${done ? 'done' : ''}"><span>${r.n}</span><div class="bar"><i style="width:${Math.round(have / r.ids.length * 100)}%"></i></div><em>${done ? 'BADGE' : have + '/' + r.ids.length}</em></div>`; }).join('');
@@ -437,11 +444,11 @@ function bindTrainer(){
   renderBox();
 }
 function sheet(t, id, sh){
-  const c = nrN(t, id), s = shN(t, id), rr = rarity(id), types = (M.t[id] || '').split('/').filter(Boolean);
+  const c = nrN(t, id), s = shN(t, id), rr = rarity(id), types = (M.t[id] || (MEGA[id] || [])[2] || '').split('/').filter(Boolean);
   const bg = document.createElement('div'); bg.className = 'sheet-bg';
   const draw = () => { bg.innerHTML = `<div class="sheet"><div class="grab"></div>
     <img class="big" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})" alt="">
-    <div class="no">${pad(id)} · ${regionOf(id)}</div><h3>${sh ? '✦ ' : ''}${esc(name(id))}</h3>
+    <div class="no">${isMega(id) ? 'from ' + esc(name(MEGA[id][1])) + ' · ' + pad(MEGA[id][1]) : pad(id) + ' · ' + regionOf(id)}</div><h3>${sh ? '✦ ' : ''}${esc(name(id))}</h3>
     ${rr ? `<span class="tag ${rr[0]}">${rr[1]}</span>` : ''}
     <div class="types">${types.map(x => `<span class="type" style="background:${TYPEC[x] || '#999'}">${x}</span>`).join('')}</div>
     <div class="sgrid"><div class="stat"><b>${c}</b><span>Normal</span></div><div class="stat s"><b>${s}</b><span>Shiny</span></div></div>
@@ -526,13 +533,13 @@ function pollClaim(u, bg){
 /* Edit my page: partner, favorites, wishlist, privacy */
 function openEdit(){
   if (!ME) return;
-  const t = BY[ME.u.toLowerCase()], own = t ? t.own.slice().sort((a, b) => a - b) : [];
+  const t = BY[ME.u.toLowerCase()], own = t ? t.own.slice().sort((a, b) => a - b).concat(t.mega) : [];
   const E = {fav: [...(ME.fav || [])], wish: [...(ME.wish || [])], partner: ME.partner || 0, hidden: !!ME.hidden}, st = {tab: t ? 'partner' : 'privacy', q: ''};
   const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
   const TABS = [['partner', 'Partner'], ['fav', 'Favorites'], ['wish', 'Wishlist'], ['privacy', 'Privacy']];
   const pick = id => `<button class="slot pk ${(st.tab === 'fav' ? E.fav.includes(id) : st.tab === 'wish' ? E.wish.includes(id) : E.partner === id) ? 'sel' : ''}" data-id="${id}">${img(id, false)}<span>${esc(name(id))}</span></button>`;
   const draw = () => {
-    const pool = st.tab === 'wish' ? IDS : own, q = st.q.trim().toLowerCase();
+    const pool = st.tab === 'wish' ? IDS.concat(MEGAIDS) : own, q = st.q.trim().toLowerCase();
     const list = pool.filter(id => !q || name(id).toLowerCase().includes(q) || String(id) === q), shown = list.slice(0, 120);
     const sel = st.tab === 'fav' ? `<div class="team">${Array.from({length: 6}, (_, i) => E.fav[i] ? `<button class="tm rm" data-rm="${E.fav[i]}">${img(E.fav[i], false)}</button>` : '<div class="tm e"></div>').join('')}</div><p class="hint">${E.fav.length}/6 · tap to remove</p>`
       : st.tab === 'wish' ? (E.wish.length ? `<div class="wish">${E.wish.map(id => `<button class="tm rm" data-rm="${id}">${img(id, false)}</button>`).join('')}</div>` : '') + `<p class="hint">${E.wish.length}/30 · the Pokémon you are looking for</p>`
