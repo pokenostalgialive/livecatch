@@ -468,8 +468,10 @@ function hofCards(){
   const h = D.hof || {}, card = (e, cls, lab) => e && (M.n[e.id] || MEGA[e.id]) ? `<a class="hofc ${cls}" href="${link(e.u)}" style="text-decoration:none">
     <div class="lab">${lab}</div>${img(e.id, e.sh)}<div class="nm">${e.sh ? '✦ ' : ''}${esc(name(e.id))}</div><div class="by">by ${esc(e.u)}</div></a>`
     : `<div class="hofc ${cls}"><div class="lab">${lab}</div><div style="padding:34px 0;font-weight:800;opacity:.9;font-size:13px">Not yet</div></div>`;
-  const legOk = e => e && !isMega(e.id), raid = h.raid || (h.legend && isMega(h.legend.id) ? h.legend : null);      // Mega/raid bosses never count as "legendary"
-  return `<div class="hof">${card(h.shiny, 'sh', 'LAST SHINY')}${card(legOk(h.legend) ? h.legend : null, 'lg', 'LAST LEGENDARY')}${card(raid, 'rd', 'LAST DYNAMAX RAID')}</div>`;
+  const legOk = e => e && !isMega(e.id), raidLeg = e => e && LEG.has(+e.id) && !isMega(e.id);      // legendary raid bosses go to LEGENDARY, the others (Dynamax, Mega) to DYNAMAX RAID
+  const legend = h.legend && legOk(h.legend) ? h.legend : raidLeg(h.raid) ? h.raid : null;
+  const dmax = h.raid && !raidLeg(h.raid) ? h.raid : h.legend && isMega(h.legend.id) ? h.legend : null;
+  return `<div class="hof">${card(h.shiny, 'sh', 'LAST SHINY')}${card(legend, 'lg', 'LAST LEGENDARY')}${card(dmax, 'rd', 'LAST DYNAMAX RAID')}</div>`;
 }
 function viewHome(){
   nav('home'); const day = D.day || {};
