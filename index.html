@@ -299,7 +299,23 @@ h2:first-child{margin-top:4px}
 .mvpick{border-radius:14px;padding:2px;background:transparent}.mvpick.sel{box-shadow:inset 0 0 0 3px var(--teal)}
 .mvc{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:#f3f7fa;border-left:6px solid var(--c)}
 .mvc b{font-weight:900}.mvc small{font-size:11px;font-weight:800;color:var(--mute)}
-.bov{position:fixed;inset:0;z-index:90;background:linear-gradient(180deg,#bfe9f2 0%,#d9f2d0 55%,#a9d98f 100%);display:flex;justify-content:center}
+.bov{position:fixed;inset:0;z-index:90;display:flex;justify-content:center;overflow:hidden;background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 35%,#bfe9f2) 0%,#e6f6ef 48%,color-mix(in srgb,var(--tc) 18%,#a9d98f) 62%,color-mix(in srgb,var(--tc) 25%,#7fc46a) 100%)}
+.bbg{position:absolute;inset:0;pointer-events:none}
+.bbg::before{content:"";position:absolute;left:-10%;right:-10%;top:57%;height:6px;background:rgba(255,255,255,.5);filter:blur(2px)}
+.cl{position:absolute;height:34px;border-radius:40px;background:rgba(255,255,255,.75);filter:blur(1px);animation:cloud linear infinite}
+.cl::before,.cl::after{content:"";position:absolute;background:inherit;border-radius:50%}
+.cl::before{width:46%;height:150%;left:14%;top:-60%}.cl::after{width:34%;height:120%;left:50%;top:-40%}
+.c1{width:150px;top:9%;animation-duration:38s}.c2{width:100px;top:20%;animation-duration:52s;animation-delay:-20s;opacity:.7}.c3{width:190px;top:33%;animation-duration:64s;animation-delay:-40s;opacity:.55}
+@keyframes cloud{from{transform:translateX(-260px)}to{transform:translateX(calc(100vw + 60px))}}
+.spk{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 10px 3px color-mix(in srgb,var(--tc) 60%,#fff);animation:spk 6s ease-in-out infinite;opacity:0}
+.s1{left:12%;top:62%}.s2{left:78%;top:70%;animation-delay:1.5s}.s3{left:40%;top:85%;animation-delay:3s}.s4{left:88%;top:52%;animation-delay:4.5s}
+@keyframes spk{0%,100%{opacity:0;transform:translateY(0) scale(.6)}40%{opacity:.9}70%{opacity:0;transform:translateY(-60px) scale(1)}}
+.bfield{position:relative;z-index:1}
+.bspr{position:relative}
+.bspr::before{content:"";position:absolute;left:50%;bottom:6px;width:180px;height:44px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at center,color-mix(in srgb,var(--tc) 30%,#d8ecc4) 0 55%,color-mix(in srgb,var(--tc) 45%,#8fc77a) 56% 70%,transparent 71%);z-index:-1}
+.bspr.foe::before{bottom:-4px;width:200px}
+.bspr img.ok{animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .bfield{width:100%;max-width:520px;height:100%;display:flex;flex-direction:column;padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
 .btop{display:flex;align-items:center;gap:10px;font-weight:900}.btop b{flex:1}
 .bx{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.8);font-weight:900}
@@ -900,12 +916,12 @@ function hwHomeHtml(){
 /* ===== BATTLES vs BOTS (gyms + random trainers) ===== */
 const BT = window.BATTLE || null, TI = {}; if (BT) BT.types.forEach((t, i) => TI[t] = i);
 const GYMS = [
-  {n: 'Mossbrook Gym', l: 'Nell', t: 'bug', b: 'Moss Badge', team: [402, 166, 12]},
-  {n: 'Tidewater Gym', l: 'Marlo', t: 'water', b: 'Tide Badge', team: [195, 419, 171]},
-  {n: 'Sparkline Gym', l: 'Volta', t: 'electric', b: 'Spark Badge', team: [26, 181, 101]},
-  {n: 'Greenhollow Gym', l: 'Fern', t: 'grass', b: 'Leaf Badge', team: [71, 407, 103]},
+  {n: 'Mossbrook Gym', l: 'Nell', t: 'bug', b: 'Moss Badge', team: [12, 416, 123]},
+  {n: 'Tidewater Gym', l: 'Marlo', t: 'water', b: 'Tide Badge', team: [55, 121, 130]},
+  {n: 'Sparkline Gym', l: 'Volta', t: 'electric', b: 'Spark Badge', team: [26, 181, 466]},
+  {n: 'Greenhollow Gym', l: 'Fern', t: 'grass', b: 'Leaf Badge', team: [71, 407, 3]},
   {n: 'Duskveil Gym', l: 'Morwen', t: 'ghost', b: 'Dusk Badge', team: [354, 429, 94]},
-  {n: 'Cinderpeak Gym', l: 'Kora', t: 'fire', b: 'Cinder Badge', team: [38, 229, 59]},
+  {n: 'Cinderpeak Gym', l: 'Kora', t: 'fire', b: 'Cinder Badge', team: [38, 229, 6]},
   {n: 'Mindspire Gym', l: 'Sable', t: 'psychic', b: 'Mind Badge', team: [65, 196, 282]},
   {n: 'Skyfang Gym', l: 'Draven', t: 'dragon', b: 'Fang Badge', team: [612, 149, 373]}
 ];
@@ -934,7 +950,7 @@ function calcDmg(a, d, m, roll = true){
 function botPick(me, foe, rnd = 0.3){
   const opts = me.mv.map((x, i) => ({i, m: MV(x.id), x}));
   const heal = opts.find(o => o.m[6] === 'heal' && o.x.heals > 0), prot = opts.find(o => o.m[6] === 'protect');
-  if (heal && me.hp < me.maxhp * 0.4 && Math.random() < 0.6) return heal.i;
+  if (heal && me.hp < me.maxhp * 0.45 && Math.random() < 0.75) return heal.i;
   if (prot && !me.lastProt && Math.random() < 0.12) return prot.i;
   const atk = opts.filter(o => o.m[2] > 0).map(o => ({i: o.i, v: calcDmg(me, foe, o.m, false).dmg * (o.m[3] || 100) / 100 + (o.m[5] > 0 && foe.hp < foe.maxhp * 0.25 ? 999 : 0)}));
   if (!atk.length) return 0;
@@ -942,9 +958,9 @@ function botPick(me, foe, rnd = 0.3){
   return Math.random() >= rnd ? atk[0].i : atk[Math.floor(Math.random() * atk.length)].i;
 }
 function randomTrainer(){
-  const lim = 420 + BPROG.badges * 18, pool = IDS.filter(id => BT.p[id] && !LEG.has(id) && !EVENT.has(id)).filter(id => { const s = BT.p[id][0].reduce((a, b) => a + b, 0); return s >= lim - 90 && s <= lim + 60; });
+  const lim = 460 + BPROG.badges * 18, pool = IDS.filter(id => BT.p[id] && !LEG.has(id) && !EVENT.has(id)).filter(id => { const s = BT.p[id][0].reduce((a, b) => a + b, 0); return s >= lim - 90 && s <= lim + 60; });
   const team = []; while (team.length < 3 && pool.length){ const id = pool[Math.floor(Math.random() * pool.length)]; if (!team.includes(id)) team.push(id); }
-  return {n: TCLS[Math.floor(Math.random() * TCLS.length)] + ' ' + TNAMES[Math.floor(Math.random() * TNAMES.length)], team, kind: 'trainer', rnd: 0.4};
+  return {n: TCLS[Math.floor(Math.random() * TCLS.length)] + ' ' + TNAMES[Math.floor(Math.random() * TNAMES.length)], team, kind: 'trainer', rnd: 0.25};
 }
 async function loadBattle(){
   if (!AUTH) return;
@@ -971,7 +987,7 @@ function viewBattle(){
 }
 function bindBattle(){
   const r = document.getElementById('rndt'); if (r) r.onclick = () => pickTeam(randomTrainer());
-  document.querySelectorAll('[data-gym]').forEach(b => b.onclick = () => { const i = +b.dataset.gym, g = GYMS[i]; pickTeam({n: 'Leader ' + g.l, gym: i, team: g.team, kind: 'gym', rnd: 0.5 - i * 0.05}); });
+  document.querySelectorAll('[data-gym]').forEach(b => b.onclick = () => { const i = +b.dataset.gym, g = GYMS[i]; pickTeam({n: 'Leader ' + g.l, gym: i, team: g.team, kind: 'gym', rnd: 0.25 - i * 0.025}); });
   const bb = document.getElementById('bboard'); if (bb) loadBoard().then(() => { const L = (BBOARD || []).filter(x => x.badges > 0 || x.wins > 0);
     bb.innerHTML = L.length ? `<div class="list">${L.slice(0, 20).map((x, i) => { const t = BY[x.u.toLowerCase()] || {u: x.u, skins: {}}; return `<a class="row" href="${link(x.u)}" style="text-decoration:none;color:inherit"><span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${avatar(t)}<span class="who"><b>${esc(x.u)}</b><small style="color:var(--mute)">${fmt(x.wins)} wins</small></span>${badgesRow(x.badges)}</a>`; }).join('')}</div>` : `<div class="card empty" style="margin:0">No badges yet. Be the first!</div>`; });
 }
@@ -1030,13 +1046,13 @@ const bimg = (id, sh, back) => { const L = bsrcs(id, sh, back); return `<img alt
 async function runBattle(opp, mine){
   const foes = opp.team.map(id => mkMon(id, 100, defMoves(id), false));
   let a = 0, f = 0; const P = mine, F = foes;
-  const ov = document.createElement('div'); ov.className = 'bov'; document.body.appendChild(ov);
+  const ov = document.createElement('div'); ov.className = 'bov'; ov.style.setProperty('--tc', opp.kind === 'gym' ? TYPEC[GYMS[opp.gym].t] : '#5fb3e6'); document.body.appendChild(ov);
   const hpbar = m => { const p = Math.max(0, m.hp / m.maxhp * 100); return `<div class="hpb"><i style="width:${p}%;background:${p > 50 ? '#3cc46d' : p > 20 ? '#f2b630' : '#e5484d'}"></i></div><small>${Math.max(0, m.hp)}/${m.maxhp}</small>`; };
   const dots = (arr, cur) => arr.map((m, i) => `<i class="${m.hp <= 0 ? 'ko' : i === cur ? 'cur' : ''}"></i>`).join('');
   let log = '', busy = false;
   const render = (mode = 'moves') => {
     const pm = P[a], fm = F[f], keep = [ov.querySelector('#sprF img'), ov.querySelector('#sprP img')];
-    ov.innerHTML = `<div class="bfield">
+    ov.innerHTML = `<div class="bbg"><i class="cl c1"></i><i class="cl c2"></i><i class="cl c3"></i><i class="spk s1"></i><i class="spk s2"></i><i class="spk s3"></i><i class="spk s4"></i></div><div class="bfield">
       <div class="btop"><button class="bx" id="bquit">✕</button><b>${esc(opp.n)}</b><span class="bdots">${dots(F, f)}</span></div>
       <div class="bfoe"><div class="binfo"><b>${esc(name(fm.id))}</b><span>Lv ${fm.lv}</span>${hpbar(fm)}</div><div class="bspr foe" id="sprF">${bimg(fm.id, false, false)}</div></div>
       <div class="bme"><div class="bspr me" id="sprP">${bimg(pm.id, pm.sh, true)}</div><div class="binfo"><b>${pm.sh ? '✦ ' : ''}${esc(name(pm.id))}</b><span>Lv ${pm.lv}</span>${hpbar(pm)}<span class="bdots">${dots(P, a)}</span></div></div>
