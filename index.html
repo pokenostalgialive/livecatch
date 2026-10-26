@@ -243,6 +243,38 @@ h2:first-child{margin-top:4px}
 .slot.pk .wanted{color:#fff;font-size:8px;font-weight:900;max-width:none;letter-spacing:.2px;text-align:center}
 .onlyn{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:800;color:var(--mute);margin:0 0 8px;cursor:pointer}
 .onlyn input{width:18px;height:18px;accent-color:var(--teal)}
+.avw{position:relative;display:inline-block;flex:none}
+.hat{position:absolute;left:-18%;top:-42%;width:70%;transform:rotate(-18deg);pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+.hat svg{width:100%;height:auto;display:block}
+.prof .avw .hat{top:-30%}
+.skb{display:inline-block;width:22px;height:22px;vertical-align:-3px;margin-left:6px;border-radius:50%;padding:2px}
+.skb svg,.ski svg{width:100%;height:100%;display:block}
+.skb.sk-pumpkin,.sk.on.sk-pumpkin{background:linear-gradient(150deg,#f3c49b,#cd7f32)}
+.skb.sk-bats,.sk.on.sk-bats{background:linear-gradient(150deg,#f2f4f7,#a9b4c2)}
+.skb.sk-ghost,.sk.on.sk-ghost{background:linear-gradient(150deg,#ffe98a,#e8a917)}
+.sk.on.sk-witch{background:linear-gradient(150deg,#d9c4ff,#7a5cf0)}
+.skins.hwon{background:linear-gradient(160deg,#2b2140,#4b2a7a);color:#fff}
+.skins.hwon .hint{color:#cbbcf2}
+.hwtxt{font-size:13px;font-weight:700;color:#e6dcff;margin-bottom:10px}.hwtxt b{color:#ffb347}
+.skg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sk{border-radius:14px;padding:8px 4px;text-align:center;background:#f1f5f9;color:var(--ink)}
+.hwon .sk{background:rgba(255,255,255,.1);color:#fff}
+.sk .ski{display:block;width:40px;height:40px;margin:0 auto 4px;filter:grayscale(1) opacity(.45)}
+.sk.on .ski{filter:none}
+.sk b{display:block;font-size:11px;font-weight:900;line-height:1.15}
+.sk small{display:block;font-size:9px;font-weight:900;letter-spacing:.5px;opacity:.8;margin-top:2px}
+.sk.on{color:#1d2a3a}.sk.on small{opacity:1}
+.sk .bar{height:6px;margin:6px 4px 2px;background:rgba(127,127,127,.25)}
+.sk .bar i{background:linear-gradient(90deg,#ff8a00,#ffb347)}
+.sk em{font-style:normal;font-size:10px;font-weight:800;opacity:.85}
+.stones{display:flex;gap:12px;align-items:center;margin-top:14px}
+.stn{width:38px;height:38px;flex:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0 8%,#7fd8ff 9% 30%,#3a7bd5 60%,#1d3f8a);box-shadow:0 0 0 3px #e3eefc}
+.stones b{display:block;font-weight:900}.stones small{display:block;font-size:12px;font-weight:700;color:var(--mute)}
+.hwbox{margin-top:12px;border-radius:var(--r);padding:14px;background:linear-gradient(160deg,#2b2140,#4b2a7a);color:#fff;box-shadow:var(--shadow);text-align:center}
+.hwh{display:flex;gap:10px;align-items:center;text-align:left;margin-bottom:8px}.hwh .ski{width:42px;height:42px;flex:none}
+.hwh b{display:block;font-weight:900;font-size:16px}.hwh small{display:block;font-size:12px;font-weight:700;color:#d8ccf5}
+.hwbox .row{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.12);padding:8px 2px}.hwbox .val small{color:#cbbcf2}.hwbox .pos:not(.p1):not(.p2):not(.p3){color:#cbbcf2}
+.hwbox .hint{color:#cbbcf2}
 /* desktop */
 @media(min-width:860px){
   body{padding-bottom:0}
@@ -311,7 +343,7 @@ function build(data){
   T = Object.entries(dex).map(([u, d]) => {
     const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0 && M.n[k]).map(Number), mega = Object.keys(c).filter(k => c[k] > 0 && MEGA[k]).map(Number).sort((a, b) => a - b);
     return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length,
-      team: (d.team || []).filter(id => M.n[id] || MEGA[id]), st: d.st || 0, last: d.last, title: d.title || null, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
+      team: (d.team || []).filter(id => M.n[id] || MEGA[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -329,7 +361,8 @@ function ago(t){ if (!t) return ''; const m = Math.round((Date.now() - t) / 6000
 const COLORS = ['#16a99e', '#2f6fe0', '#e5587e', '#7a5cf0', '#e8a917', '#ef7d2d', '#3fa129', '#d23f8c'];
 function avatar(t, cls = 'av'){
   const ch = (t.u.replace(/[^a-z0-9]/gi, '')[0] || '?').toUpperCase(), col = COLORS[[...t.u].reduce((s, c) => s + c.charCodeAt(0), 0) % COLORS.length];
-  return `<span class="${cls}" style="background:${col}">${t.av ? `<img src="${esc(t.av)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}${t.av ? '' : ch}</span>`;
+  const a = `<span class="${cls}" style="background:${col}">${t.av ? `<img src="${esc(t.av)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}${t.av ? '' : ch}</span>`;
+  return t.skins && t.skins.witch ? `<span class="avw">${a}<span class="hat">${SKICON.witch}</span></span>` : a;
 }
 const link = u => '#/t/' + encodeURIComponent(u);
 function nav(active){
@@ -346,14 +379,15 @@ const RANKS = {
   shiny: {l: 'Shiny', v: t => t.s, u: 'shiny'},
   legend: {l: 'Legendary', v: t => t.leg, u: 'legends'},
   week: {l: 'This week', v: t => t.wk, u: 'this week'},
-  last: {l: 'Last week', v: t => ((D.weekPrev || {}).n || {})[t.u] || 0, u: 'last week'}
+  last: {l: 'Last week', v: t => ((D.weekPrev || {}).n || {})[t.u] || 0, u: 'last week'},
+  hw: {l: 'Halloween', v: t => t.hw, u: 'hunted'}
 };
 function rankRows(key, limit){
   const R = RANKS[key], rows = T.map(t => [t, R.v(t)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, limit || 100);
   if (!rows.length) return `<div class="list"><div class="row" style="color:var(--mute);font-weight:700">No data yet</div></div>`;
   return `<div class="list">${rows.map(([t, v], i) => `<a class="row" href="${link(t.u)}" style="text-decoration:none;color:inherit">
     <span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${avatar(t)}
-    <span class="who"><b>${esc(t.u)}</b>${t.title ? `<small>${esc(t.title)}</small>` : ''}</span>
+    <span class="who"><b>${esc(t.u)}${skinBadge(t)}</b>${t.title ? `<small>${esc(t.title)}</small>` : ''}</span>
     <span class="val">${fmt(v)}<small>${R.u}</small></span></a>`).join('')}</div>`;
 }
 
@@ -371,6 +405,7 @@ function viewHome(){
       <div class="search">${ICON.home}<input id="q" type="search" placeholder="Your TikTok name" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"><div class="sugg" id="sugg" hidden></div></div></section>
     ${T.length ? '' : `<div class="card" style="margin-top:12px;font-weight:800;color:var(--mute);text-align:center">The boxes fill up during the next live. Come back soon!</div>`}
     <div class="today"><div><b>${fmt(T.length)}</b><span>Trainers</span></div><div><b>${fmt(T.reduce((s, t) => s + t.n, 0))}</b><span>Caught</span></div><div><b>${fmt(day.n)}</b><span>Today</span></div></div>
+    ${hwHomeHtml()}
     <h2>Hall of Fame</h2>${hofCards()}
   </div><div>
     <h2>Top trainers</h2>${rankRows('catches', 5)}
@@ -390,7 +425,7 @@ function bindSearch(){
 }
 function viewRank(key){
   nav('rank'); key = RANKS[key] ? key : 'catches';
-  return `<div class="rankg"><h2>Rankings</h2><div class="chips">${Object.entries(RANKS).map(([k, r]) => `<a class="chip ${k === key ? 'on' : ''}" href="#/rank/${k}" style="text-decoration:none">${r.l}</a>`).join('')}</div>${rankRows(key)}</div>`;
+  return `<div class="rankg"><h2>Rankings</h2><div class="chips">${Object.entries(RANKS).filter(([k]) => k !== 'hw' || hwOn() || k === key).map(([k, r]) => `<a class="chip ${k === key ? 'on' : ''}" href="#/rank/${k}" style="text-decoration:none">${r.l}</a>`).join('')}</div>${rankRows(key)}</div>`;
 }
 function viewHof(){
   nav('hof');
@@ -458,15 +493,18 @@ function viewTrainer(u){
   const wm = !isMe(t.u) && ME ? wishMatch(t) : [];
   const act = (isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : ME ? `<button class="btn" id="propose">Propose trade</button>` : `<button class="btn ghost" id="claim">This is me</button>`) + `<button class="btn ghost" id="sharec">Share card</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
-    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
+    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}${skinBadge(t)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
       <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div>
       <div class="acts">${act}</div>${wm.length ? `<div class="wmatch">Has ${wm.length} Pokémon from your wishlist: ${wm.slice(0, 6).map(id => `<span class="gm2">${img(id, false)}</span>`).join('')}</div>` : ''}</div>
+    ${stonesHtml(t)}
+    ${hwOn() ? skinsHtml(t) : ''}
     ${isMe(t.u) ? tradesHtml() : ''}
     ${fav.length ? `<h2>Favorites</h2><div class="card"><div class="team">${six(fav, '')}</div></div>` : ''}
     <h2>Team</h2><div class="card"><div class="team">${six(t.team, '')}</div>${t.team.length ? '' : `<p class="empty">No team yet. Write F + Pokémon name in the live chat to build it.</p>`}</div>
     ${wish.length ? `<h2>Looking for</h2><div class="card"><div class="wish">${wish.map(id => `<button class="tm ${t.c[id] > 0 ? '' : 'want'}" data-id="${id}" title="${esc(name(id))}">${img(id, false)}</button>`).join('')}</div></div>` : ''}
     ${goalsHtml(t)}
     <h2>Regions</h2><div class="card regs">${regs}</div>
+    ${hwOn() ? '' : skinsHtml(t)}
   </div><div>
     <h2>Pokémon box</h2><div class="chips" id="bf">${F.map(([k, l]) => `<button class="chip ${k === BOXSTATE.f ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
     <div class="box" id="box"></div>
@@ -769,6 +807,39 @@ function demoTrades(fn, b){      // ?demo only
   if (fn === 'cancel_trade'){ const x = demoTr.find(x => x.id === b.p_id); x.status = 'cancelled'; return null; }
   if (fn === 'recent_trades') return [{a: 'pkmn.luca', b: 'giulia_shinyhunt', a_id: 445, a_sh: false, b_id: 448, b_sh: false}, {a: 'marco.trainer98', b: 'sara.pokefan', a_id: 133, a_sh: true, b_id: 25, b_sh: true}];
   return null;
+}
+
+/* ===== HALLOWEEN SKINS (event 26 Oct - 2 Nov) + MEGA STONES ===== */
+const HW_END = new Date('2026-11-03T00:00:00+01:00').getTime(), HW_START = new Date('2026-10-26T00:00:00+01:00').getTime();
+const hwOn = () => Date.now() >= HW_START && Date.now() < HW_END;
+const SKICON = {
+  pumpkin: '<svg viewBox="0 0 40 40"><path d="M20 9c1-4 4-5 6-5" stroke="#3f7d2c" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="13" cy="23" rx="9" ry="11" fill="#e8741c"/><ellipse cx="27" cy="23" rx="9" ry="11" fill="#e8741c"/><ellipse cx="20" cy="23" rx="8" ry="12" fill="#f58a2a"/><path d="M14 20l3 3h-6zM26 20l3 3h-6zM13 28c4 3 10 3 14 0l-2 2-2-1-3 2-3-2-2 1z" fill="#5a2a00"/></svg>',
+  bats: '<svg viewBox="0 0 40 40"><path d="M20 15c-2-3-1-6-1-6l1 2 1-2s1 3-1 6c4-3 9-4 14-1-3 0-5 2-5 5-2-2-4-2-6 0-1 2-2 4-3 5-1-1-2-3-3-5-2-2-4-2-6 0 0-3-2-5-5-5 5-3 10-2 14 1z" fill="#2b2140"/><circle cx="18.5" cy="14" r=".9" fill="#ffd23f"/><circle cx="21.5" cy="14" r=".9" fill="#ffd23f"/></svg>',
+  ghost: '<svg viewBox="0 0 40 40"><path d="M9 34V18a11 11 0 0 1 22 0v16l-4-3-3 3-4-3-4 3-3-3z" fill="#f4f1ff" stroke="#8d7fd6" stroke-width="1.5"/><ellipse cx="16" cy="19" rx="2" ry="3" fill="#2b2140"/><ellipse cx="24" cy="19" rx="2" ry="3" fill="#2b2140"/></svg>',
+  witch: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="31" rx="17" ry="4" fill="#4b2a7a"/><path d="M11 31L19 6c1-2 3-1 4 1l1 4-3-1 6 21z" fill="#6a3aa8"/><rect x="12" y="26" width="16" height="4" fill="#ffb347"/></svg>'
+};
+const SKINS = [['pumpkin', 'Pumpkin Ball', 'BRONZE', 'hw', 100], ['bats', 'Bat Trail', 'SILVER', 'hw', 250], ['ghost', 'Ghost Aura', 'GOLD', 'hw', 500], ['witch', 'Witch Hat', 'HAT', 'hwr', 3]];
+const topSkin = t => t.skins.ghost ? 'ghost' : t.skins.bats ? 'bats' : t.skins.pumpkin ? 'pumpkin' : null;
+const skinBadge = t => { const k = topSkin(t); return k ? `<span class="skb sk-${k}" title="${SKINS.find(s => s[0] === k)[1]}">${SKICON[k]}</span>` : ''; };
+function skinsHtml(t){
+  const any = Object.keys(t.skins).length || t.hw || t.hwr;
+  if (!hwOn() && !any) return '';
+  const cards = SKINS.map(([k, nm, tier, f, max]) => { const v = t[f] || 0, has = !!t.skins[k];
+    return `<div class="sk ${has ? 'on sk-' + k : ''}"><span class="ski">${SKICON[k]}</span><b>${nm}</b><small>${has ? 'UNLOCKED' : tier}</small>
+      ${has ? '' : `<div class="bar"><i style="width:${Math.min(100, Math.round(v / max * 100))}%"></i></div><em>${fmt(Math.min(v, max))}/${max}${f === 'hwr' ? ' raids' : ''}</em>`}</div>`; }).join('');
+  return `<h2>${hwOn() ? 'Halloween skins' : 'Skins'}</h2><div class="card skins ${hwOn() ? 'hwon' : ''}">
+    ${hwOn() ? `<p class="hwtxt">Catch Ghost and Dark Pokémon in the live until November 2: <b>${fmt(t.hw)}</b> so far${t.hwr ? ` · ${t.hwr} Mega Gengar raid${t.hwr > 1 ? 's' : ''}` : ''}</p>` : ''}
+    <div class="skg">${cards}</div><p class="hint" style="text-align:left">Skins stay forever.</p></div>`;
+}
+function stonesHtml(t){
+  return t.stones > 0 ? `<div class="card stones"><span class="stn"></span><div><b>Mega Stone x${t.stones}</b><small>Write MEGA + a Pokémon in the live chat (e.g. MEGA charizard)</small></div></div>` : '';
+}
+function hwHomeHtml(){
+  if (!hwOn()) return '';
+  const top = T.filter(t => t.hw > 0).sort((a, b) => b.hw - a.hw).slice(0, 3), days = Math.max(0, Math.ceil((HW_END - Date.now()) / 86400000));
+  return `<div class="hwbox"><div class="hwh"><span class="ski">${SKICON.pumpkin}</span><div><b>Halloween event</b><small>Catch Ghost and Dark Pokémon to unlock skins · ${days} day${days === 1 ? '' : 's'} left</small></div></div>
+    ${top.length ? top.map((t, i) => `<a class="row" href="${link(t.u)}"><span class="pos p${i + 1}">${i + 1}</span>${avatar(t)}<span class="who"><b>${esc(t.u)}</b></span><span class="val">${fmt(t.hw)}<small>hunted</small></span></a>`).join('') : '<p class="hint">No hunters yet: be the first!</p>'}
+    <a class="chip on" href="#/rank/hw" style="text-decoration:none;display:inline-block;margin-top:8px">Halloween ranking</a></div>`;
 }
 
 /* ===== ROUTER ===== */
