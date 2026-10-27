@@ -419,7 +419,7 @@ function build(data){
   T = Object.entries(dex).map(([u, d]) => {
     const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0 && M.n[k]).map(Number), mega = Object.keys(c).filter(k => c[k] > 0 && MEGA[k]).map(Number).sort((a, b) => a - b);
     return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length,
-      team: (d.team || []).filter(id => M.n[id] || MEGA[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
+      team: (d.team || []).filter(id => M.n[id] || MEGA[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -563,7 +563,7 @@ function viewTrainer(u){
     return `<a class="back" href="#/">${ICON.left}Back</a><div class="card"><b>Trainer not found</b><p class="empty">Check the spelling of the TikTok name, or catch your first Pokémon in the live.</p></div>`;
   }
   if (BOXSTATE.u !== t.u) BOXSTATE = {u: t.u, f: 'caught', p: 0};
-  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id] || MEGA[id]), wish = (P.wish || []).filter(id => M.n[id] || MEGA[id]), partner = (M.n[P.partner] || MEGA[P.partner]) ? P.partner : 0;
+  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id] || MEGA[id]), wish = [...new Set((P.wish || []).concat(t.lwish))].filter(id => M.n[id] || MEGA[id]), partner = (M.n[P.partner] || MEGA[P.partner]) ? P.partner : 0;
   const F = [['caught', 'Caught ' + t.dex], ['shiny', 'Shiny ' + t.s], ['legend', 'Legendary ' + t.leg], ['mega', 'Mega ' + t.mg + '/' + MEGAIDS.length], ['rare', 'Rare'], ['dex', 'Full Pokédex']];
   const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], shN(t, arr[i]) > 0)}</button>` : '<div class="tm e"></div>').join('');
   const regs = REGIONS.map(r => { const have = r.ids.filter(id => t.c[id] > 0).length, done = t.badges.includes(r.n) || have >= r.ids.length;
@@ -851,10 +851,10 @@ function bindTrades(){
   app.querySelectorAll('[data-cancel]').forEach(b => b.onclick = async () => { b.disabled = true; try { await rpc('cancel_trade', {p_token: AUTH.token, p_id: +b.dataset.cancel}); toast('Offer cancelled'); } catch(e){ toast(e.message); } await loadTrades(); route(); });
 }
 // what the other trainer has from MY wishlist
-function wishMatch(t){ const w = (ME && ME.wish) || []; return w.filter(id => t.c[id] > 0); }
+function wishMatch(t){ const mt = ME && BY[ME.u.toLowerCase()], w = ((ME && ME.wish) || []).concat(mt ? mt.lwish : []); return [...new Set(w)].filter(id => t.c[id] > 0); }
 function openPropose(other){
   const me = BY[ME.u.toLowerCase()]; if (!me){ toast('Your page has no Pokémon yet'); return; }
-  const theirWish = ((PROF[other.u.toLowerCase()] || {}).wish || []), myWish = (ME.wish || []);
+  const theirWish = ((PROF[other.u.toLowerCase()] || {}).wish || []).concat(other.lwish || []), myWish = (ME.wish || []).concat(me.lwish || []);
   const st = {step: 'give', give: null, want: null, q: '', only: false};
   const lacks = (t, x) => x.sh ? !(shN(t, x.id) > 0) : !(t.c[x.id] > 0);      // the other side does not have it (shiny counts apart)
   const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
@@ -1052,7 +1052,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // animated pixel sprites (Black/White 2 style, fan-made for the newer ones); fallback = HOME 3D sprite
 const bsz = el => { const k = Math.min(2.6, 230 / Math.max(el.naturalWidth, el.naturalHeight)); el.style.width = Math.round(el.naturalWidth * k) + 'px'; el.style.height = Math.round(el.naturalHeight * k) + 'px'; el.classList.add('ok'); };
 // Black/White 2 animated sprites (Showdown gen5ani: real BW for Gen 1-5, fan-made BW style for the newer ones) -> BW static -> PokeAPI BW -> HOME 3D
-const sdId = id => { if (isMega(id)){ const nm = MEGA[id][0], base = sdName(MEGA[id][1]); return /^Primal/.test(nm) ? base + '-primal' : base + '-mega' + (/ X$/.test(nm) ? 'x' : / Y$/.test(nm) ? 'y' : ''); } return sdName(id); };
+const sdId = id => { if (isMega(id)){ const nm = MEGA[id][0], base = sdName(MEGA[id][1]); return /^Primal/.test(nm) ? base + '-primal' : base + '-mega' + (/ X$/.test(nm) ? 'x' : / Y$/.test(nm) ? 'y' : / Z$/.test(nm) ? 'z' : ''); } return sdName(id); };
 const sdName = id => (M.n[id] || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '');
 function bsrcs(id, sh, back){
   const PS = 'https://play.pokemonshowdown.com/sprites/', n = sdId(id), b = back ? '-back' : '', s = sh ? '-shiny' : '';
