@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Live Catch HOME</title>
+<title>Live Catch Dex</title>
 <meta name="theme-color" content="#16a99e">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -345,6 +345,10 @@ h2:first-child{margin-top:4px}
 .evinfo{flex:1;min-width:0}.evinfo b{display:block;font-weight:900;font-size:14px}.evinfo small{font-size:11px;font-weight:700;color:var(--mute)}
 .evb{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
 .evs{display:grid;gap:6px;margin-top:12px}
+.bulk{display:grid;gap:2px;text-align:left}
+.bkr{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+.bkr select{font:inherit;font-size:12px;font-weight:800;border:1px solid var(--line);border-radius:8px;padding:2px 4px;margin-top:2px;max-width:100%}
+.step{display:flex;align-items:center;gap:6px}.step button{width:32px;height:32px;border-radius:10px;background:#f1f5f9;font-weight:900;font-size:18px}.step b{min-width:22px;text-align:center;font-weight:900}
 /* desktop */
 @media(min-width:860px){
   body{padding-bottom:0}
@@ -365,7 +369,7 @@ h2:first-child{margin-top:4px}
 </head>
 <body>
 <header class="top"><div class="top-in">
-  <a class="logo" href="#/" style="text-decoration:none;color:inherit"><i></i><div>LIVE CATCH HOME<small>Your Pokémon from the live</small></div></a>
+  <a class="logo" href="#/" style="text-decoration:none;color:inherit"><i></i><div>LIVE CATCH DEX<small>Your Pokémon from the live</small></div></a>
   <nav class="tabs dtabs" id="dtabs"></nav>
   <div class="upd" id="upd"></div>
 </div></header>
@@ -590,6 +594,7 @@ function viewTrainer(u){
 function bindTrainer(){
   const em = document.getElementById('editme'); if (em) em.onclick = openEdit;
   const et = document.getElementById('editteam'); if (et) et.onclick = openTeam;
+  const em2 = document.getElementById('evomany'); if (em2) em2.onclick = openBulkEvo;
   const ea = document.getElementById('evoall'); if (ea) ea.onclick = () => { EVO_ALL = true; const y = scrollY; route(); scrollTo(0, y); };
   document.querySelectorAll('[data-evo]').forEach(b => b.onclick = () => doEvolve(+b.dataset.evo, +b.dataset.to, b));
   const pp = document.getElementById('propose'); if (pp) pp.onclick = () => openPropose(BY[BOXSTATE.u.toLowerCase()]);
@@ -638,6 +643,7 @@ function demoRpc(fn, b){      // ?demo only: fakes the server (verification comp
   if (/battle/.test(fn)) return demoBattle(fn, b);
   if (fn === 'set_team') return b.p_team;
   if (fn === 'evolve_mon') return b.p_to;
+  if (fn === 'evolve_bulk') return b.p_items.reduce((s, x) => s + x.n, 0);
   const du = tk => (tk || '').replace(/^demo-/, '');
   if (fn === 'request_code'){ const c = String(1000 + Math.floor(Math.random() * 9000)); demoClaims[b.p_u] = {c, t: Date.now()}; return c; }
   if (fn === 'check_claim'){ const k = demoClaims[b.p_u]; if (k && Date.now() - k.t > 4000){ delete demoClaims[b.p_u]; return 'demo-' + b.p_u; } return null; }
@@ -739,7 +745,7 @@ function viewPrivacy(){
   nav('');
   return `<div class="rankg"><a class="back" href="#/">${ICON.left}Back</a><div class="card legal">
   <h1>Privacy</h1><p class="hint" style="text-align:left">Last update: 24 October 2026</p>
-  <h4>Who runs this page</h4><p>Live Catch HOME is a free, non-commercial fan page for the players of the Live Catch game on TikTok, run by the host of the live. Contact: ${CONFIG.CONTACT}.</p>
+  <h4>Who runs this page</h4><p>Live Catch Dex is a free, non-commercial fan page for the players of the Live Catch game on TikTok, run by the host of the live. Contact: ${CONFIG.CONTACT}.</p>
   <h4>What is shown</h4><p>Only your TikTok username, your public TikTok profile picture and your game data from the live (Pokémon caught, shiny, legendaries, team, streak, rankings). No gift or coin amounts are shown.</p>
   <h4>Where it comes from</h4><p>The Live Catch game reads the public events of the live (username, public profile picture and the game commands written in chat) to run the game. Chat messages are not published on this page.</p>
   <h4>If you link your page</h4><p>When you use "This is me" and write <b>!home</b> in the live chat, we save a random key in your browser to keep you logged in, and your choices (partner, favorites, wishlist, privacy). No email, no password, no other personal data.</p>
@@ -771,7 +777,7 @@ async function makeCard(t){
   const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#16a99e'); bg.addColorStop(1, '#2f6fe0'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
   g.strokeStyle = 'rgba(255,255,255,.10)'; g.lineWidth = 70; g.beginPath(); g.arc(W - 40, 60, 260, 0, 7); g.stroke(); g.beginPath(); g.arc(60, H - 40, 200, 0, 7); g.stroke();
   const rr = (x, y, w, h, r, fill) => { g.beginPath(); g.roundRect(x, y, w, h, r); g.fillStyle = fill; g.fill(); };
-  g.fillStyle = '#fff'; g.font = F(900, 46); g.textAlign = 'left'; g.fillText('LIVE CATCH HOME', 70, 110);
+  g.fillStyle = '#fff'; g.font = F(900, 46); g.textAlign = 'left'; g.fillText('LIVE CATCH DEX', 70, 110);
   g.font = F(700, 28); g.globalAlpha = .85; g.fillText('My Pokémon from the live', 70, 152); g.globalAlpha = 1;
   rr(50, 200, W - 100, 1000, 48, '#ffffff');
   const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, partner = (M.n[P.partner] || MEGA[P.partner]) ? P.partner : (t.team[0] || Object.keys(t.c).filter(k => M.n[k] || MEGA[k]).sort((a, b) => t.c[b] - t.c[a])[0]);
@@ -801,7 +807,7 @@ async function shareCard(t, btn){
     const url = URL.createObjectURL(blob);
     const bg = openSheet(`<h3>Your card</h3><img src="${url}" class="cardimg" alt="">
       <div class="savebar" style="position:static;border:0"><a class="btn ghost" href="${url}" download="${file.name}" style="text-decoration:none">Download</a>${navigator.canShare && navigator.canShare({files: [file]}) ? '<button class="btn" id="dosh">Share</button>' : ''}</div>`);
-    const b = bg.querySelector('#dosh'); if (b) b.onclick = () => navigator.share({files: [file], title: 'Live Catch HOME'}).catch(() => {});
+    const b = bg.querySelector('#dosh'); if (b) b.onclick = () => navigator.share({files: [file], title: 'Live Catch Dex'}).catch(() => {});
   } catch(e){ toast('Could not create the card'); }
   btn.disabled = false; btn.textContent = old;
 }
@@ -1142,7 +1148,7 @@ function evoHtml(t){
   const L = Object.keys(t.c).map(Number).filter(id => canEvo(t, id)).sort((a, b) => a - b);
   if (!L.length) return '';
   return `<h2>Ready to evolve</h2><div class="card evos">${L.slice(0, EVO_ALL ? 60 : 4).map(id => `<div class="evr"><span class="trm">${img(id, false)}</span><span class="evinfo"><b>${esc(name(id))} x${t.c[id]}</b><small>uses 2, you keep ${t.c[id] - 2}</small></span><span class="evb">${EVO[id].filter(x => M.n[x]).map(x => `<button class="mini" data-evo="${id}" data-to="${x}">→ ${esc(name(x))}</button>`).join('')}</span></div>`).join('')}
-    ${L.length > 4 && !EVO_ALL ? `<button class="btn ghost" id="evoall" style="width:100%;margin-top:8px">Show all ${L.length}</button>` : ''}<p class="hint" style="text-align:left">Like EV in the live: 3 of the same Pokémon, 2 are used (normal ones first).</p></div>`;
+    ${L.length > 4 && !EVO_ALL ? `<button class="btn ghost" id="evoall" style="width:100%;margin-top:8px">Show all ${L.length}</button>` : ''}<button class="btn" id="evomany" style="width:100%;margin-top:8px">Evolve many at once</button><p class="hint" style="text-align:left">Like EV in the live: 3 of the same Pokémon, 2 are used (normal ones first).</p></div>`;
 }
 async function doEvolve(base, to, btn){
   if (btn) btn.disabled = true;
@@ -1151,6 +1157,36 @@ async function doEvolve(base, to, btn){
   catch(e){ toast(e.message); if (btn) btn.disabled = false; }
 }
 function demoEvo(base, to){ const t = BY[ME.u.toLowerCase()]; t.c[base] -= 2; t.c[to] = (t.c[to] || 0) + 1; if (!t.own.includes(to)) t.own.push(to); t.dex = t.own.filter(id => t.c[id] > 0).length; }
+// evolve many at once: every evolution still needs 3 of the same and uses 2 (you always keep at least 1)
+function openBulkEvo(){
+  const me = BY[ME.u.toLowerCase()];
+  const L = Object.keys(me.c).map(Number).filter(id => canEvo(me, id)).sort((a, b) => a - b);
+  const maxOf = id => Math.floor(((me.c[id] || 0) - 1) / 2);
+  const st = {}; L.forEach(id => st[id] = {n: 0, t: EVO[id].filter(x => M.n[x])[0]});
+  const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
+  const draw = () => { const tot = L.reduce((s, id) => s + st[id].n, 0);
+    sh.innerHTML = `<div class="grab"></div><h3>Evolve many</h3><p class="sub">Each evolution uses 2 of the same Pokémon. You always keep at least 1. Max 60 at once.</p>
+      <div class="savebar" style="position:static;border:0;padding:0 0 8px"><button class="btn ghost" id="none">None</button><button class="btn ghost" id="all">Max all</button></div>
+      <div class="bulk">${L.map(id => { const s = st[id], opts = EVO[id].filter(x => M.n[x]);
+        return `<div class="bkr"><span class="trm">${img(id, false)}</span><span class="evinfo"><b>${esc(name(id))} x${me.c[id]}</b>
+          ${opts.length > 1 ? `<select data-t="${id}">${opts.map(x => `<option value="${x}" ${x === s.t ? 'selected' : ''}>→ ${esc(name(x))}</option>`).join('')}</select>` : `<small>→ ${esc(name(s.t))}</small>`}</span>
+          <span class="step"><button data-m="${id}">−</button><b>${s.n}</b><button data-p="${id}">+</button></span></div>`; }).join('')}</div>
+      <div class="savebar"><button class="btn ghost" id="cancel">Cancel</button><button class="btn" id="go" ${tot ? '' : 'disabled'}>Evolve ${tot}</button></div>`;
+    sh.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { const id = +b.dataset.p; if (tot >= 60) return toast('Max 60 evolutions at once'); if (st[id].n < maxOf(id)) st[id].n++; draw(); });
+    sh.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { const id = +b.dataset.m; if (st[id].n > 0) st[id].n--; draw(); });
+    sh.querySelectorAll('[data-t]').forEach(x => x.onchange = () => { st[+x.dataset.t].t = +x.value; });
+    sh.querySelector('#all').onclick = () => { let left = 60; L.forEach(id => { st[id].n = Math.min(maxOf(id), left); left -= st[id].n; }); draw(); };
+    sh.querySelector('#none').onclick = () => { L.forEach(id => st[id].n = 0); draw(); };
+    sh.querySelector('#cancel').onclick = bg.close;
+    sh.querySelector('#go').onclick = async e => { e.target.disabled = true; e.target.textContent = 'Evolving...';
+      const items = L.filter(id => st[id].n > 0).map(id => ({b: id, t: st[id].t, n: st[id].n}));
+      try { const n = await rpc('evolve_bulk', {p_token: AUTH.token, p_items: items});
+        if (DEMO) items.forEach(x => { for (let i = 0; i < x.n; i++) demoEvo(x.b, x.t); }); else build(await load());
+        bg.close(); toast(`${n} evolutions done!`); route(); }
+      catch(err){ e.target.disabled = false; e.target.textContent = 'Evolve ' + tot; toast(err.message); } };
+  };
+  draw();
+}
 function openTeam(){
   const me = BY[ME.u.toLowerCase()], own = me.own.concat(me.mega);
   const st = {sel: me.team.filter(id => me.c[id] > 0).slice(0, 6), q: ''};
