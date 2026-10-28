@@ -38,6 +38,14 @@ img{display:block}
 .btabs a{flex:1;text-align:center;text-decoration:none;color:var(--mute);font-weight:800;font-size:12px;padding:6px 0;border-radius:14px}
 .btabs a svg{display:block;margin:0 auto 2px;width:24px;height:24px}
 .btabs a.on{color:var(--teal)}
+.tabs a.bt{background:linear-gradient(135deg,#ff5a5f,#ffb400);color:#fff;box-shadow:0 4px 14px rgba(255,90,95,.35)}.tabs a.bt.on{box-shadow:0 0 0 3px var(--ink)}
+.btabs a.bt{color:#e63946}.btabs a.bt svg{background:linear-gradient(135deg,#ff5a5f,#ffb400);color:#fff;border-radius:50%;padding:3px;box-sizing:border-box;animation:btpulse 1.8s infinite}
+@keyframes btpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,90,95,.55)}60%{box-shadow:0 0 0 8px rgba(255,90,95,0)}}
+.bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
+.bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
+.bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
+.bbanner em{margin-left:auto;font-style:normal;background:#fff;color:#e63946;font-weight:900;padding:9px 14px;border-radius:999px;white-space:nowrap;position:relative;z-index:1}
+.bbanner i{position:absolute;left:14px;top:-1px;background:#fff;color:#e63946;font-style:normal;font-size:10px;font-weight:900;padding:2px 7px;border-radius:0 0 8px 8px}
 main{max-width:1100px;margin:0 auto;padding:16px}
 .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
 h2{font-size:15px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);margin:22px 4px 10px}
@@ -351,6 +359,17 @@ h2:first-child{margin-top:4px}
 .step{display:flex;align-items:center;gap:6px}.step button{width:32px;height:32px;border-radius:10px;background:#f1f5f9;font-weight:900;font-size:18px}.step b{min-width:22px;text-align:center;font-weight:900}
 .fx-shadow{filter:brightness(.62) sepia(1) hue-rotate(225deg) saturate(2.4) drop-shadow(0 0 7px #8a3cff)!important}
 .fx-primal{filter:brightness(.55) contrast(1.2) saturate(1.4) drop-shadow(0 0 8px #ff7a2a)!important}
+.crown{color:#e8a917;margin-left:5px;font-size:.95em;text-shadow:0 1px 1px rgba(0,0,0,.2)}
+.ctl{display:block;color:#b8860b;font-size:13px;margin-bottom:2px}
+.gbrow.all{gap:2px;max-width:200px;justify-content:flex-end}.gbrow.all .gbadge{width:12px;height:12px}.gbrow.all .gbadge i{width:9px;height:9px;border-radius:2px}
+.gbadge.big{width:40px;height:40px;flex:none}.gbadge.big i{width:26px;height:26px}
+.lname{font-size:12px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--c);margin:10px 4px 2px}
+.gym.elite,.gym.champ{border-left-color:var(--c)}
+.erow{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.ech{display:inline-flex;padding:2px;border-radius:10px;background:#f1f5f9;opacity:.5;border:2px solid transparent}.ech.on{opacity:1;border-color:var(--c)}
+.ech .gyt img{width:26px;height:26px}
+.cact{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+#ltabs .chip{border-bottom:3px solid var(--c)}#ltabs .chip:disabled{opacity:.45}
 /* desktop */
 @media(min-width:860px){
   body{padding-bottom:0}
@@ -447,8 +466,8 @@ function avatar(t, cls = 'av'){
 const link = u => '#/t/' + encodeURIComponent(u);
 function nav(active){
   const it = [['home', '#/', 'Trainers'], ['rank', '#/rank', 'Rankings'], ['battle', '#/battle', 'Battle'], ['hof', '#/hof', 'Hall of Fame']];
-  document.getElementById('btabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${ICON[k]}${l}</a>`).join('');
-  document.getElementById('dtabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${l}</a>`).join('');
+  document.getElementById('btabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}">${ICON[k]}${l}</a>`).join('');
+  document.getElementById('dtabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}">${k === 'battle' ? '⚔️ ' : ''}${l}</a>`).join('');
 }
 function setUpd(){ document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}"><span>@${esc(AUTH.u)}</span>${incoming().length ? `<em>${incoming().length}</em>` : ''}</a>` : ''); }
 
@@ -467,7 +486,7 @@ function rankRows(key, limit){
   if (!rows.length) return `<div class="list"><div class="row" style="color:var(--mute);font-weight:700">No data yet</div></div>`;
   return `<div class="list">${rows.map(([t, v], i) => `<a class="row" href="${link(t.u)}" style="text-decoration:none;color:inherit">
     <span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${avatar(t)}
-    <span class="who"><b>${esc(t.u)}${skinBadge(t)}</b>${t.title ? `<small>${esc(t.title)}</small>` : ''}</span>
+    <span class="who"><b>${esc(t.u)}${crown(t.u)}${skinBadge(t)}</b>${t.title ? `<small>${esc(t.title)}</small>` : ''}</span>
     <span class="val">${fmt(v)}<small>${R.u}</small></span></a>`).join('')}</div>`;
 }
 
@@ -488,6 +507,7 @@ function viewHome(){
       <div class="search">${ICON.home}<input id="q" type="search" placeholder="Your TikTok name" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"><div class="sugg" id="sugg" hidden></div></div></section>
     ${T.length ? '' : `<div class="card" style="margin-top:12px;font-weight:800;color:var(--mute);text-align:center">The boxes fill up during the next live. Come back soon!</div>`}
     <div class="today"><div><b>${fmt(T.length)}</b><span>Trainers</span></div><div><b>${fmt(T.reduce((s, t) => s + t.n, 0))}</b><span>Caught</span></div><div><b>${fmt(day.n)}</b><span>Today</span></div></div>
+    <a class="bbanner" href="#/battle"><i>NEW</i><span class="bi">⚔️</span><div><b>Battle the 4 Leagues</b><span>Beat 32 Gym Leaders &amp; the Elite Four. Become Champion!</span></div><em>Battle now</em></a>
     ${hwHomeHtml()}
     <h2>Hall of Fame</h2>${hofCards()}
   </div><div>
@@ -576,10 +596,10 @@ function viewTrainer(u){
   const wm = !isMe(t.u) && ME ? wishMatch(t) : [];
   const act = (isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : ME ? `<button class="btn" id="propose">Propose trade</button>` : `<button class="btn ghost" id="claim">This is me</button>`) + `<button class="btn ghost" id="sharec">Share card</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
-    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}${skinBadge(t)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
+    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}${crown(t.u)}${skinBadge(t)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
       <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div>
       <div class="acts">${act}</div>${wm.length ? `<div class="wmatch">Has ${wm.length} Pokémon from your wishlist: ${wm.slice(0, 6).map(id => `<span class="gm2">${img(id, false)}</span>`).join('')}</div>` : ''}</div>
-    ${(() => { const b = (BBOARD || []).find(x => x.u.toLowerCase() === t.u.toLowerCase()); return b && b.badges ? `<div class="card tbadges"><b>Gym badges ${b.badges}/8</b>${badgesRow(b.badges)}</div>` : ''; })()}
+    ${(() => { const b = (BBOARD || []).find(x => x.u.toLowerCase() === t.u.toLowerCase()); const ct = champTitle(t.u); return (b && b.badges) || ct ? `<div class="card tbadges"><div>${ct ? `<b class="ctl">♛ ${esc(ct)}</b>` : ''}<b>Gym badges ${b ? b.badges : 0}/32</b></div>${badgesRow(b ? b.badges : 0)}</div>` : ''; })()}
     ${stonesHtml(t)}
     ${hwOn() ? skinsHtml(t) : ''}
     ${isMe(t.u) ? tradesHtml() : ''}
@@ -644,7 +664,7 @@ async function rpc(fn, body){
 }
 function demoRpc(fn, b){      // ?demo only: fakes the server (verification completes by itself after 4 s)
   if (/trade/.test(fn)) return demoTrades(fn, b);
-  if (/battle/.test(fn)) return demoBattle(fn, b);
+  if (/battle|champions/.test(fn)) return demoBattle(fn, b);
   if (fn === 'set_team') return b.p_team;
   if (fn === 'evolve_mon') return b.p_to;
   if (fn === 'evolve_bulk') return b.p_items.reduce((s, x) => s + x.n, 0);
@@ -939,20 +959,64 @@ function hwHomeHtml(){
 
 /* ===== BATTLES vs BOTS (gyms + random trainers) ===== */
 const BT = window.BATTLE || null, TI = {}; if (BT) BT.types.forEach((t, i) => TI[t] = i);
-const GYMS = [
-  {n: 'Mossbrook Gym', l: 'Nell', t: 'bug', b: 'Moss Badge', team: [12, 416, 123]},
-  {n: 'Tidewater Gym', l: 'Marlo', t: 'water', b: 'Tide Badge', team: [55, 121, 130]},
-  {n: 'Sparkline Gym', l: 'Volta', t: 'electric', b: 'Spark Badge', team: [26, 181, 466]},
-  {n: 'Greenhollow Gym', l: 'Fern', t: 'grass', b: 'Leaf Badge', team: [71, 407, 3]},
-  {n: 'Duskveil Gym', l: 'Morwen', t: 'ghost', b: 'Dusk Badge', team: [354, 429, 94]},
-  {n: 'Cinderpeak Gym', l: 'Kora', t: 'fire', b: 'Cinder Badge', team: [38, 229, 6]},
-  {n: 'Mindspire Gym', l: 'Sable', t: 'psychic', b: 'Mind Badge', team: [65, 196, 282]},
-  {n: 'Skyfang Gym', l: 'Draven', t: 'dragon', b: 'Fang Badge', team: [612, 149, 373]}
+const LEAGUES = [
+  {n: 'Verdant League', c: '#3fa129', gyms: [
+    {n: 'Mossbrook Gym', l: 'Nell', t: 'bug', b: 'Moss Badge', team: [12, 416, 123]},
+    {n: 'Tidewater Gym', l: 'Marlo', t: 'water', b: 'Tide Badge', team: [55, 121, 130]},
+    {n: 'Sparkline Gym', l: 'Volta', t: 'electric', b: 'Spark Badge', team: [26, 181, 466]},
+    {n: 'Greenhollow Gym', l: 'Fern', t: 'grass', b: 'Leaf Badge', team: [71, 407, 3]},
+    {n: 'Duskveil Gym', l: 'Morwen', t: 'ghost', b: 'Dusk Badge', team: [354, 429, 94]},
+    {n: 'Cinderpeak Gym', l: 'Kora', t: 'fire', b: 'Cinder Badge', team: [38, 229, 6]},
+    {n: 'Mindspire Gym', l: 'Sable', t: 'psychic', b: 'Mind Badge', team: [65, 196, 282]},
+    {n: 'Skyfang Gym', l: 'Draven', t: 'dragon', b: 'Fang Badge', team: [612, 149, 373]}],
+   elite: [{n: 'Elite Rook', t: 'dark', team: [262, 229, 319]}, {n: 'Elite Ferra', t: 'steel', team: [227, 395, 208]}, {n: 'Elite Brann', t: 'fire', team: [59, 78, 38]}, {n: 'Elite Nerida', t: 'water', team: [350, 171, 134]}],
+   champ: {n: 'Champion Aurel', team: [149, 376, 257]}},
+  {n: 'Tidal League', c: '#2980ef', gyms: [
+    {n: 'Plainsong Gym', l: 'Orla', t: 'normal', b: 'Plain Badge', team: [217, 233, 143]},
+    {n: 'Venomire Gym', l: 'Kesh', t: 'poison', b: 'Venom Badge', team: [169, 454, 452]},
+    {n: 'Dunerock Gym', l: 'Tarek', t: 'ground', b: 'Dune Badge', team: [232, 450, 473]},
+    {n: 'Galeheight Gym', l: 'Wren', t: 'flying', b: 'Gale Badge', team: [398, 468, 628]},
+    {n: 'Frostfall Gym', l: 'Isolde', t: 'ice', b: 'Frost Badge', team: [362, 461, 131]},
+    {n: 'Ironfist Gym', l: 'Bruno K.', t: 'fighting', b: 'Fist Badge', team: [297, 68, 534]},
+    {n: 'Stonecrest Gym', l: 'Petra', t: 'rock', b: 'Crest Badge', team: [464, 526, 142]},
+    {n: 'Moonpetal Gym', l: 'Lilia', t: 'fairy', b: 'Petal Badge', team: [36, 671, 282]}],
+   elite: [{n: 'Elite Sorrel', t: 'grass', team: [497, 3, 407]}, {n: 'Elite Corvin', t: 'ghost', team: [94, 681, 887]}, {n: 'Elite Mara', t: 'psychic', team: [65, 475, 376]}, {n: 'Elite Hale', t: 'ice', team: [461, 473, 471]}],
+   champ: {n: 'Champion Thessaly', team: [248, 445, 130]}},
+  {n: 'Ember League', c: '#e62829', gyms: [
+    {n: 'Nightfall Gym', l: 'Vesper', t: 'dark', b: 'Night Badge', team: [359, 635, 571]},
+    {n: 'Forgeheart Gym', l: 'Anvil', t: 'steel', b: 'Forge Badge', team: [212, 306, 462]},
+    {n: 'Wildbloom Gym', l: 'Juniper', t: 'grass', b: 'Bloom Badge', team: [497, 407, 3]},
+    {n: 'Pyreclaw Gym', l: 'Ignis', t: 'fire', b: 'Pyre Badge', team: [6, 392, 637]},
+    {n: 'Deepcurrent Gym', l: 'Nerine', t: 'water', b: 'Current Badge', team: [130, 121, 658]},
+    {n: 'Thunderhollow Gym', l: 'Raiko', t: 'electric', b: 'Thunder Badge', team: [135, 466, 405]},
+    {n: 'Astraline Gym', l: 'Selene', t: 'psychic', b: 'Astra Badge', team: [65, 475, 376]},
+    {n: 'Wyrmhold Gym', l: 'Kael', t: 'dragon', b: 'Wyrm Badge', team: [445, 373, 612]}],
+   elite: [{n: 'Elite Dusk', t: 'ghost', team: [94, 681, 887]}, {n: 'Elite Glacia', t: 'ice', team: [461, 473, 471]}, {n: 'Elite Torin', t: 'fighting', team: [448, 534, 68]}, {n: 'Elite Fae', t: 'fairy', team: [468, 778, 282]}],
+   champ: {n: 'Champion Varek', team: [248, 445, 1102]}},
+  {n: 'Astral League', c: '#7a5cf0', gyms: [
+    {n: 'Stormcrown Gym', l: 'Tempest', t: 'electric', b: 'Storm Badge', team: [145, 642, 1123]},
+    {n: 'Glacier Gym', l: 'Boreal', t: 'ice', b: 'Glacier Badge', team: [144, 378, 1141]},
+    {n: 'Blazeheart Gym', l: 'Solenne', t: 'fire', b: 'Blaze Badge', team: [146, 244, 1118]},
+    {n: 'Abyss Gym', l: 'Marin', t: 'water', b: 'Abyss Badge', team: [245, 1131, 788]},
+    {n: 'Terracore Gym', l: 'Gaius', t: 'ground', b: 'Terra Badge', team: [645, 377, 1139]},
+    {n: 'Umbra Gym', l: 'Noctis', t: 'dark', b: 'Umbra Badge', team: [491, 1106, 1125]},
+    {n: 'Oracle Gym', l: 'Lysandra', t: 'psychic', b: 'Oracle Badge', team: [381, 488, 1105]},
+    {n: 'Celestial Gym', l: 'Orion', t: 'dragon', b: 'Celestial Badge', team: [380, 718, 1149]}],
+   elite: [{n: 'Elite Magnus', t: 'steel', team: [1117, 1143, 486]}, {n: 'Elite Ryn', t: 'fighting', team: [1127, 1126, 483]}, {n: 'Elite Seraph', t: 'fairy', team: [484, 487, 1119]}, {n: 'Elite Nyx', t: 'psychic', team: [1112, 1144, 1145]}],
+   champ: {n: 'Champion Astraea', team: [1111, 493, 1146]}}
 ];
+LEAGUES.forEach((L, li) => L.gyms.forEach((g, gi) => { g.li = li; g.gi = gi; }));
+const GYMS = LEAGUES.flatMap(L => L.gyms);      // 32 gyms, in order
+const BADGES_PER = 8, NL = LEAGUES.length, ERND = [0.35, 0.25, 0.15, 0.08];      // how often the Elite/Champion bots pick a random move instead of the best one
 const TCLS = ['Youngster', 'Lass', 'Hiker', 'Swimmer', 'Ace Trainer', 'Camper', 'Picnicker', 'Bug Catcher', 'Fisher', 'Biker'];
 const TNAMES = ['Leo', 'Mia', 'Tom', 'Zoe', 'Max', 'Ivy', 'Sam', 'Ada', 'Ben', 'Lia', 'Kai', 'Nora', 'Eli', 'Rin', 'Dan', 'Una'];
-let BPROG = {badges: 0, wins: 0};      // my progress (server)
-let BBOARD = null;
+let BPROG = {badges: 0, wins: 0, cleared: 0, elite: 0, elite_league: 1, mb: false, ct: 0, champs: []};      // my progress (server)
+let BBOARD = null, CHAMPS = [];      // CHAMPS = current champions of the 4 leagues
+const curLeague = () => Math.min(BPROG.cleared, NL - 1);      // league index I'm playing (0-3)
+const champOf = li => CHAMPS.find(c => c.league === li + 1) || null;
+const myChampLeagues = () => (BPROG.champs || []).map(x => +x);
+const champTitle = u => { const L = CHAMPS.filter(c => c.u.toLowerCase() === String(u).toLowerCase()).map(c => LEAGUES[c.league - 1].n.replace(' League', '')); return L.length ? L.join(' & ') + ' CHAMPION' : ''; };
+const crown = u => champTitle(u) ? `<span class="crown" title="${esc(champTitle(u))}">♛</span>` : '';
 const MOVESET = () => LS.get('lch_moves', {});
 const baseOf = id => isAlt(id) ? ALT[id][1] : id;
 const lvOf = (t, id) => LEG.has(baseOf(id)) || isAlt(id) ? 100 : (t.c[id] || 0) >= 3 ? 100 : (t.c[id] || 0) === 2 ? 90 : 80;
@@ -982,41 +1046,90 @@ function botPick(me, foe, rnd = 0.3){
   return Math.random() >= rnd ? atk[0].i : atk[Math.floor(Math.random() * atk.length)].i;
 }
 function randomTrainer(){
-  const lim = 460 + BPROG.badges * 18, pool = IDS.filter(id => BT.p[id] && !LEG.has(id) && !EVENT.has(id)).filter(id => { const s = BT.p[id][0].reduce((a, b) => a + b, 0); return s >= lim - 90 && s <= lim + 60; });
+  const lim = 460 + BPROG.badges * 9, pool = IDS.filter(id => BT.p[id] && !LEG.has(id) && !EVENT.has(id)).filter(id => { const s = BT.p[id][0].reduce((a, b) => a + b, 0); return s >= lim - 90 && s <= lim + 60; });
   const team = []; while (team.length < 3 && pool.length){ const id = pool[Math.floor(Math.random() * pool.length)]; if (!team.includes(id)) team.push(id); }
-  return {n: TCLS[Math.floor(Math.random() * TCLS.length)] + ' ' + TNAMES[Math.floor(Math.random() * TNAMES.length)], team, kind: 'trainer', rnd: 0.25};
+  return {n: TCLS[Math.floor(Math.random() * TCLS.length)] + ' ' + TNAMES[Math.floor(Math.random() * TNAMES.length)], team, kind: 'trainer', rnd: 0.25, color: '#5fb3e6'};
 }
 async function loadBattle(){
+  try { CHAMPS = (await rpc('champions', {})) || []; } catch(e){}
   if (!AUTH) return;
   try { const r = await rpc('my_battle', {p_token: AUTH.token}); if (r) BPROG = r; } catch(e){}
 }
 async function loadBoard(){ try { BBOARD = await rpc('battle_board', {}); } catch(e){ BBOARD = []; } }
 const badgeIco = (g, on) => `<span class="gbadge ${on ? 'on' : ''}" style="--c:${TYPEC[g.t]}" title="${g.b}"><i></i></span>`;
-function badgesRow(n){ return `<div class="gbrow">${GYMS.map((g, i) => badgeIco(g, i < n)).join('')}</div>`; }
-
+function badgesRow(n, li){ const G = li === undefined ? GYMS : LEAGUES[li].gyms, off = li === undefined ? 0 : li * 8; return `<div class="gbrow ${li === undefined ? 'all' : ''}">${G.map((g, i) => badgeIco(g, off + i < n)).join('')}</div>`; }
+const monsRow = (ids, cls = 'gyt') => `<div class="${cls}">${ids.map(x => `<span>${img(typeof x === 'object' ? x.id : x, typeof x === 'object' && x.sh)}</span>`).join('')}</div>`;
+let BL = null;      // league tab shown
+function champCard(li, full){
+  const L = LEAGUES[li], c = champOf(li), t = c && (BY[c.u.toLowerCase()] || {u: c.u, skins: {}});
+  const who = c ? `${avatar(t)}<div class="gyi"><b>${esc(c.u)}</b><small>Champion since ${new Date(c.since).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})} · ${c.wins} title defense${c.wins === 1 ? '' : 's'}</small>${monsRow(c.team)}</div>`
+    : `<span class="gbadge on big" style="--c:${L.c}"><i></i></span><div class="gyi"><b>${esc(L.champ.n)}</b><small>Nobody has taken the title yet</small>${monsRow(L.champ.team)}</div>`;
+  return `<div class="gym champ" style="--c:${L.c}">${who}${full || ''}</div>`;
+}
 function viewBattle(){
   nav('battle');
   if (!BT) return `<div class="card">Battles are loading, try again in a moment.</div>`;
   const me = ME && BY[ME.u.toLowerCase()];
-  const board = `<h2>Gym badges ranking</h2><div id="bboard"><div class="card empty" style="margin:0">Loading...</div></div>`;
-  if (!me) return `<div class="rankg"><h2>Battles</h2><div class="card"><b>Battle with your own Pokémon</b><p class="empty">Open your page, tap <b>This is me</b> and write the code in the live chat. Then come back here to challenge the gyms.</p><a class="btn" href="#/" style="display:block;text-align:center;text-decoration:none;margin-top:12px">Find my page</a></div>${board}</div>`;
-  const gy = GYMS.map((g, i) => { const done = i < BPROG.badges, open = i === BPROG.badges;
-    return `<div class="gym ${done ? 'done' : open ? 'open' : 'locked'}" style="--c:${TYPEC[g.t]}">${badgeIco(g, done)}<div class="gyi"><b>${g.n}</b><small>Leader ${g.l} · ${g.t.toUpperCase()}${done ? ' · ' + g.b : ''}</small><div class="gyt">${g.team.map(id => `<span>${img(id, false)}</span>`).join('')}</div></div>
-      ${done ? `<button class="mini ghost" data-gym="${i}">Rematch</button>` : open ? `<button class="mini" data-gym="${i}">Challenge</button>` : '<span class="lock">LOCKED</span>'}</div>`; }).join('');
+  const champs = `<h2>Current Champions</h2><div class="gyms">${LEAGUES.map((L, li) => `<div class="lname" style="--c:${L.c}">${esc(L.n)}</div>` + champCard(li)).join('')}</div>`;
+  const board = `<h2>Trainers ranking</h2><div id="bboard"><div class="card empty" style="margin:0">Loading...</div></div>`;
+  if (!me) return `<div class="rankg"><h2>Battles</h2><div class="card"><b>Battle with your own Pokémon</b><p class="empty">Open your page, tap <b>This is me</b> and write the code in the live chat. Then come back here to challenge the 4 Leagues.</p><a class="btn" href="#/" style="display:block;text-align:center;text-decoration:none;margin-top:12px">Find my page</a></div>${champs}${board}</div>`;
+  if (BL === null || BL > curLeague()) BL = curLeague();
+  const li = BL, L = LEAGUES[li], nb = Math.max(0, Math.min(8, BPROG.badges - li * 8)), cur = li === curLeague() && BPROG.cleared < NL, done = li < BPROG.cleared;
+  const tabs = LEAGUES.map((x, i) => `<button class="chip ${i === li ? 'on' : ''}" data-lg="${i}" ${i > curLeague() ? 'disabled' : ''} style="--c:${x.c}">${i > curLeague() ? '🔒 ' : ''}${esc(x.n.replace(' League', ''))}${myChampLeagues().includes(i + 1) ? ' ♛' : ''}</button>`).join('');
+  const gy = L.gyms.map((g, i) => { const dn = i < nb, open = (cur || done) && i === nb && !done;
+    return `<div class="gym ${dn ? 'done' : open ? 'open' : 'locked'}" style="--c:${TYPEC[g.t]}">${badgeIco(g, dn)}<div class="gyi"><b>${g.n}</b><small>Leader ${g.l} · ${g.t.toUpperCase()}${dn ? ' · ' + g.b : ''}</small>${monsRow(g.team)}</div>
+      ${dn ? `<button class="mini ghost" data-gym="${li}-${i}">Rematch</button>` : open ? `<button class="mini" data-gym="${li}-${i}">Challenge</button>` : '<span class="lock">LOCKED</span>'}</div>`; }).join('');
+  const eliteOk = nb >= 8, run = BPROG.elite_league === li + 1 ? BPROG.elite : 0, amChamp = myChampLeagues().includes(li + 1);
+  const elite = `<div class="gym elite ${eliteOk ? '' : 'locked'}" style="--c:${L.c}"><div class="gyi"><b>Elite Four</b><small>${eliteOk ? '4 battles in a row with the same team · lose one and the run starts over · then the Champion' : 'Win the 8 badges of this League first'}</small>
+      <div class="erow">${L.elite.map((e, i) => `<span class="ech ${i < run ? 'on' : ''}" style="--c:${TYPEC[e.t]}" title="${esc(e.n)}">${monsRow(e.team)}</span>`).join('')}</div></div>
+      ${eliteOk ? `<button class="mini" id="erun">${run ? 'Continue (' + run + '/4)' : 'Start'}</button>` : '<span class="lock">LOCKED</span>'}</div>`;
+  const cc = champCard(li, `<div class="cact">${amChamp ? '<span class="lock" style="color:var(--gold)">YOU ♛</span>' : eliteOk ? `<small class="lock">${3 - (BPROG.ct || 0)}/3 today</small>` : ''}</div>`);
   return `<div class="rankg"><h2>Battles</h2>
-    <div class="card"><div class="bhead"><div><b>${BPROG.badges}/8 badges</b><small>${fmt(BPROG.wins)} wins</small></div>${badgesRow(BPROG.badges)}</div>
+    <div class="card"><div class="bhead"><div><b>${BPROG.badges}/32 badges</b><small>${fmt(BPROG.wins)} wins${BPROG.cleared ? ' · ' + BPROG.cleared + ' League' + (BPROG.cleared > 1 ? 's' : '') + ' cleared' : ''}${myChampLeagues().length ? ' · ♛ ' + champTitle(ME.u) : ''}</small></div>${badgesRow(BPROG.badges)}</div>
       <button class="btn" id="rndt" style="width:100%;margin-top:12px">Battle a random trainer</button>
-      <p class="hint" style="text-align:left">3 vs 3 · all opponents are level 100 · Legendary and Mega = Lv 100 · other Pokémon: 1 copy Lv 80, 2 copies Lv 90, 3+ copies Lv 100. Each gym badge gives an Ultra Ball in the next live, the 8th a Master Ball.</p></div>
-    <h2>Gyms</h2><div class="gyms">${gy}</div>${board}</div>`;
+      <p class="hint" style="text-align:left">3 vs 3 · opponents are Lv 100 · Legendary and Mega = Lv 100 · others: 1 copy Lv 80, 2 copies Lv 90, 3+ copies Lv 100. Each badge = an Ultra Ball in the next live. Your first Champion title = a Master Ball.</p></div>
+    <h2>Leagues</h2><div class="chips" id="ltabs">${tabs}</div>
+    <div class="gyms"><div class="lname" style="--c:${L.c}">${esc(L.n)} · ${nb}/8 badges${done ? ' · cleared' : ''}</div>${gy}${elite}<div class="lname" style="--c:${L.c}">Champion</div>${cc}</div>
+    ${champs}${board}</div>`;
 }
 function bindBattle(){
   const r = document.getElementById('rndt'); if (r) r.onclick = () => pickTeam(randomTrainer());
-  document.querySelectorAll('[data-gym]').forEach(b => b.onclick = () => { const i = +b.dataset.gym, g = GYMS[i]; pickTeam({n: 'Leader ' + g.l, gym: i, team: g.team, kind: 'gym', rnd: 0.25 - i * 0.025}); });
+  document.querySelectorAll('[data-lg]').forEach(b => b.onclick = () => { if (b.disabled) return; BL = +b.dataset.lg; const y = scrollY; route(); scrollTo(0, y); });
+  document.querySelectorAll('[data-gym]').forEach(b => b.onclick = () => { const [li, i] = b.dataset.gym.split('-').map(Number), g = LEAGUES[li].gyms[i];
+    pickTeam({n: 'Leader ' + g.l, kind: 'gym', league: li, gym: i, team: g.team, rnd: Math.max(0.05, 0.25 - li * 0.07 - i * 0.02), color: TYPEC[g.t]}); });
+  const er = document.getElementById('erun'); if (er) er.onclick = () => leagueRun(BL);
   const bb = document.getElementById('bboard'); if (bb) loadBoard().then(() => { const L = (BBOARD || []).filter(x => x.badges > 0 || x.wins > 0);
-    bb.innerHTML = L.length ? `<div class="list">${L.slice(0, 20).map((x, i) => { const t = BY[x.u.toLowerCase()] || {u: x.u, skins: {}}; return `<a class="row" href="${link(x.u)}" style="text-decoration:none;color:inherit"><span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${avatar(t)}<span class="who"><b>${esc(x.u)}</b><small style="color:var(--mute)">${fmt(x.wins)} wins</small></span>${badgesRow(x.badges)}</a>`; }).join('')}</div>` : `<div class="card empty" style="margin:0">No badges yet. Be the first!</div>`; });
+    bb.innerHTML = L.length ? `<div class="list">${L.slice(0, 20).map((x, i) => { const t = BY[x.u.toLowerCase()] || {u: x.u, skins: {}}; return `<a class="row" href="${link(x.u)}" style="text-decoration:none;color:inherit"><span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${avatar(t)}<span class="who"><b>${esc(x.u)}${crown(x.u)}</b><small style="color:var(--mute)">${x.badges}/32 badges · ${fmt(x.wins)} wins</small></span></a>`; }).join('')}</div>` : `<div class="card empty" style="margin:0">No badges yet. Be the first!</div>`; });
+}
+// Elite Four run: 4 battles in a row with the same 3 Pokémon (healed between battles, lose = start over), then the Champion
+function leagueRun(li){
+  const L = LEAGUES[li], start = BPROG.elite_league === li + 1 ? BPROG.elite : 0;
+  const first = L.elite[start] || L.elite[0];
+  const opp = eliteOpp(li, start);
+  pickTeam(opp, mons => runStage(li, start, mons, mons.map(m => ({id: m.id, sh: m.sh, lv: m.lv, mv: m.mv.map(x => x.id)}))));
+}
+function eliteOpp(li, i){ const L = LEAGUES[li], e = L.elite[i]; return {n: e.n, kind: 'elite', league: li, gym: i, team: e.team, rnd: ERND[li], color: TYPEC[e.t]}; }
+function champOpp(li){
+  const L = LEAGUES[li], c = champOf(li);
+  if (c) return {n: 'Champion ' + c.u, kind: 'champ', league: li, team: c.team.map(x => x.id), mons: c.team.map(x => mkMon(x.id, Math.min(100, Math.max(80, x.lv || 100)), (x.mv || []).filter(m => BT.p[x.id] && BT.p[x.id][2].includes(m)).length ? x.mv.filter(m => BT.p[x.id][2].includes(m)) : defMoves(x.id), x.sh)), rnd: 0.1, color: L.c, who: c.u};
+  return {n: L.champ.n, kind: 'champ', league: li, team: L.champ.team, rnd: ERND[li] * 0.7, color: L.c};
+}
+function runStage(li, i, mons, snap){
+  const L = LEAGUES[li]; mons.forEach(m => { m.hp = m.maxhp; m.prot = m.lastProt = false; m.mv.forEach(x => x.heals = 3); });      // same team for the whole run, healed between battles
+  if (i < 4){
+    runBattle(eliteOpp(li, i), mons, async ok => {
+      if (!ok){ try { await rpc('battle_lose', {p_token: AUTH.token, p_kind: 'elite', p_league: li + 1}); } catch(e){} await loadBattle(); route(); return; }
+      if (i < 3) return runStage(li, i + 1, mons, snap);
+      if (myChampLeagues().includes(li + 1)){ toast('You beat the Elite Four. You are already the Champion!'); await loadBattle(); route(); return; }
+      if ((BPROG.ct || 0) >= 3){ toast('Elite Four beaten! You can challenge the Champion again tomorrow (3 per day).'); await loadBattle(); route(); return; }
+      runStage(li, 4, mons, snap);
+    });
+  } else {
+    runBattle(Object.assign(champOpp(li), {snap}), mons, async ok => { await loadBattle(); route(); });
+  }
 }
 // choose 3 Pokémon (+ edit their 4 moves from their list)
-function pickTeam(opp){
+function pickTeam(opp, cb){
   const me = BY[ME.u.toLowerCase()], own = me.own.concat(me.mega, me.forms).filter(id => BT.p[id]);
   const pw = id => BT.p[id][0].reduce((a, b) => a + b, 0) * lvOf(me, id) / 100;
   const def = (me.team.length ? me.team : []).filter(id => BT.p[id] && me.c[id] > 0).slice(0, 3);
@@ -1025,7 +1138,7 @@ function pickTeam(opp){
   const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
   const draw = () => {
     const q = st.q.trim().toLowerCase(), list = own.filter(id => !q || name(id).toLowerCase().includes(q)).sort((a, b) => pw(b) - pw(a)).slice(0, 120);
-    sh.innerHTML = `<div class="grab"></div><h3>${esc(opp.n)}</h3><p class="sub">${opp.team.map(id => esc(name(id))).join(' · ')} · Lv 100</p>
+    sh.innerHTML = `<div class="grab"></div><h3>${esc(opp.n)}</h3><p class="sub">${opp.kind === 'elite' ? 'Elite Four run: 4 battles in a row with these 3 Pokémon (healed between battles), then the Champion. ' : ''}${opp.team.map(id => esc(name(id))).join(' · ')} · Lv 100</p>
       <div class="team3">${[0, 1, 2].map(i => { const id = st.sel[i]; return id ? `<div class="t3"><button class="tm rm" data-rm="${id}">${img(id, shN(me, id) > 0)}</button><small>${esc(name(id))} · Lv ${lvOf(me, id)}</small><button class="mini ghost" data-mv="${id}">Moves</button></div>` : '<div class="t3"><div class="tm e"></div><small>pick a Pokémon</small></div>'; }).join('')}</div>
       <div class="search sm">${ICON.home}<input id="pq" type="search" placeholder="Search your Pokémon" value="${esc(st.q)}" autocomplete="off"></div>
       <div class="picker">${list.map(id => `<button class="slot pk ${st.sel.includes(id) ? 'sel' : ''} ${isMega(id) ? 'mg' : ''}" data-id="${id}">${img(id, false)}<span>${esc(name(id))} · ${lvOf(me, id)}</span></button>`).join('')}</div>
@@ -1035,7 +1148,7 @@ function pickTeam(opp){
     sh.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => editMoves(+b.dataset.mv, draw));
     const pq = sh.querySelector('#pq'); pq.oninput = () => { st.q = pq.value; const p = pq.selectionStart; draw(); const n = sh.querySelector('#pq'); n.focus(); n.setSelectionRange(p, p); };
     sh.querySelector('#cancel').onclick = bg.close;
-    sh.querySelector('#go').onclick = () => { LS.set('lch_bteam', st.sel); bg.close(); runBattle(opp, st.sel.map(id => mkMon(id, lvOf(me, id), myMoves(id), shN(me, id) > 0))); };
+    sh.querySelector('#go').onclick = () => { LS.set('lch_bteam', st.sel); bg.close(); const mons = st.sel.map(id => mkMon(id, lvOf(me, id), myMoves(id), shN(me, id) > 0)); cb ? cb(mons) : runBattle(opp, mons); };
   };
   draw();
 }
@@ -1067,10 +1180,10 @@ function bsrcs(id, sh, back){
 function bnext(el){ const L = JSON.parse(el.dataset.l), i = +el.dataset.i + 1; if (i < L.length){ el.dataset.i = i; el.src = L[i]; return; }
   el.onerror = null; el.onload = null; const [id, sh, back] = el.dataset.k.split('-').map(Number); el.className = 'home' + (back ? ' flip' : '') + fxc(id); el.style.width = el.style.height = ''; el.src = spr(id, sh); }
 const bimg = (id, sh, back) => { const L = bsrcs(id, sh, back); return `<img alt="" class="${fxc(id).trim()}" data-k="${id}-${sh ? 1 : 0}-${back ? 1 : 0}" data-i="0" data-l='${JSON.stringify(L)}' src="${L[0]}" onload="bsz(this)" onerror="bnext(this)">`; };
-async function runBattle(opp, mine){
-  const foes = opp.team.map(id => mkMon(id, 100, defMoves(id), false));
+async function runBattle(opp, mine, onEnd){
+  const foes = opp.mons || opp.team.map(id => mkMon(id, 100, defMoves(id), false));
   let a = 0, f = 0; const P = mine, F = foes;
-  const ov = document.createElement('div'); ov.className = 'bov'; ov.style.setProperty('--tc', opp.kind === 'gym' ? TYPEC[GYMS[opp.gym].t] : '#5fb3e6'); document.body.appendChild(ov);
+  const ov = document.createElement('div'); ov.className = 'bov'; ov.style.setProperty('--tc', opp.color || '#5fb3e6'); document.body.appendChild(ov);
   const hpbar = m => { const p = Math.max(0, m.hp / m.maxhp * 100); return `<div class="hpb"><i style="width:${p}%;background:${p > 50 ? '#3cc46d' : p > 20 ? '#f2b630' : '#e5484d'}"></i></div><small>${Math.max(0, m.hp)}/${m.maxhp}</small>`; };
   const dots = (arr, cur) => arr.map((m, i) => `<i class="${m.hp <= 0 ? 'ko' : i === cur ? 'cur' : ''}"></i>`).join('');
   let log = '', busy = false;
@@ -1078,21 +1191,21 @@ async function runBattle(opp, mine){
     const pm = P[a], fm = F[f], keep = [ov.querySelector('#sprF img'), ov.querySelector('#sprP img')];
     ov.innerHTML = `<div class="bbg"><i class="cl c1"></i><i class="cl c2"></i><i class="cl c3"></i><i class="spk s1"></i><i class="spk s2"></i><i class="spk s3"></i><i class="spk s4"></i></div><div class="bfield">
       <div class="btop"><button class="bx" id="bquit">✕</button><b>${esc(opp.n)}</b><span class="bdots">${dots(F, f)}</span></div>
-      <div class="bfoe"><div class="binfo"><b>${esc(name(fm.id))}</b><span>Lv ${fm.lv}</span>${hpbar(fm)}</div><div class="bspr foe" id="sprF">${bimg(fm.id, false, false)}</div></div>
+      <div class="bfoe"><div class="binfo"><b>${fm.sh ? '✦ ' : ''}${esc(name(fm.id))}</b><span>Lv ${fm.lv}</span>${hpbar(fm)}</div><div class="bspr foe" id="sprF">${bimg(fm.id, fm.sh, false)}</div></div>
       <div class="bme"><div class="bspr me" id="sprP">${bimg(pm.id, pm.sh, true)}</div><div class="binfo"><b>${pm.sh ? '✦ ' : ''}${esc(name(pm.id))}</b><span>Lv ${pm.lv}</span>${hpbar(pm)}<span class="bdots">${dots(P, a)}</span></div></div>
       <div class="blog">${log}</div>
       <div class="bctl">${mode === 'moves' ? pm.mv.map((x, i) => { const m = MV(x.id); return `<button class="bmv" data-i="${i}" style="--c:${TYPEC[m[1]] || '#999'}" ${busy || (m[6] === 'heal' && x.heals <= 0) ? 'disabled' : ''}><b>${esc(m[0])}</b><small>${m[6] === 'protect' ? 'PROTECT' : m[6] === 'heal' ? 'HEAL · ' + x.heals + ' left' : m[1].toUpperCase() + ' · ' + m[2]}</small></button>`; }).join('') + `<button class="bmv sw" id="bsw" ${busy || P.filter(m => m.hp > 0).length < 2 ? 'disabled' : ''}><b>Switch</b><small>change Pokémon</small></button>`
         : mode === 'switch' || mode === 'force' ? P.map((m, i) => `<button class="bmv sw2" data-s="${i}" ${m.hp <= 0 || i === a ? 'disabled' : ''}>${img(m.id, m.sh)}<b>${esc(name(m.id))}</b><small>${m.hp <= 0 ? 'KO' : m.hp + '/' + m.maxhp}</small></button>`).join('') + (mode === 'switch' ? '<button class="bmv sw" id="bback"><b>Back</b></button>' : '')
         : `<button class="bmv" id="bend" style="grid-column:1/-1"><b>${mode}</b></button>`}</div></div>`;
     ['#sprF img', '#sprP img'].forEach((q, i) => { const n = ov.querySelector(q), o = keep[i]; if (n && o && n.dataset.k === o.dataset.k) n.replaceWith(o); });      // same Pokémon: keep the running animation
-    ov.querySelector('#bquit').onclick = () => { if (confirmQuit()) ov.remove(); };
+    ov.querySelector('#bquit').onclick = () => { if (confirmQuit()){ ov.remove(); if (onEnd && !ended){ ended = true; onEnd(false); } } };
     ov.querySelectorAll('.bmv[data-i]').forEach(b => b.onclick = () => turn({k: 'move', i: +b.dataset.i}));
     const sw = ov.querySelector('#bsw'); if (sw) sw.onclick = () => render('switch');
     const bk = ov.querySelector('#bback'); if (bk) bk.onclick = () => render('moves');
     ov.querySelectorAll('.bmv[data-s]').forEach(b => b.onclick = () => mode === 'force' ? forceSwitch(+b.dataset.s) : turn({k: 'switch', s: +b.dataset.s}));
-    const be = ov.querySelector('#bend'); if (be) be.onclick = () => { ov.remove(); route(); };
+    const be = ov.querySelector('#bend'); if (be) be.onclick = () => { ov.remove(); if (onEnd) onEnd(result); else route(); };
   };
-  let quitArm = 0; const confirmQuit = () => { if (Date.now() - quitArm < 2500) return true; quitArm = Date.now(); toast('Tap ✕ again to leave the battle'); return false; };
+  let ended = false, result = false, quitArm = 0; const confirmQuit = () => { if (Date.now() - quitArm < 2500) return true; quitArm = Date.now(); toast('Tap ✕ again to leave the battle'); return false; };
   const say = async (t, ms = 900) => { log = t; render('moves'); await sleep(ms); };
   const hit = async (side) => { const el = ov.querySelector(side === 'F' ? '#sprF' : '#sprP'); if (el){ el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); } await sleep(350); };
   async function doMove(user, target, mi, uSide){
@@ -1129,17 +1242,31 @@ async function runBattle(opp, mine){
   }
   async function forceSwitch(s){ a = s; await say(`Go, ${name(P[a].id)}!`, 700); log = `What will ${name(P[a].id)} do?`; render('moves'); }
   async function win(){
-    busy = true; let msg = `You defeated ${opp.n}!`;
-    try { const r = await rpc('battle_win', {p_token: AUTH.token, p_kind: opp.kind, p_gym: opp.kind === 'gym' ? opp.gym + 1 : 0}); if (r){ const nb = r.badges > BPROG.badges; BPROG = r; if (nb) msg += ` You earned the ${GYMS[opp.gym].b}! Reward: ${opp.gym === 7 ? 'a Master Ball' : 'an Ultra Ball'} in the next live.`; } } catch(e){}
+    busy = true; ended = true; result = true; let msg = `You defeated ${opp.n}!`;
+    try { const r = await rpc('battle_win', {p_token: AUTH.token, p_kind: opp.kind, p_gym: opp.gym !== undefined ? opp.gym + 1 : 0, p_league: (opp.league || 0) + 1, p_team: opp.kind === 'champ' ? opp.snap : null});
+      if (r){ const nb = r.badges > BPROG.badges; BPROG = r; if (CHAMPS !== undefined && r.became){ await loadBattle(); }
+        if (nb) msg += ` You earned the ${LEAGUES[opp.league].gyms[opp.gym].b}! Reward: an Ultra Ball in the next live.`;
+        if (opp.kind === 'elite') msg += opp.gym < 3 ? ` Next: ${LEAGUES[opp.league].elite[opp.gym + 1].n}.` : ' Now the Champion awaits!';
+        if (r.became) msg += ` You are the new ${LEAGUES[opp.league].n} Champion! Your team stays here to defend the title.`;
+        if (r.reward === 'master') msg += ' Reward: a Master Ball in the next live!'; } } catch(e){ if (opp.kind === 'champ') msg += ' (' + e.message + ')'; }
     log = msg; busy = false; render('Continue');
   }
-  function lose(){ log = 'All your Pokémon fainted... Try again with another team!'; busy = false; render('Continue'); }
+  async function lose(){ ended = true; result = false; log = opp.kind === 'elite' ? 'All your Pokémon fainted... The Elite Four run starts over.' : opp.kind === 'champ' ? `${opp.n} defended the title!` : 'All your Pokémon fainted... Try again with another team!'; busy = false; render('Continue');
+    if (opp.kind === 'champ'){ try { await rpc('battle_lose', {p_token: AUTH.token, p_kind: 'champ', p_league: opp.league + 1}); } catch(e){} } }
   log = `${opp.n} wants to battle! ${opp.n} sent out ${name(F[0].id)}!`; render('moves');
 }
+const demoCh = [{league: 1, u: 'giulia_shinyhunt', team: [{id: 448, sh: false, lv: 100, mv: [370, 396, 182, 430]}, {id: 445, sh: false, lv: 100}, {id: 6, sh: true, lv: 100}], since: '2026-10-27T10:00:00Z', wins: 2}];
 function demoBattle(fn, b){
   if (fn === 'my_battle') return BPROG;
-  if (fn === 'battle_win'){ const r = Object.assign({}, BPROG); if (b.p_kind === 'gym' && b.p_gym === r.badges + 1) r.badges++; r.wins++; return r; }
-  if (fn === 'battle_board') return [{u: 'pkmn.luca', badges: 5, wins: 41}, {u: 'giulia_shinyhunt', badges: 3, wins: 22}];
+  if (fn === 'champions') return demoCh;
+  if (fn === 'battle_lose') return null;
+  if (fn === 'battle_win'){ const r = Object.assign({champs: []}, BPROG); r.wins++; const li = b.p_league - 1;
+    if (b.p_kind === 'gym' && li === r.cleared && b.p_gym === r.badges - li * 8 + 1) r.badges++;
+    if (b.p_kind === 'elite'){ r.elite = b.p_gym; r.elite_league = b.p_league; }
+    if (b.p_kind === 'champ'){ r.elite = 0; r.cleared = Math.max(r.cleared, b.p_league); r.champs = [...new Set(r.champs.concat(b.p_league))]; r.became = true; if (!r.mb){ r.mb = true; r.reward = 'master'; }
+      const i = demoCh.findIndex(c => c.league === b.p_league); const c = {league: b.p_league, u: ME.u, team: b.p_team, since: new Date().toISOString(), wins: 0}; if (i >= 0) demoCh[i] = c; else demoCh.push(c); }
+    return r; }
+  if (fn === 'battle_board') return [{u: 'pkmn.luca', badges: 5, wins: 41, cleared: 0, champs: 0}, {u: 'giulia_shinyhunt', badges: 8, wins: 22, cleared: 1, champs: 1}];
   return null;
 }
 
