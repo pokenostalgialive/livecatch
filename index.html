@@ -349,6 +349,8 @@ h2:first-child{margin-top:4px}
 .bkr{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
 .bkr select{font:inherit;font-size:12px;font-weight:800;border:1px solid var(--line);border-radius:8px;padding:2px 4px;margin-top:2px;max-width:100%}
 .step{display:flex;align-items:center;gap:6px}.step button{width:32px;height:32px;border-radius:10px;background:#f1f5f9;font-weight:900;font-size:18px}.step b{min-width:22px;text-align:center;font-weight:900}
+.fx-shadow{filter:brightness(.62) sepia(1) hue-rotate(225deg) saturate(2.4) drop-shadow(0 0 7px #8a3cff)!important}
+.fx-primal{filter:brightness(.55) contrast(1.2) saturate(1.4) drop-shadow(0 0 8px #ff7a2a)!important}
 /* desktop */
 @media(min-width:860px){
   body{padding-bottom:0}
@@ -393,7 +395,8 @@ const IDS = Object.keys(M.n).map(Number).sort((a, b) => a - b);
 const REGIONS = M.reg.map(([n, a, b]) => ({n, ids: IDS.filter(id => id >= a && id <= b && !EVENT.has(id))}));
 const MEGA = M.mega || {}, MEGAIDS = Object.keys(MEGA).map(Number).sort((a, b) => a - b);      // Live Catch ids 1101-1150 -> [name, base, types, pokeapi id]
 const FORMS = M.forms || {}, ALT = Object.assign({}, MEGA, FORMS);      // ALT = Mega (1101-1195) + other forms (1196+, e.g. Origin Formes)
-const isMega = id => !!MEGA[id], isForm = id => !!FORMS[id], isAlt = id => !!ALT[id], pid = id => ALT[id] ? ALT[id][3] : id;
+const isMega = id => !!MEGA[id], isForm = id => !!FORMS[id], isAlt = id => !!ALT[id], pid = id => ALT[id] ? (ALT[id][3] || ALT[id][1]) : id;
+const fxc = id => FORMS[id] && FORMS[id][4] ? ' fx-' + FORMS[id][4] : '';      // Shadow / Primal forms without their own sprite: base sprite + color effect
 const name = id => M.n[id] || (ALT[id] && ALT[id][0]) || ('#' + id);
 const pad = id => '#' + String(id).padStart(4, '0');
 const SPR = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
@@ -401,9 +404,9 @@ const spr = (id, sh) => SPR + 'other/home/' + (sh ? 'shiny/' : '') + pid(id) + '
 const sprFallback = (img, id, sh) => { img.onerror = null; img.src = isAlt(id) ? SPR + 'other/showdown/' + (sh ? 'shiny/' : '') + pid(id) + '.gif' : SPR + (sh ? 'shiny/' : '') + id + '.png'; };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const fmt = n => (n || 0).toLocaleString('en-US');
-const rarity = id => isForm(id) ? ['legend', LEG.has(FORMS[id][1]) ? 'LEGENDARY' : 'FORM'] : isMega(id) ? ['mega', /^Primal/.test(MEGA[id][0]) ? 'PRIMAL' : 'MEGA'] : UB.has(id) ? ['legend', 'ULTRA BEAST'] : PARALEG.has(id) ? ['legend', 'PARADOX LEGEND'] : LEG.has(id) ? ['legend', 'LEGENDARY'] : PARADOX.has(id) ? ['rare', 'PARADOX'] : RARE.has(id) ? ['rare', 'RARE'] : null;
+const rarity = id => isForm(id) ? ['legend', /^Shadow/.test(FORMS[id][0]) ? 'SHADOW' : 'LEGENDARY'] : isMega(id) ? ['mega', /^Primal/.test(MEGA[id][0]) ? 'PRIMAL' : 'MEGA'] : UB.has(id) ? ['legend', 'ULTRA BEAST'] : PARALEG.has(id) ? ['legend', 'PARADOX LEGEND'] : LEG.has(id) ? ['legend', 'LEGENDARY'] : PARADOX.has(id) ? ['rare', 'PARADOX'] : RARE.has(id) ? ['rare', 'RARE'] : null;
 const TYPEC = {normal:'#9fa19f',fire:'#e62829',water:'#2980ef',grass:'#3fa129',electric:'#d6b400',ice:'#3dcef3',fighting:'#ff8000',poison:'#9141cb',ground:'#915121',flying:'#81b9ef',psychic:'#ef4179',bug:'#91a119',rock:'#afa981',ghost:'#704170',dragon:'#5060e1',dark:'#624d4e',steel:'#60a1b8',fairy:'#ef70ef'};
-const img = (id, sh, cls = '') => `<img class="${cls}" loading="lazy" alt="${esc(name(id))}" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})">`;
+const img = (id, sh, cls = '') => `<img class="${cls}${fxc(id)}" loading="lazy" alt="${esc(name(id))}" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})">`;
 const ICON = {
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
   rank: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V10M12 20V4M18 20v-7"/></svg>',
@@ -525,7 +528,7 @@ function boxList(t, f){
   if (f === 'dex') return IDS.map(id => ({id, has: t.c[id] > 0, sh: t.c[id] > 0 && !nrN(t, id), cnt: 0}));
   const base = id => isAlt(id) ? ALT[id][1] : id;      // family = base Pokémon: Charizard, Charizard shiny, Mega X, Mega Y...
   let ids = f === 'mega' ? MEGAIDS.slice().sort((a, b) => base(a) - base(b) || a - b) : t.own.concat(t.mega, t.forms).sort((a, b) => base(a) - base(b) || a - b);
-  if (f === 'legend') ids = ids.filter(id => LEG.has(base(id)) || UB.has(base(id)));
+  if (f === 'legend') ids = ids.filter(id => isForm(id) || LEG.has(base(id)) || UB.has(base(id)));
   if (f === 'rare') ids = ids.filter(id => RARE.has(base(id)));
   const out = [];
   for (const id of ids){ const n = nrN(t, id), sh = shN(t, id);
@@ -612,7 +615,7 @@ function sheet(t, id, sh){
   const c = nrN(t, id), s = shN(t, id), rr = rarity(id), types = (M.t[id] || (MEGA[id] || [])[2] || '').split('/').filter(Boolean);
   const bg = document.createElement('div'); bg.className = 'sheet-bg';
   const draw = () => { bg.innerHTML = `<div class="sheet"><div class="grab"></div>
-    <img class="big" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})" alt="">
+    <img class="big${fxc(id)}" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})" alt="">
     <div class="no">${isAlt(id) ? (isForm(id) ? 'form of ' : 'from ') + esc(name(ALT[id][1])) + ' · ' + pad(ALT[id][1]) : pad(id) + ' · ' + regionOf(id)}</div><h3>${sh ? '✦ ' : ''}${esc(name(id))}</h3>
     ${rr ? `<span class="tag ${rr[0]}">${rr[1]}</span>` : ''}
     <div class="types">${types.map(x => `<span class="type" style="background:${TYPEC[x] || '#999'}">${x}</span>`).join('')}</div>
@@ -814,7 +817,7 @@ async function shareCard(t, btn){
 }
 
 /* ===== TRADES (phase 3): proposed and accepted on the site, executed by the live game ===== */
-const CAT = id => isMega(id) ? 'mega' : LEG.has(isForm(id) ? FORMS[id][1] : id) ? 'legend' : 'normal';
+const CAT = id => isMega(id) ? 'mega' : isForm(id) || LEG.has(id) ? 'legend' : 'normal';
 const CATN = {mega: 'Mega', legend: 'legendary', normal: 'normal'};
 let MYTR = null, RECENT = null;      // MYTR = {today, list}
 const demoTr = []; let demoTrId = 1;
@@ -952,7 +955,7 @@ let BPROG = {badges: 0, wins: 0};      // my progress (server)
 let BBOARD = null;
 const MOVESET = () => LS.get('lch_moves', {});
 const baseOf = id => isAlt(id) ? ALT[id][1] : id;
-const lvOf = (t, id) => LEG.has(baseOf(id)) || isMega(id) ? 100 : (t.c[id] || 0) >= 3 ? 100 : (t.c[id] || 0) === 2 ? 90 : 80;
+const lvOf = (t, id) => LEG.has(baseOf(id)) || isAlt(id) ? 100 : (t.c[id] || 0) >= 3 ? 100 : (t.c[id] || 0) === 2 ? 90 : 80;
 const defMoves = id => { const p = BT.p[id]; return p ? p[2].slice(0, p[3]) : []; };
 const myMoves = id => { const s = MOVESET()[id], p = BT.p[id]; return s && s.length && p && s.every(m => p[2].includes(m)) ? s : defMoves(id); };
 function mkMon(id, lv, mv, sh){
@@ -1053,7 +1056,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // animated pixel sprites (Black/White 2 style, fan-made for the newer ones); fallback = HOME 3D sprite
 const bsz = el => { const k = Math.min(2.6, 230 / Math.max(el.naturalWidth, el.naturalHeight)); el.style.width = Math.round(el.naturalWidth * k) + 'px'; el.style.height = Math.round(el.naturalHeight * k) + 'px'; el.classList.add('ok'); };
 // Black/White 2 animated sprites (Showdown gen5ani: real BW for Gen 1-5, fan-made BW style for the newer ones) -> BW static -> PokeAPI BW -> HOME 3D
-const sdId = id => { if (isForm(id)) return sdName(FORMS[id][1]) + '-' + FORMS[id][0].split(' ').pop().toLowerCase(); if (isMega(id)){ const nm = MEGA[id][0], base = sdName(MEGA[id][1]); return /^Primal/.test(nm) ? base + '-primal' : base + '-mega' + (/ X$/.test(nm) ? 'x' : / Y$/.test(nm) ? 'y' : / Z$/.test(nm) ? 'z' : ''); } return sdName(id); };
+const sdId = id => { if (isForm(id)){ const F = FORMS[id], b = sdName(F[1]); if (!F[3]) return b; const ex = F[0].replace(M.n[F[1]] || '', '').replace(/[^a-z]/gi, '').toLowerCase(); return ex ? b + '-' + ex : b; } if (isMega(id)){ const nm = MEGA[id][0], base = sdName(MEGA[id][1]); return /^Primal/.test(nm) ? base + '-primal' : base + '-mega' + (/ X$/.test(nm) ? 'x' : / Y$/.test(nm) ? 'y' : / Z$/.test(nm) ? 'z' : ''); } return sdName(id); };
 const sdName = id => (M.n[id] || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '');
 function bsrcs(id, sh, back){
   const PS = 'https://play.pokemonshowdown.com/sprites/', n = sdId(id), b = back ? '-back' : '', s = sh ? '-shiny' : '';
@@ -1062,8 +1065,8 @@ function bsrcs(id, sh, back){
   return L;
 }
 function bnext(el){ const L = JSON.parse(el.dataset.l), i = +el.dataset.i + 1; if (i < L.length){ el.dataset.i = i; el.src = L[i]; return; }
-  el.onerror = null; el.onload = null; const [id, sh, back] = el.dataset.k.split('-').map(Number); el.className = 'home' + (back ? ' flip' : ''); el.style.width = el.style.height = ''; el.src = spr(id, sh); }
-const bimg = (id, sh, back) => { const L = bsrcs(id, sh, back); return `<img alt="" data-k="${id}-${sh ? 1 : 0}-${back ? 1 : 0}" data-i="0" data-l='${JSON.stringify(L)}' src="${L[0]}" onload="bsz(this)" onerror="bnext(this)">`; };
+  el.onerror = null; el.onload = null; const [id, sh, back] = el.dataset.k.split('-').map(Number); el.className = 'home' + (back ? ' flip' : '') + fxc(id); el.style.width = el.style.height = ''; el.src = spr(id, sh); }
+const bimg = (id, sh, back) => { const L = bsrcs(id, sh, back); return `<img alt="" class="${fxc(id).trim()}" data-k="${id}-${sh ? 1 : 0}-${back ? 1 : 0}" data-i="0" data-l='${JSON.stringify(L)}' src="${L[0]}" onload="bsz(this)" onerror="bnext(this)">`; };
 async function runBattle(opp, mine){
   const foes = opp.team.map(id => mkMon(id, 100, defMoves(id), false));
   let a = 0, f = 0; const P = mine, F = foes;
