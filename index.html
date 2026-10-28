@@ -38,6 +38,11 @@ img{display:block}
 .btabs a{flex:1;text-align:center;text-decoration:none;color:var(--mute);font-weight:800;font-size:12px;padding:6px 0;border-radius:14px}
 .btabs a svg{display:block;margin:0 auto 2px;width:24px;height:24px}
 .btabs a.on{color:var(--teal)}
+.livebar{display:flex;align-items:center;justify-content:center;gap:10px;position:sticky;top:0;z-index:25;background:linear-gradient(90deg,#e0102f,#ff2d55);color:#fff;text-decoration:none;font-weight:900;font-size:14px;padding:10px 16px;box-shadow:0 4px 14px rgba(224,16,47,.35)}
+.livebar[hidden]{display:none}.livebar .dot{width:10px;height:10px;border-radius:50%;background:#fff;animation:lvdot 1.2s infinite}
+.livebar em{font-style:normal;background:#fff;color:#e0102f;padding:4px 11px;border-radius:999px;font-size:12px}
+@keyframes lvdot{0%,100%{opacity:1}50%{opacity:.25}}
+.foot .kofi{display:inline-block;margin:10px 0 6px;background:#ff5e5b;color:#fff;font-weight:900;text-decoration:none;padding:8px 16px;border-radius:999px}
 .tabs a.bt{background:linear-gradient(135deg,#ff5a5f,#ffb400);color:#fff;box-shadow:0 4px 14px rgba(255,90,95,.35)}.tabs a.bt.on{box-shadow:0 0 0 3px var(--ink)}
 .btabs a.bt{color:#e63946}.btabs a.bt svg{background:linear-gradient(135deg,#ff5a5f,#ffb400);color:#fff;border-radius:50%;padding:3px;box-sizing:border-box;animation:btpulse 1.8s infinite}
 @keyframes btpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,90,95,.55)}60%{box-shadow:0 0 0 8px rgba(255,90,95,0)}}
@@ -394,6 +399,7 @@ h2:first-child{margin-top:4px}
   <nav class="tabs dtabs" id="dtabs"></nav>
   <div class="upd" id="upd"></div>
 </div></header>
+<a id="livebar" class="livebar" hidden target="_blank" rel="noopener"></a>
 <main id="app"></main>
 <nav class="btabs" id="btabs"></nav>
 
@@ -406,6 +412,8 @@ h2:first-child{margin-top:4px}
    Add ?demo to the address to see the fake demo data. */
 const CONFIG = { SOURCE: /[?&]demo/.test(location.search) ? 'demo' : 'supabase', REFRESH_MIN: 5,
   CONTACT: 'a private message to the host of the live on TikTok',
+  LIVE_URL: 'https://www.tiktok.com/@.pokemon.nostalgia/live',
+  KOFI: 'https://ko-fi.com/pokenostalgia',      // es. 'https://ko-fi.com/tuonome' - vuoto = link nascosto
   SB_URL: 'https://pdkxuxpvglrupzacpjdg.supabase.co',
   SB_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBka3h1eHB2Z2xydXB6YWNwamRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NjM4MTMsImV4cCI6MjEwODMzOTgxM30.sBaf9mCEu_0pgSWIo7qhaSJtmhWxtPvNHC5THXangAw' };
 
@@ -469,7 +477,12 @@ function nav(active){
   document.getElementById('btabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}">${ICON[k]}${l}</a>`).join('');
   document.getElementById('dtabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}">${k === 'battle' ? '⚔️ ' : ''}${l}</a>`).join('');
 }
-function setUpd(){ document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}"><span>@${esc(AUTH.u)}</span>${incoming().length ? `<em>${incoming().length}</em>` : ''}</a>` : ''); }
+function setLive(){
+  const b = document.getElementById('livebar'); if (!b) return;
+  const on = !!(D && D.live === true && D.t && Date.now() - D.t < 15 * 60000);
+  b.hidden = !on; if (on){ b.href = CONFIG.LIVE_URL; b.innerHTML = '<span class="dot"></span>LIVE NOW · Join and catch<em>Watch</em>'; }
+}
+function setUpd(){ setLive(); document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}"><span>@${esc(AUTH.u)}</span>${incoming().length ? `<em>${incoming().length}</em>` : ''}</a>` : ''); }
 
 /* ===== RANKINGS ===== */
 const RANKS = {
@@ -769,7 +782,7 @@ function viewPrivacy(){
   nav('');
   return `<div class="rankg"><a class="back" href="#/">${ICON.left}Back</a><div class="card legal">
   <h1>Privacy</h1><p class="hint" style="text-align:left">Last update: 24 October 2026</p>
-  <h4>Who runs this page</h4><p>Live Catch Dex is a free, non-commercial fan page for the players of the Live Catch game on TikTok, run by the host of the live. Contact: ${CONFIG.CONTACT}.</p>
+  <h4>Who runs this page</h4><p>Live Catch Dex is a free fan page for the players of the Live Catch game on TikTok, run by the host of the live.${CONFIG.KOFI ? ' Tips via "Support the project" are voluntary and only help keep the page online: they give nothing in the game and are never shown on the site.' : ''} Contact: ${CONFIG.CONTACT}.</p>
   <h4>What is shown</h4><p>Only your TikTok username, your public TikTok profile picture and your game data from the live (Pokémon caught, shiny, legendaries, team, streak, rankings). No gift or coin amounts are shown.</p>
   <h4>Where it comes from</h4><p>The Live Catch game reads the public events of the live (username, public profile picture and the game commands written in chat) to run the game. Chat messages are not published on this page.</p>
   <h4>If you link your page</h4><p>When you use "This is me" and write <b>!home</b> in the live chat, we save a random key in your browser to keep you logged in, and your choices (partner, favorites, wishlist, privacy). No email, no password, no other personal data.</p>
@@ -1345,7 +1358,7 @@ function route(){
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), [a, b] = [h.split('/')[0], h.split('/').slice(1).join('/')];
   document.querySelectorAll('.sheet-bg').forEach(x => x.remove());
   app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : viewHome())
-    + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br><a href="#/privacy">Privacy</a></div>`;
+    + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br>${CONFIG.KOFI ? `<a class="kofi" href="${CONFIG.KOFI}" target="_blank" rel="noopener">☕ Support the project</a><br>` : ''}<a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
   if (a === 'hof') recentHtml();
   if (a === 'battle') bindBattle();
