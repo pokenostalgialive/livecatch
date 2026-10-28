@@ -38,6 +38,19 @@ img{display:block}
 .btabs a{flex:1;text-align:center;text-decoration:none;color:var(--mute);font-weight:800;font-size:12px;padding:6px 0;border-radius:14px}
 .btabs a svg{display:block;margin:0 auto 2px;width:24px;height:24px}
 .btabs a.on{color:var(--teal)}
+.lgst{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.lgst div{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:10px 4px;text-align:center;border-top:4px solid var(--c)}
+.lgst b{display:block;font-size:20px;font-weight:900}.lgst span{display:block;font-size:9.5px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.3px}
+.lgday{font-size:13px;font-weight:900;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;margin:16px 4px 8px}
+.lgrow{gap:10px!important;border-bottom:1px solid var(--line)}.lgrow:last-child{border-bottom:0}
+.lgrow .tm{width:40px;flex:none;font-size:12px;font-weight:800;color:var(--mute)}
+.lgrow .pk{width:52px;height:52px;flex:none;border-radius:14px;background:#f1f6fb;display:grid;place-items:center}.lgrow .pk img{width:46px;height:46px;object-fit:contain}
+.lgrow.shy .pk{background:linear-gradient(135deg,#fff6d6,#ffe9a8)}
+.lgrow .who b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lgrow .who small{display:block;font-size:12px;font-weight:700;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lgrow .who small a{color:var(--ink);text-decoration:none;font-weight:900}
+.lgk{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.3px;color:#fff;background:var(--c);border-radius:6px;padding:2px 6px;margin-bottom:3px}
+.lgmore{display:block;margin:14px auto 0;background:var(--ink);color:#fff;font-weight:800;border-radius:999px;padding:10px 20px}
+
 .livebar{display:flex;align-items:center;justify-content:center;gap:10px;position:sticky;top:0;z-index:25;background:linear-gradient(90deg,#e0102f,#ff2d55);color:#fff;text-decoration:none;font-weight:900;font-size:14px;padding:10px 16px;box-shadow:0 4px 14px rgba(224,16,47,.35)}
 .livebar[hidden]{display:none}.livebar .dot{width:10px;height:10px;border-radius:50%;background:#fff;animation:lvdot 1.2s infinite}
 .livebar em{font-style:normal;background:#fff;color:#e0102f;padding:4px 11px;border-radius:999px;font-size:12px}
@@ -440,6 +453,7 @@ const ICON = {
   rank: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V10M12 20V4M18 20v-7"/></svg>',
   battle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M9.5 17.5 21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4M5 21l-2-2"/></svg>',
   hof: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>',
+  log: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
   right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>'
 };
@@ -474,7 +488,7 @@ function avatar(t, cls = 'av'){
 }
 const link = u => '#/t/' + encodeURIComponent(u);
 function nav(active){
-  const it = [['home', '#/', 'Trainers'], ['rank', '#/rank', 'Rankings'], ['battle', '#/battle', 'Battle'], ['hof', '#/hof', 'Hall of Fame']];
+  const it = [['home', '#/', 'Trainers'], ['rank', '#/rank', 'Rankings'], ['battle', '#/battle', 'Battle'], ['log', '#/log', 'Live Log'], ['hof', '#/hof', 'Hall of Fame']];
   document.getElementById('btabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}">${ICON[k]}${l}</a>`).join('');
   document.getElementById('dtabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}">${k === 'battle' ? '⚔️ ' : ''}${l}</a>`).join('');
 }
@@ -679,6 +693,7 @@ async function rpc(fn, body){
 function demoRpc(fn, b){      // ?demo only: fakes the server (verification completes by itself after 4 s)
   if (/trade/.test(fn)) return demoTrades(fn, b);
   if (/battle|champions/.test(fn)) return demoBattle(fn, b);
+  if (fn === 'live_log_list') return demoLog(b);
   if (fn === 'set_team') return b.p_team;
   if (fn === 'evolve_mon') return b.p_to;
   if (fn === 'evolve_bulk') return b.p_items.reduce((s, x) => s + x.n, 0);
@@ -936,6 +951,56 @@ function demoTrades(fn, b){      // ?demo only
   if (fn === 'cancel_trade'){ const x = demoTr.find(x => x.id === b.p_id); x.status = 'cancelled'; return null; }
   if (fn === 'recent_trades') return [{a: 'pkmn.luca', b: 'giulia_shinyhunt', a_id: 445, a_sh: false, b_id: 448, b_sh: false}, {a: 'marco.trainer98', b: 'sara.pokefan', a_id: 133, a_sh: true, b_id: 25, b_sh: true}];
   return null;
+}
+
+
+/* ===== LIVE LOG (everything that came out in the lives) ===== */
+const LOGK = {shiny: ['Shiny', 'SHINY', '#e0a100'], leg: ['Legendary', 'LEGENDARY', '#7a5cf0'], raidL: ['Legendary Raid', 'LEGENDARY RAID', '#4b3fd6'], raidD: ['Dynamax Raid', 'DYNAMAX RAID', '#e8233f'], roul: ['Roulette', 'ROULETTE', '#ff4fa3']};
+let LOG = {k: null, rows: [], stats: {}, more: false, busy: false};
+function viewLog(k){
+  nav('log'); LOG.k = LOGK[k] ? k : null;
+  return `<div class="rankg"><h2>Live Log</h2><p style="margin:-4px 4px 12px;color:var(--mute);font-weight:700;font-size:14px">Everything that came out in the lives: shiny, legendaries, raids and roulettes.</p>
+    <div class="lgst" id="lgst"></div>
+    <div class="chips"><a class="chip ${!LOG.k ? 'on' : ''}" href="#/log" style="text-decoration:none">All</a>${Object.entries(LOGK).map(([kk, v]) => `<a class="chip ${kk === LOG.k ? 'on' : ''}" href="#/log/${kk}" style="text-decoration:none">${v[0]}</a>`).join('')}</div>
+    <div id="logl"><div class="card empty" style="margin:0">Loading...</div></div></div>`;
+}
+async function loadLog(reset){
+  if (LOG.busy) return; LOG.busy = true;
+  if (reset){ LOG.rows = []; LOG.more = false; }
+  const before = LOG.rows.length ? LOG.rows[LOG.rows.length - 1].id : null;
+  try { const r = await rpc('live_log_list', {p_k: LOG.k, p_before: before, p_limit: 50}) || {}; const rows = r.rows || [];
+    LOG.rows = LOG.rows.concat(rows); LOG.more = rows.length >= 50; if (r.stats) LOG.stats = r.stats;
+  } catch(e){ LOG.err = 1; }
+  LOG.busy = false; drawLog();
+}
+function drawLog(){
+  const st = document.getElementById('lgst'), el = document.getElementById('logl'); if (!el) return;
+  st.innerHTML = Object.entries(LOGK).map(([k, v]) => `<div style="--c:${v[2]}"><b>${fmt(LOG.stats[k] || 0)}</b><span>${v[0]}</span></div>`).join('');
+  if (!LOG.rows.length){ el.innerHTML = `<div class="card empty" style="margin:0">${LOG.err ? 'Could not load the log. Try again in a minute.' : 'Nothing here yet. It fills up during the next live!'}</div>`; return; }
+  const dk = t => new Date(t).toDateString(), today = dk(Date.now()), yest = dk(Date.now() - 864e5);
+  const dl = t => { const d = dk(t); return d === today ? 'Today' : d === yest ? 'Yesterday' : new Date(t).toLocaleDateString('en-GB', {weekday: 'short', day: 'numeric', month: 'short'}); };
+  const who = u => { const tr = T.find(x => x.u.toLowerCase() === (u || '').toLowerCase()); return tr ? `<a href="${link(tr.u)}">@${esc(tr.u)}</a>` : `<b style="display:inline">@${esc(u)}</b>`; };
+  let html = '', cur = null;
+  for (const x of LOG.rows){
+    const d = dl(x.t); if (d !== cur){ if (cur !== null) html += '</div>'; html += `<div class="lgday">${d}</div><div class="list">`; cur = d; }
+    const K = LOGK[x.k] || ['', '', '#999'], id = x.id_mon;
+    const sub = x.k === 'raidL' || x.k === 'raidD' ? [x.n ? `caught by ${x.n} trainer${x.n > 1 ? 's' : ''}` : '', x.u ? 'MVP ' + who(x.u) : ''].filter(Boolean).join(' · ') || 'Raid boss'
+      : x.k === 'roul' ? (x.u ? 'Roulette by ' + who(x.u) : 'Roulette') : x.u ? 'caught by ' + who(x.u) : '';
+    html += `<div class="row lgrow ${x.sh ? 'shy' : ''}"><span class="tm">${new Date(x.t).toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'})}</span><span class="pk">${img(id, x.sh)}</span>
+      <span class="who"><span class="lgk" style="--c:${K[2]}">${K[1]}</span><b>${x.sh ? '✦ ' : ''}${esc(name(id))}</b><small>${sub}</small></span></div>`;
+  }
+  html += '</div>' + (LOG.more ? `<button class="lgmore" id="lgmore">Load more</button>` : '');
+  el.innerHTML = html;
+  const mb = document.getElementById('lgmore'); if (mb) mb.onclick = () => { mb.disabled = true; mb.textContent = 'Loading...'; loadLog(false); };
+}
+let DEMOLOG = null;
+function demoLog(b){      // ?demo only: fake log built from the demo trainers
+  if (!DEMOLOG){ DEMOLOG = []; const us = T.map(t => t.u), ks = ['shiny', 'leg', 'raidL', 'raidD', 'roul', 'shiny', 'shiny'], pool = {shiny: [25, 6, 130, 448, 94, 133, 445], leg: [144, 145, 146, 243, 380, 638], raidL: [384, 150, 249, 483, 890], raidD: [1210, 1216, 1220, 1213], roul: [1102, 1146, 249, 6, 384]};
+    let t = Date.now() - 6e5; for (let i = 0; i < 140; i++){ const k = ks[i % 7], arr = pool[k]; t -= 9e5 + (i * 7919 % 3600) * 1000;
+      DEMOLOG.push({id: 1000 - i, t, k, u: k === 'raidL' || k === 'raidD' ? (i % 3 ? us[i % us.length] : null) : us[(i * 3) % us.length], id_mon: arr[i % arr.length], sh: k === 'shiny' || (k === 'roul' && i % 2 === 0), n: k[0] === 'r' && k !== 'roul' ? 3 + i % 15 : null}); } }
+  const rows = DEMOLOG.filter(x => (!b.p_k || x.k === b.p_k) && (!b.p_before || x.id < b.p_before)).slice(0, b.p_limit || 50), stats = {};
+  for (const x of DEMOLOG) stats[x.k] = (stats[x.k] || 0) + 1;
+  return {rows, stats: b.p_before ? null : stats};
 }
 
 /* ===== HALLOWEEN SKINS (event 26 Oct - 2 Nov) + MEGA STONES ===== */
@@ -1359,11 +1424,12 @@ function route(){
   const app = document.getElementById('app'); if (!D) return;
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), [a, b] = [h.split('/')[0], h.split('/').slice(1).join('/')];
   document.querySelectorAll('.sheet-bg').forEach(x => x.remove());
-  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : viewHome())
+  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : viewHome())
     + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br>${CONFIG.KOFI ? `<a class="kofi" href="${CONFIG.KOFI}" target="_blank" rel="noopener">☕ Support the project</a><br>` : ''}<a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
   if (a === 'hof') recentHtml();
   if (a === 'battle') bindBattle();
+  if (a === 'log') loadLog(true);
 }
 window.addEventListener('hashchange', route);
 async function start(){
