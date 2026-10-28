@@ -392,15 +392,16 @@ const M = window.META, LEG = new Set(M.leg), RARE = new Set(M.rare), UB = new Se
 const IDS = Object.keys(M.n).map(Number).sort((a, b) => a - b);
 const REGIONS = M.reg.map(([n, a, b]) => ({n, ids: IDS.filter(id => id >= a && id <= b && !EVENT.has(id))}));
 const MEGA = M.mega || {}, MEGAIDS = Object.keys(MEGA).map(Number).sort((a, b) => a - b);      // Live Catch ids 1101-1150 -> [name, base, types, pokeapi id]
-const isMega = id => !!MEGA[id], pid = id => MEGA[id] ? MEGA[id][3] : id;
-const name = id => M.n[id] || (MEGA[id] && MEGA[id][0]) || ('#' + id);
+const FORMS = M.forms || {}, ALT = Object.assign({}, MEGA, FORMS);      // ALT = Mega (1101-1195) + other forms (1196+, e.g. Origin Formes)
+const isMega = id => !!MEGA[id], isForm = id => !!FORMS[id], isAlt = id => !!ALT[id], pid = id => ALT[id] ? ALT[id][3] : id;
+const name = id => M.n[id] || (ALT[id] && ALT[id][0]) || ('#' + id);
 const pad = id => '#' + String(id).padStart(4, '0');
 const SPR = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
 const spr = (id, sh) => SPR + 'other/home/' + (sh ? 'shiny/' : '') + pid(id) + '.png';
-const sprFallback = (img, id, sh) => { img.onerror = null; img.src = isMega(id) ? SPR + 'other/showdown/' + (sh ? 'shiny/' : '') + pid(id) + '.gif' : SPR + (sh ? 'shiny/' : '') + id + '.png'; };
+const sprFallback = (img, id, sh) => { img.onerror = null; img.src = isAlt(id) ? SPR + 'other/showdown/' + (sh ? 'shiny/' : '') + pid(id) + '.gif' : SPR + (sh ? 'shiny/' : '') + id + '.png'; };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const fmt = n => (n || 0).toLocaleString('en-US');
-const rarity = id => isMega(id) ? ['mega', /^Primal/.test(MEGA[id][0]) ? 'PRIMAL' : 'MEGA'] : UB.has(id) ? ['legend', 'ULTRA BEAST'] : PARALEG.has(id) ? ['legend', 'PARADOX LEGEND'] : LEG.has(id) ? ['legend', 'LEGENDARY'] : PARADOX.has(id) ? ['rare', 'PARADOX'] : RARE.has(id) ? ['rare', 'RARE'] : null;
+const rarity = id => isForm(id) ? ['legend', LEG.has(FORMS[id][1]) ? 'LEGENDARY' : 'FORM'] : isMega(id) ? ['mega', /^Primal/.test(MEGA[id][0]) ? 'PRIMAL' : 'MEGA'] : UB.has(id) ? ['legend', 'ULTRA BEAST'] : PARALEG.has(id) ? ['legend', 'PARADOX LEGEND'] : LEG.has(id) ? ['legend', 'LEGENDARY'] : PARADOX.has(id) ? ['rare', 'PARADOX'] : RARE.has(id) ? ['rare', 'RARE'] : null;
 const TYPEC = {normal:'#9fa19f',fire:'#e62829',water:'#2980ef',grass:'#3fa129',electric:'#d6b400',ice:'#3dcef3',fighting:'#ff8000',poison:'#9141cb',ground:'#915121',flying:'#81b9ef',psychic:'#ef4179',bug:'#91a119',rock:'#afa981',ghost:'#704170',dragon:'#5060e1',dark:'#624d4e',steel:'#60a1b8',fairy:'#ef70ef'};
 const img = (id, sh, cls = '') => `<img class="${cls}" loading="lazy" alt="${esc(name(id))}" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})">`;
 const ICON = {
@@ -417,9 +418,9 @@ let D = null, T = [], BY = {};
 function build(data){
   D = data; const dex = data.dex || {}, av = data.av || {}, wk = (data.week || {}).n || {};
   T = Object.entries(dex).map(([u, d]) => {
-    const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0 && M.n[k]).map(Number), mega = Object.keys(c).filter(k => c[k] > 0 && MEGA[k]).map(Number).sort((a, b) => a - b);
-    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length,
-      team: (d.team || []).filter(id => M.n[id] || MEGA[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
+    const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0 && M.n[k]).map(Number), mega = Object.keys(c).filter(k => c[k] > 0 && MEGA[k]).map(Number).sort((a, b) => a - b), forms = Object.keys(c).filter(k => c[k] > 0 && FORMS[k]).map(Number);
+    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, forms, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length + forms.length,
+      team: (d.team || []).filter(id => M.n[id] || ALT[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -469,7 +470,7 @@ function rankRows(key, limit){
 
 /* ===== VIEWS ===== */
 function hofCards(){
-  const h = D.hof || {}, card = (e, cls, lab) => e && (M.n[e.id] || MEGA[e.id]) ? `<a class="hofc ${cls}" href="${link(e.u)}" style="text-decoration:none">
+  const h = D.hof || {}, card = (e, cls, lab) => e && (M.n[e.id] || ALT[e.id]) ? `<a class="hofc ${cls}" href="${link(e.u)}" style="text-decoration:none">
     <div class="lab">${lab}</div>${img(e.id, e.sh)}<div class="nm">${e.sh ? '✦ ' : ''}${esc(name(e.id))}</div><div class="by">by ${esc(e.u)}</div></a>`
     : `<div class="hofc ${cls}"><div class="lab">${lab}</div><div style="padding:34px 0;font-weight:800;opacity:.9;font-size:13px">Not yet</div></div>`;
   const legOk = e => e && !isMega(e.id), raidLeg = e => e && LEG.has(+e.id) && !isMega(e.id);      // legendary raid bosses go to LEGENDARY, the others (Dynamax, Mega) to DYNAMAX RAID
@@ -522,8 +523,8 @@ const shN = (t, id) => Math.min(t.c[id] || 0, t.sc[id] !== undefined ? +t.sc[id]
 const nrN = (t, id) => Math.max(0, (t.c[id] || 0) - shN(t, id));      // normal copies
 function boxList(t, f){
   if (f === 'dex') return IDS.map(id => ({id, has: t.c[id] > 0, sh: t.c[id] > 0 && !nrN(t, id), cnt: 0}));
-  const base = id => isMega(id) ? MEGA[id][1] : id;      // family = base Pokémon: Charizard, Charizard shiny, Mega X, Mega Y...
-  let ids = f === 'mega' ? MEGAIDS.slice().sort((a, b) => base(a) - base(b) || a - b) : t.own.concat(t.mega).sort((a, b) => base(a) - base(b) || a - b);
+  const base = id => isAlt(id) ? ALT[id][1] : id;      // family = base Pokémon: Charizard, Charizard shiny, Mega X, Mega Y...
+  let ids = f === 'mega' ? MEGAIDS.slice().sort((a, b) => base(a) - base(b) || a - b) : t.own.concat(t.mega, t.forms).sort((a, b) => base(a) - base(b) || a - b);
   if (f === 'legend') ids = ids.filter(id => LEG.has(base(id)) || UB.has(base(id)));
   if (f === 'rare') ids = ids.filter(id => RARE.has(base(id)));
   const out = [];
@@ -563,7 +564,7 @@ function viewTrainer(u){
     return `<a class="back" href="#/">${ICON.left}Back</a><div class="card"><b>Trainer not found</b><p class="empty">Check the spelling of the TikTok name, or catch your first Pokémon in the live.</p></div>`;
   }
   if (BOXSTATE.u !== t.u) BOXSTATE = {u: t.u, f: 'caught', p: 0};
-  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id] || MEGA[id]), wish = [...new Set((P.wish || []).concat(t.lwish))].filter(id => M.n[id] || MEGA[id]), partner = (M.n[P.partner] || MEGA[P.partner]) ? P.partner : 0;
+  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id] || ALT[id]), wish = [...new Set((P.wish || []).concat(t.lwish))].filter(id => M.n[id] || ALT[id]), partner = (M.n[P.partner] || ALT[P.partner]) ? P.partner : 0;
   const F = [['caught', 'Caught ' + t.dex], ['shiny', 'Shiny ' + t.s], ['legend', 'Legendary ' + t.leg], ['mega', 'Mega ' + t.mg + '/' + MEGAIDS.length], ['rare', 'Rare'], ['dex', 'Full Pokédex']];
   const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], shN(t, arr[i]) > 0)}</button>` : '<div class="tm e"></div>').join('');
   const regs = REGIONS.map(r => { const have = r.ids.filter(id => t.c[id] > 0).length, done = t.badges.includes(r.n) || have >= r.ids.length;
@@ -612,7 +613,7 @@ function sheet(t, id, sh){
   const bg = document.createElement('div'); bg.className = 'sheet-bg';
   const draw = () => { bg.innerHTML = `<div class="sheet"><div class="grab"></div>
     <img class="big" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})" alt="">
-    <div class="no">${isMega(id) ? 'from ' + esc(name(MEGA[id][1])) + ' · ' + pad(MEGA[id][1]) : pad(id) + ' · ' + regionOf(id)}</div><h3>${sh ? '✦ ' : ''}${esc(name(id))}</h3>
+    <div class="no">${isAlt(id) ? (isForm(id) ? 'form of ' : 'from ') + esc(name(ALT[id][1])) + ' · ' + pad(ALT[id][1]) : pad(id) + ' · ' + regionOf(id)}</div><h3>${sh ? '✦ ' : ''}${esc(name(id))}</h3>
     ${rr ? `<span class="tag ${rr[0]}">${rr[1]}</span>` : ''}
     <div class="types">${types.map(x => `<span class="type" style="background:${TYPEC[x] || '#999'}">${x}</span>`).join('')}</div>
     <div class="sgrid"><div class="stat"><b>${c}</b><span>Normal</span></div><div class="stat s"><b>${s}</b><span>Shiny</span></div></div>
@@ -704,13 +705,13 @@ function pollClaim(u, bg){
 /* Edit my page: partner, favorites, wishlist, privacy */
 function openEdit(){
   if (!ME) return;
-  const t = BY[ME.u.toLowerCase()], own = t ? t.own.slice().sort((a, b) => a - b).concat(t.mega) : [];
+  const t = BY[ME.u.toLowerCase()], own = t ? t.own.slice().sort((a, b) => a - b).concat(t.mega, t.forms) : [];
   const E = {fav: [...(ME.fav || [])], wish: [...(ME.wish || [])], partner: ME.partner || 0, hidden: !!ME.hidden}, st = {tab: t ? 'partner' : 'privacy', q: ''};
   const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
   const TABS = [['partner', 'Partner'], ['fav', 'Favorites'], ['wish', 'Wishlist'], ['privacy', 'Privacy']];
   const pick = id => `<button class="slot pk ${(st.tab === 'fav' ? E.fav.includes(id) : st.tab === 'wish' ? E.wish.includes(id) : E.partner === id) ? 'sel' : ''}" data-id="${id}">${img(id, false)}<span>${esc(name(id))}</span></button>`;
   const draw = () => {
-    const pool = st.tab === 'wish' ? IDS.concat(MEGAIDS) : own, q = st.q.trim().toLowerCase();
+    const pool = st.tab === 'wish' ? IDS.concat(MEGAIDS, Object.keys(FORMS).map(Number)) : own, q = st.q.trim().toLowerCase();
     const list = pool.filter(id => !q || name(id).toLowerCase().includes(q) || String(id) === q), shown = list.slice(0, 120);
     const sel = st.tab === 'fav' ? `<div class="team">${Array.from({length: 6}, (_, i) => E.fav[i] ? `<button class="tm rm" data-rm="${E.fav[i]}">${img(E.fav[i], false)}</button>` : '<div class="tm e"></div>').join('')}</div><p class="hint">${E.fav.length}/6 · tap to remove</p>`
       : st.tab === 'wish' ? (E.wish.length ? `<div class="wish">${E.wish.map(id => `<button class="tm rm" data-rm="${id}">${img(id, false)}</button>`).join('')}</div>` : '') + `<p class="hint">${E.wish.length}/30 · the Pokémon you are looking for</p>`
@@ -780,8 +781,8 @@ async function makeCard(t){
   g.fillStyle = '#fff'; g.font = F(900, 46); g.textAlign = 'left'; g.fillText('LIVE CATCH DEX', 70, 110);
   g.font = F(700, 28); g.globalAlpha = .85; g.fillText('My Pokémon from the live', 70, 152); g.globalAlpha = 1;
   rr(50, 200, W - 100, 1000, 48, '#ffffff');
-  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, partner = (M.n[P.partner] || MEGA[P.partner]) ? P.partner : (t.team[0] || Object.keys(t.c).filter(k => M.n[k] || MEGA[k]).sort((a, b) => t.c[b] - t.c[a])[0]);
-  const six = ((P.fav || []).length ? P.fav : t.team).filter(id => M.n[id] || MEGA[id]).slice(0, 6);
+  const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, partner = (M.n[P.partner] || ALT[P.partner]) ? P.partner : (t.team[0] || Object.keys(t.c).filter(k => M.n[k] || ALT[k]).sort((a, b) => t.c[b] - t.c[a])[0]);
+  const six = ((P.fav || []).length ? P.fav : t.team).filter(id => M.n[id] || ALT[id]).slice(0, 6);
   const sh = id => shN(t, id) > 0;
   const [pimg, ...simgs] = await Promise.all([partner ? loadImg(spr(+partner, sh(+partner))) : null, ...six.map(id => loadImg(spr(id, sh(id))))]);
   if (pimg) g.drawImage(pimg, W - 470, 190, 400, 400);
@@ -813,7 +814,7 @@ async function shareCard(t, btn){
 }
 
 /* ===== TRADES (phase 3): proposed and accepted on the site, executed by the live game ===== */
-const CAT = id => isMega(id) ? 'mega' : LEG.has(id) ? 'legend' : 'normal';
+const CAT = id => isMega(id) ? 'mega' : LEG.has(isForm(id) ? FORMS[id][1] : id) ? 'legend' : 'normal';
 const CATN = {mega: 'Mega', legend: 'legendary', normal: 'normal'};
 let MYTR = null, RECENT = null;      // MYTR = {today, list}
 const demoTr = []; let demoTrId = 1;
@@ -950,7 +951,7 @@ const TNAMES = ['Leo', 'Mia', 'Tom', 'Zoe', 'Max', 'Ivy', 'Sam', 'Ada', 'Ben', '
 let BPROG = {badges: 0, wins: 0};      // my progress (server)
 let BBOARD = null;
 const MOVESET = () => LS.get('lch_moves', {});
-const baseOf = id => isMega(id) ? MEGA[id][1] : id;
+const baseOf = id => isAlt(id) ? ALT[id][1] : id;
 const lvOf = (t, id) => LEG.has(baseOf(id)) || isMega(id) ? 100 : (t.c[id] || 0) >= 3 ? 100 : (t.c[id] || 0) === 2 ? 90 : 80;
 const defMoves = id => { const p = BT.p[id]; return p ? p[2].slice(0, p[3]) : []; };
 const myMoves = id => { const s = MOVESET()[id], p = BT.p[id]; return s && s.length && p && s.every(m => p[2].includes(m)) ? s : defMoves(id); };
@@ -1013,7 +1014,7 @@ function bindBattle(){
 }
 // choose 3 Pokémon (+ edit their 4 moves from their list)
 function pickTeam(opp){
-  const me = BY[ME.u.toLowerCase()], own = me.own.concat(me.mega).filter(id => BT.p[id]);
+  const me = BY[ME.u.toLowerCase()], own = me.own.concat(me.mega, me.forms).filter(id => BT.p[id]);
   const pw = id => BT.p[id][0].reduce((a, b) => a + b, 0) * lvOf(me, id) / 100;
   const def = (me.team.length ? me.team : []).filter(id => BT.p[id] && me.c[id] > 0).slice(0, 3);
   for (const id of own.slice().sort((a, b) => pw(b) - pw(a))){ if (def.length >= 3) break; if (!def.includes(id)) def.push(id); }
@@ -1052,12 +1053,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // animated pixel sprites (Black/White 2 style, fan-made for the newer ones); fallback = HOME 3D sprite
 const bsz = el => { const k = Math.min(2.6, 230 / Math.max(el.naturalWidth, el.naturalHeight)); el.style.width = Math.round(el.naturalWidth * k) + 'px'; el.style.height = Math.round(el.naturalHeight * k) + 'px'; el.classList.add('ok'); };
 // Black/White 2 animated sprites (Showdown gen5ani: real BW for Gen 1-5, fan-made BW style for the newer ones) -> BW static -> PokeAPI BW -> HOME 3D
-const sdId = id => { if (isMega(id)){ const nm = MEGA[id][0], base = sdName(MEGA[id][1]); return /^Primal/.test(nm) ? base + '-primal' : base + '-mega' + (/ X$/.test(nm) ? 'x' : / Y$/.test(nm) ? 'y' : / Z$/.test(nm) ? 'z' : ''); } return sdName(id); };
+const sdId = id => { if (isForm(id)) return sdName(FORMS[id][1]) + '-' + FORMS[id][0].split(' ').pop().toLowerCase(); if (isMega(id)){ const nm = MEGA[id][0], base = sdName(MEGA[id][1]); return /^Primal/.test(nm) ? base + '-primal' : base + '-mega' + (/ X$/.test(nm) ? 'x' : / Y$/.test(nm) ? 'y' : / Z$/.test(nm) ? 'z' : ''); } return sdName(id); };
 const sdName = id => (M.n[id] || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '');
 function bsrcs(id, sh, back){
   const PS = 'https://play.pokemonshowdown.com/sprites/', n = sdId(id), b = back ? '-back' : '', s = sh ? '-shiny' : '';
   const L = [PS + 'gen5ani' + b + s + '/' + n + '.gif', PS + 'gen5' + b + s + '/' + n + '.png'];
-  if (!isMega(id) && id <= 649) L.push(SPR + 'versions/generation-v/black-white/animated/' + (back ? 'back/' : '') + (sh ? 'shiny/' : '') + id + '.gif');
+  if (!isAlt(id) && id <= 649) L.push(SPR + 'versions/generation-v/black-white/animated/' + (back ? 'back/' : '') + (sh ? 'shiny/' : '') + id + '.gif');
   return L;
 }
 function bnext(el){ const L = JSON.parse(el.dataset.l), i = +el.dataset.i + 1; if (i < L.length){ el.dataset.i = i; el.src = L[i]; return; }
@@ -1188,7 +1189,7 @@ function openBulkEvo(){
   draw();
 }
 function openTeam(){
-  const me = BY[ME.u.toLowerCase()], own = me.own.concat(me.mega);
+  const me = BY[ME.u.toLowerCase()], own = me.own.concat(me.mega, me.forms);
   const st = {sel: me.team.filter(id => me.c[id] > 0).slice(0, 6), q: ''};
   const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
   const draw = () => { const q = st.q.trim().toLowerCase(), list = own.filter(id => !q || name(id).toLowerCase().includes(q)).sort((a, b) => (me.c[b] || 0) - (me.c[a] || 0)).slice(0, 150);
