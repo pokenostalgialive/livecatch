@@ -140,7 +140,7 @@ h2:first-child{margin-top:4px}
 .slot{aspect-ratio:1;border-radius:14px;background:var(--slot);position:relative;display:grid;place-items:center;cursor:pointer}
 .slot img{width:92%;height:92%;object-fit:contain}
 .slot.shy{background:linear-gradient(150deg,rgba(255,236,170,.95),rgba(255,206,120,.75));box-shadow:inset 0 0 0 2px rgba(255,200,60,.9)}
-.slot.mg{box-shadow:inset 0 0 0 2px #ff6fb5}
+.slot.mg{box-shadow:inset 0 0 0 2px #ff6fb5}.slot.gx{box-shadow:inset 0 0 0 2px #e8233f}.slot .mgl.gxl{background:linear-gradient(90deg,#e8233f,#ff6a3d)}
 .slot.shy.mg{box-shadow:inset 0 0 0 2px #ff6fb5,inset 0 0 0 4px rgba(255,200,60,.9)}
 .mgl{position:absolute;right:3px;top:3px;font-size:7.5px;font-weight:900;letter-spacing:.3px;background:#ff4fa3;color:#fff;border-radius:6px;padding:1px 4px;line-height:11px}
 .slot.e{background:var(--slotE);cursor:default}
@@ -163,7 +163,7 @@ h2:first-child{margin-top:4px}
 .types{display:flex;gap:6px;justify-content:center;margin:8px 0}
 .type{padding:3px 12px;border-radius:99px;color:#fff;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
 .tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:900;letter-spacing:.6px;margin-top:4px}
-.tag.mega{background:linear-gradient(90deg,#ffe0f0,#e6e0ff);color:#b0308a}.tag.legend{background:#ece6ff;color:var(--violet)}.tag.rare{background:#e3f0ff;color:var(--blue)}
+.tag.mega{background:linear-gradient(90deg,#ffe0f0,#e6e0ff);color:#b0308a}.tag.legend{background:#ece6ff;color:var(--violet)}.tag.rare{background:#e3f0ff;color:var(--blue)}.tag.gmax{background:#ffe3e6;color:#d0213b}
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .tog{margin-top:12px;font-weight:900;font-size:13px;padding:9px 16px;border-radius:99px;background:#fff6dc;color:#9b6c00}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
@@ -282,7 +282,7 @@ h2:first-child{margin-top:4px}
 .sk .bar{height:6px;margin:6px 4px 2px;background:rgba(127,127,127,.25)}
 .sk .bar i{background:linear-gradient(90deg,#ff8a00,#ffb347)}
 .sk em{font-style:normal;font-size:10px;font-weight:800;opacity:.85}
-.stones{display:flex;gap:12px;align-items:center;margin-top:14px}
+.stones{display:flex;gap:12px;align-items:center;margin-top:14px}.soupi{font-size:30px;line-height:1}
 .stn{width:38px;height:38px;flex:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0 8%,#7fd8ff 9% 30%,#3a7bd5 60%,#1d3f8a);box-shadow:0 0 0 3px #e3eefc}
 .stones b{display:block;font-weight:900}.stones small{display:block;font-size:12px;font-weight:700;color:var(--mute)}
 .hwbox{margin-top:12px;border-radius:var(--r);padding:14px;background:linear-gradient(160deg,#2b2140,#4b2a7a);color:#fff;box-shadow:var(--shadow);text-align:center}
@@ -423,6 +423,7 @@ const REGIONS = M.reg.map(([n, a, b]) => ({n, ids: IDS.filter(id => id >= a && i
 const MEGA = M.mega || {}, MEGAIDS = Object.keys(MEGA).map(Number).sort((a, b) => a - b);      // Live Catch ids 1101-1150 -> [name, base, types, pokeapi id]
 const FORMS = M.forms || {}, ALT = Object.assign({}, MEGA, FORMS);      // ALT = Mega (1101-1195) + other forms (1196+, e.g. Origin Formes)
 const isMega = id => !!MEGA[id], isForm = id => !!FORMS[id], isAlt = id => !!ALT[id], pid = id => ALT[id] ? (ALT[id][3] || ALT[id][1]) : id;
+const isGmax = id => isForm(id) && /^Gigantamax/.test(FORMS[id][0]), isLegForm = id => isForm(id) && (!isGmax(id) || LEG.has(FORMS[id][1]));
 const fxc = id => FORMS[id] && FORMS[id][4] ? ' fx-' + FORMS[id][4] : '';      // Shadow / Primal forms without their own sprite: base sprite + color effect
 const name = id => M.n[id] || (ALT[id] && ALT[id][0]) || ('#' + id);
 const pad = id => '#' + String(id).padStart(4, '0');
@@ -431,7 +432,7 @@ const spr = (id, sh) => SPR + 'other/home/' + (sh ? 'shiny/' : '') + pid(id) + '
 const sprFallback = (img, id, sh) => { img.onerror = null; img.src = isAlt(id) ? SPR + 'other/showdown/' + (sh ? 'shiny/' : '') + pid(id) + '.gif' : SPR + (sh ? 'shiny/' : '') + id + '.png'; };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const fmt = n => (n || 0).toLocaleString('en-US');
-const rarity = id => isForm(id) ? ['legend', /^Shadow/.test(FORMS[id][0]) ? 'SHADOW' : 'LEGENDARY'] : isMega(id) ? ['mega', /^Primal/.test(MEGA[id][0]) ? 'PRIMAL' : 'MEGA'] : UB.has(id) ? ['legend', 'ULTRA BEAST'] : PARALEG.has(id) ? ['legend', 'PARADOX LEGEND'] : LEG.has(id) ? ['legend', 'LEGENDARY'] : PARADOX.has(id) ? ['rare', 'PARADOX'] : RARE.has(id) ? ['rare', 'RARE'] : null;
+const rarity = id => isGmax(id) ? [isLegForm(id) ? 'legend' : 'gmax', 'GIGANTAMAX'] : isForm(id) ? ['legend', /^Shadow/.test(FORMS[id][0]) ? 'SHADOW' : 'LEGENDARY'] : isMega(id) ? ['mega', /^Primal/.test(MEGA[id][0]) ? 'PRIMAL' : 'MEGA'] : UB.has(id) ? ['legend', 'ULTRA BEAST'] : PARALEG.has(id) ? ['legend', 'PARADOX LEGEND'] : LEG.has(id) ? ['legend', 'LEGENDARY'] : PARADOX.has(id) ? ['rare', 'PARADOX'] : RARE.has(id) ? ['rare', 'RARE'] : null;
 const TYPEC = {normal:'#9fa19f',fire:'#e62829',water:'#2980ef',grass:'#3fa129',electric:'#d6b400',ice:'#3dcef3',fighting:'#ff8000',poison:'#9141cb',ground:'#915121',flying:'#81b9ef',psychic:'#ef4179',bug:'#91a119',rock:'#afa981',ghost:'#704170',dragon:'#5060e1',dark:'#624d4e',steel:'#60a1b8',fairy:'#ef70ef'};
 const img = (id, sh, cls = '') => `<img class="${cls}${fxc(id)}" loading="lazy" alt="${esc(name(id))}" src="${spr(id, sh)}" onerror="sprFallback(this,${id},${sh ? 1 : 0})">`;
 const ICON = {
@@ -449,8 +450,8 @@ function build(data){
   D = data; const dex = data.dex || {}, av = data.av || {}, wk = (data.week || {}).n || {};
   T = Object.entries(dex).map(([u, d]) => {
     const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0 && M.n[k]).map(Number), mega = Object.keys(c).filter(k => c[k] > 0 && MEGA[k]).map(Number).sort((a, b) => a - b), forms = Object.keys(c).filter(k => c[k] > 0 && FORMS[k]).map(Number);
-    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, forms, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length + forms.length,
-      team: (d.team || []).filter(id => M.n[id] || ALT[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
+    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, forms, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length + forms.filter(isLegForm).length,
+      team: (d.team || []).filter(id => M.n[id] || ALT[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, soup: d.soup || 0, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -561,8 +562,8 @@ function boxList(t, f){
   if (f === 'dex') return IDS.map(id => ({id, has: t.c[id] > 0, sh: t.c[id] > 0 && !nrN(t, id), cnt: 0}));
   const base = id => isAlt(id) ? ALT[id][1] : id;      // family = base Pokémon: Charizard, Charizard shiny, Mega X, Mega Y...
   let ids = f === 'mega' ? MEGAIDS.slice().sort((a, b) => base(a) - base(b) || a - b) : t.own.concat(t.mega, t.forms).sort((a, b) => base(a) - base(b) || a - b);
-  if (f === 'legend') ids = ids.filter(id => isForm(id) || LEG.has(base(id)) || UB.has(base(id)));
-  if (f === 'rare') ids = ids.filter(id => RARE.has(base(id)));
+  if (f === 'legend') ids = ids.filter(id => isLegForm(id) || (!isGmax(id) && LEG.has(base(id))) || UB.has(base(id)));
+  if (f === 'rare') ids = ids.filter(id => isGmax(id) || RARE.has(base(id)));
   const out = [];
   for (const id of ids){ const n = nrN(t, id), sh = shN(t, id);
     if (f === 'mega' && !(t.c[id] > 0)){ out.push({id, has: false}); continue; }
@@ -578,7 +579,7 @@ function renderBox(){
   const label = BOXSTATE.f === 'dex' && items.length ? regionOf(items[0].id) + ' · ' + (BOXSTATE.p + 1) : BOXSTATE.f === 'mega' ? 'MEGA · ' + (BOXSTATE.p + 1) : 'BOX ' + (BOXSTATE.p + 1);
   let slots = items.map(x => {
     if (!x.has) return isMega(x.id) ? `<div class="slot miss" title="${esc(name(x.id))}">${img(x.id, false)}</div>` : `<div class="slot miss" data-id="${x.id}"><span>${String(x.id).padStart(4, '0')}</span></div>`;
-    return `<button class="slot ${x.sh ? 'shy' : ''} ${isMega(x.id) ? 'mg' : ''}" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}${x.sh ? '<span class="star">✦</span>' : ''}${isMega(x.id) ? '<span class="mgl">MEGA</span>' : ''}${x.cnt > 1 ? `<span class="cnt">x${x.cnt}</span>` : ''}</button>`;
+    return `<button class="slot ${x.sh ? 'shy' : ''} ${isMega(x.id) ? 'mg' : ''}${isGmax(x.id) ? 'gx' : ''}" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}${x.sh ? '<span class="star">✦</span>' : ''}${isMega(x.id) ? '<span class="mgl">MEGA</span>' : ''}${isGmax(x.id) ? '<span class="mgl gxl">G-MAX</span>' : ''}${x.cnt > 1 ? `<span class="cnt">x${x.cnt}</span>` : ''}</button>`;
   }).join('');
   for (let i = items.length; i < 30; i++) slots += '<div class="slot e"></div>';
   const dots = pages <= 14 ? Array.from({length: pages}, (_, i) => `<i class="${i === BOXSTATE.p ? 'on' : ''}"></i>`).join('') : `<span style="color:#fff;font-weight:900;font-size:12px">${BOXSTATE.p + 1} / ${pages}</span>`;
@@ -850,7 +851,7 @@ async function shareCard(t, btn){
 }
 
 /* ===== TRADES (phase 3): proposed and accepted on the site, executed by the live game ===== */
-const CAT = id => isMega(id) ? 'mega' : isForm(id) || LEG.has(id) ? 'legend' : 'normal';
+const CAT = id => isMega(id) ? 'mega' : isLegForm(id) || LEG.has(id) ? 'legend' : 'normal';
 const CATN = {mega: 'Mega', legend: 'legendary', normal: 'normal'};
 let MYTR = null, RECENT = null;      // MYTR = {today, list}
 const demoTr = []; let demoTrId = 1;
@@ -960,7 +961,8 @@ function skinsHtml(t){
     <div class="skg">${cards}</div><p class="hint" style="text-align:left">Skins stay forever.</p></div>`;
 }
 function stonesHtml(t){
-  return t.stones > 0 ? `<div class="card stones"><span class="stn"></span><div><b>Mega Stone x${t.stones}</b><small>Write MEGA + a Pokémon in the live chat (e.g. MEGA charizard)</small></div></div>` : '';
+  return (t.stones > 0 ? `<div class="card stones"><span class="stn"></span><div><b>Mega Stone x${t.stones}</b><small>Write MEGA + a Pokémon in the live chat (e.g. MEGA charizard)</small></div></div>` : '')
+    + (t.soup > 0 ? `<div class="card stones"><span class="soupi">🍲</span><div><b>Max Soup x${t.soup}</b><small>Write GMAX + a Pokémon in the live chat (e.g. GMAX charizard)</small></div></div>` : '');
 }
 function hwHomeHtml(){
   if (!hwOn()) return '';
@@ -1182,7 +1184,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // animated pixel sprites (Black/White 2 style, fan-made for the newer ones); fallback = HOME 3D sprite
 const bsz = el => { const k = Math.min(2.6, 230 / Math.max(el.naturalWidth, el.naturalHeight)); el.style.width = Math.round(el.naturalWidth * k) + 'px'; el.style.height = Math.round(el.naturalHeight * k) + 'px'; el.classList.add('ok'); };
 // Black/White 2 animated sprites (Showdown gen5ani: real BW for Gen 1-5, fan-made BW style for the newer ones) -> BW static -> PokeAPI BW -> HOME 3D
-const sdId = id => { if (isForm(id)){ const F = FORMS[id], b = sdName(F[1]); if (!F[3]) return b; const ex = F[0].replace(M.n[F[1]] || '', '').replace(/[^a-z]/gi, '').toLowerCase(); return ex ? b + '-' + ex : b; } if (isMega(id)){ const nm = MEGA[id][0], base = sdName(MEGA[id][1]); return /^Primal/.test(nm) ? base + '-primal' : base + '-mega' + (/ X$/.test(nm) ? 'x' : / Y$/.test(nm) ? 'y' : / Z$/.test(nm) ? 'z' : ''); } return sdName(id); };
+const sdId = id => { if (isForm(id)){ const F = FORMS[id], b = sdName(F[1]); if (!F[3]) return b; if (isGmax(id)) return b + '-gmax'; const ex = F[0].replace(M.n[F[1]] || '', '').replace(/[^a-z]/gi, '').toLowerCase(); return ex ? b + '-' + ex : b; } if (isMega(id)){ const nm = MEGA[id][0], base = sdName(MEGA[id][1]); return /^Primal/.test(nm) ? base + '-primal' : base + '-mega' + (/ X$/.test(nm) ? 'x' : / Y$/.test(nm) ? 'y' : / Z$/.test(nm) ? 'z' : ''); } return sdName(id); };
 const sdName = id => (M.n[id] || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '');
 function bsrcs(id, sh, back){
   const PS = 'https://play.pokemonshowdown.com/sprites/', n = sdId(id), b = back ? '-back' : '', s = sh ? '-shiny' : '';
