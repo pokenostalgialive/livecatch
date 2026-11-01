@@ -50,6 +50,11 @@ img{display:block}
 .lgrow .who small a{color:var(--ink);text-decoration:none;font-weight:900}
 .lgk{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.3px;color:#fff;background:var(--c);border-radius:6px;padding:2px 6px;margin-bottom:3px}
 .lgst{} @media(min-width:900px){.lgst{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.cmdr{gap:12px!important;border-bottom:1px solid var(--line);align-items:flex-start!important}.cmdr:last-child{border-bottom:0}.cmdr[hidden],.cmdg[hidden]{display:none}
+.cmdk{flex:none;max-width:46%;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:13px;color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent);border:1.5px solid color-mix(in srgb,var(--c) 45%,transparent);border-radius:9px;padding:4px 8px;line-height:1.35}
+.cmdr .who small{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.35;white-space:normal}
+.cmdban{display:flex;align-items:center;gap:10px;margin-top:10px;padding:13px 16px;border-radius:18px;background:var(--card);box-shadow:var(--shadow);text-decoration:none;color:var(--ink)}
+.cmdban b{font-weight:900}.cmdban span{font-size:13px;font-weight:700;color:var(--mute)}.cmdban em{margin-left:auto;font-style:normal;font-size:24px;font-weight:900;color:var(--mute)}
 .lgmore{display:block;margin:14px auto 0;background:var(--ink);color:#fff;font-weight:800;border-radius:999px;padding:10px 20px}
 
 .livebar{display:flex;align-items:center;justify-content:center;gap:10px;position:sticky;top:0;z-index:25;background:linear-gradient(90deg,#e0102f,#ff2d55);color:#fff;text-decoration:none;font-weight:900;font-size:14px;padding:10px 16px;box-shadow:0 4px 14px rgba(224,16,47,.35)}
@@ -544,6 +549,7 @@ function viewHome(){
     ${T.length ? '' : `<div class="card" style="margin-top:12px;font-weight:800;color:var(--mute);text-align:center">The boxes fill up during the next live. Come back soon!</div>`}
     <div class="today"><div><b>${fmt(T.length)}</b><span>Trainers</span></div><div><b>${fmt(T.reduce((s, t) => s + t.n, 0))}</b><span>Caught</span></div><div><b>${fmt(day.n)}</b><span>Today</span></div></div>
     <a class="bbanner" href="#/battle"><i>NEW</i><span class="bi">⚔️</span><div><b>Battle the 4 Leagues</b><span>Beat 32 Gym Leaders &amp; the Elite Four. Become Champion!</span></div><em>Battle now</em></a>
+    <a class="cmdban" href="#/help"><div><b>📖 All commands</b><span style="display:block">Everything you can write in the live chat</span></div><em>›</em></a>
     ${hwHomeHtml()}
     <h2>Hall of Fame</h2>${hofCards()}
   </div><div>
@@ -966,6 +972,32 @@ function demoTrades(fn, b){      // ?demo only
   return null;
 }
 
+
+
+/* ===== COMMANDS (everything you can write in the live chat + what you can do on the site) ===== */
+const CMDS = [
+  ['Catch', '#16a99e', [['C', 'Throw a Poké Ball at the Pokémon on screen'], ['G · U · M', 'Throw a Great, Ultra or Master Ball from your bag'], ['QUICK · DUSK · TIMER', 'Special balls: Quick is strong in the first seconds, Dusk at night and in the Shiny Zone, Timer gets stronger with time'], ['GOLD', 'Grab the Golden Ball when it appears'], ['pikachu', "Who's That Pokémon: write the name of the black silhouette to win a Great Ball"], ['CODE pika', 'Secret code from the group chat: +1 Ultra Ball (once per code)']]],
+  ['Raids', '#e8233f', [['C', 'During a raid every ball is an attack on the boss'], ['Like', 'Likes break the MAX SHIELD of the Dynamax boss'], ['F pikachu', 'Mega Pokémon in your team hit twice as hard in raids']]],
+  ['Your collection', '#2f6fe0', [['B', 'Your bag: balls, Mega Stones, Max Soup, Orbs, Candy'], ['D', 'Your Pokédex'], ['D 2', 'Next page of your dex'], ['D shiny · D legend · D rare · D ub · D mega', 'Only that kind of Pokémon'], ['D pikachu', 'Find one Pokémon in your dex'], ['DUP', 'Your duplicates'], ['REG', 'Your dex by region'], ['Q', 'Your missions']]],
+  ['Team & evolutions', '#ff8fb1', [['F pikachu', 'Add a Pokémon to your team (max 6)'], ['F old-new', 'Swap one Pokémon of your team with another'], ['F off pikachu', 'Remove a Pokémon from your team'], ['EV pichu', 'Evolve: needs 3 of the same, uses 2 (normal ones first)']]],
+  ['Trades & wishlist', '#4ac8ff', [['WT', 'Trade a duplicate with a random one'], ['WT meloetta', 'Legendary for legendary trade'], ['WISH pikachu', 'Add to your wishlist (max 3): everyone sees WANTED when it appears'], ['WISH', 'See your wishlist'], ['WISH off pikachu · WISH off', 'Remove one or all']]],
+  ['Mega, Gigantamax & forms', '#b0308a', [['MEGA charizard', 'Use a Mega Stone: adds the Mega form (you keep the base). Add x, y or z for the right one'], ['MEGA altaria shiny · normal', 'Choose the shiny or normal Mega (shiny needs a shiny base)'], ['GMAX charizard', 'Use a Max Soup (from Dynamax raids): adds the Gigantamax form'], ['FORM giratina', 'Use your Orb: adds the Origin Forme (the Orb stays)']]],
+  ['Candy shop', '#ff5fa2', [['CANDY pikachu', 'Recycle the normal duplicates of a common or rare Pokémon (your last copy always stays)'], ['CANDY all', 'Recycle all normal common & rare duplicates'], ['SHOP', 'See the prices'], ['BUY ultra 5', 'Buy items: great 5 · ultra 15 · quick/dusk/timer 10 · lure 60 · soup 150 · stone 200 · master 400'], ['BUY lure', 'The next Pokémon is rare, for everyone']]],
+  ['Website', '#7a5cf0', [['!home 1234', 'Verify your page: tap "This is me" on your box, then write the code in the live chat'], ['Trades', 'On your page: trade with other trainers, even when the live is off'], ['Battle', '4 Leagues, Elite Four and Champions: badges give Ultra Balls in the live'], ['Team · Evolve · Candy Shop', 'Change your team, evolve and use the Candy Shop from your page'], ['Partner · Favorites · Wishlist', 'Customize your page or hide it']]]
+];
+function viewHelp(){
+  nav('');
+  return `<div class="rankg"><h2>Commands</h2><p style="margin:-4px 4px 12px;color:var(--mute);font-weight:700;font-size:14px">Everything you can write in the live chat, and what you can do here.</p>
+    <div class="search sm" style="margin-bottom:12px">${ICON.home}<input id="cq" type="search" placeholder="Search a command" autocomplete="off"></div>
+    <div id="cmdl">${CMDS.map(([t, c, rows]) => `<div class="cmdg"><div class="lgday" style="color:${c}">${t}</div><div class="list">${rows.map(([k, d]) => `<div class="row cmdr" data-s="${esc((k + ' ' + d + ' ' + t).toLowerCase())}"><span class="cmdk" style="--c:${c}">${esc(k)}</span><span class="who"><small>${esc(d)}</small></span></div>`).join('')}</div></div>`).join('')}</div>
+    <p class="hint" style="margin-top:14px">Commands work in any case (C or c). Pokémon names in English.</p></div>`;
+}
+function bindHelp(){
+  const q = document.getElementById('cq'); if (!q) return;
+  q.oninput = () => { const v = q.value.trim().toLowerCase();
+    document.querySelectorAll('.cmdr').forEach(r => r.hidden = !!v && !r.dataset.s.includes(v));
+    document.querySelectorAll('.cmdg').forEach(g => g.hidden = !g.querySelector('.cmdr:not([hidden])')); };
+}
 
 /* ===== LIVE LOG (everything that came out in the lives) ===== */
 const LOGK = {shiny: ['Shiny', 'SHINY', '#e0a100'], leg: ['Legendary', 'LEGENDARY', '#7a5cf0'], raidL: ['Legendary Raid', 'LEGENDARY RAID', '#4b3fd6'], raidD: ['Dynamax Raid', 'DYNAMAX RAID', '#e8233f'], roul: ['Roulette', 'ROULETTE', '#ff4fa3'], alpha: ['Alpha', 'ALPHA', '#b3141f']};
@@ -1497,12 +1529,13 @@ function route(){
   const app = document.getElementById('app'); if (!D) return;
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), [a, b] = [h.split('/')[0], h.split('/').slice(1).join('/')];
   document.querySelectorAll('.sheet-bg').forEach(x => x.remove());
-  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : viewHome())
-    + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br>${CONFIG.KOFI ? `<a class="kofi" href="${CONFIG.KOFI}" target="_blank" rel="noopener">☕ Support the project</a><br>` : ''}<a href="#/privacy">Privacy</a></div>`;
+  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : a === 'help' ? viewHelp() : viewHome())
+    + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br>${CONFIG.KOFI ? `<a class="kofi" href="${CONFIG.KOFI}" target="_blank" rel="noopener">☕ Support the project</a><br>` : ''}<a href="#/help">Commands</a> · <a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
   if (a === 'hof') recentHtml();
   if (a === 'battle') bindBattle();
   if (a === 'log') loadLog(true);
+  if (a === 'help') bindHelp();
 }
 window.addEventListener('hashchange', route);
 async function start(){
