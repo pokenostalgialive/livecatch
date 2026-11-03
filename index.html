@@ -65,6 +65,14 @@ img{display:block}
 .tabs a.bt{background:linear-gradient(135deg,#ff5a5f,#ffb400);color:#fff;box-shadow:0 4px 14px rgba(255,90,95,.35)}.tabs a.bt.on{box-shadow:0 0 0 3px var(--ink)}
 .btabs a.bt{color:#e63946}.btabs a.bt svg{background:linear-gradient(135deg,#ff5a5f,#ffb400);color:#fff;border-radius:50%;padding:3px;box-sizing:border-box;animation:btpulse 1.8s infinite}
 @keyframes btpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,90,95,.55)}60%{box-shadow:0 0 0 8px rgba(255,90,95,0)}}
+.tabs a.pl{background:linear-gradient(135deg,#16a99e,#2f6fe0);color:#fff;box-shadow:0 4px 14px rgba(22,169,158,.35)}
+.btabs a.pl{color:#16a99e}.btabs a.pl svg{background:linear-gradient(135deg,#16a99e,#2f6fe0);color:#fff;border-radius:50%;padding:3px;box-sizing:border-box}
+.pbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#0f8f86,#16a99e 45%,#2f6fe0);box-shadow:0 10px 26px rgba(22,169,158,.3);position:relative;overflow:hidden}
+.pbanner b{display:block;font-size:19px;font-weight:900;letter-spacing:.5px}.pbanner span{font-size:13px;font-weight:700;opacity:.95}
+.pbanner em{margin-left:auto;font-style:normal;background:#fff;color:#0f8f86;font-weight:900;padding:9px 16px;border-radius:999px;white-space:nowrap}
+.pbi{flex:none;width:40px;height:40px;border-radius:50%;background:linear-gradient(#ee4035 0 46%,#222 46% 54%,#fff 54%);box-shadow:inset 0 0 0 3px #222;position:relative;animation:pbw 2.4s ease-in-out infinite}
+.pbi:after{content:'';position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px #222}
+@keyframes pbw{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-14deg)}84%{transform:rotate(12deg)}92%{transform:rotate(-6deg)}}
 .bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
 .bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
 .bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
@@ -317,7 +325,7 @@ h2:first-child{margin-top:4px}
 .hwbox .row{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.12);padding:8px 2px}.hwbox .val small{color:#cbbcf2}.hwbox .pos:not(.p1):not(.p2):not(.p3){color:#cbbcf2}
 .hwbox .hint{color:#cbbcf2}
 /* battles */
-.btabs a{font-size:11px}
+.btabs a{font-size:10.5px}
 .gbrow{display:flex;gap:4px;flex-wrap:wrap}
 .gbadge{width:18px;height:18px;display:inline-grid;place-items:center}
 .gbadge i{width:14px;height:14px;transform:rotate(45deg);border-radius:4px;background:#dfe6ee;box-shadow:inset 0 0 0 2px #cfd8e2}
@@ -466,6 +474,7 @@ const ICON = {
   rank: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V10M12 20V4M18 20v-7"/></svg>',
   battle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M9.5 17.5 21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4M5 21l-2-2"/></svg>',
   hof: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3"/></svg>',
   log: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
   right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>'
@@ -501,9 +510,9 @@ function avatar(t, cls = 'av'){
 }
 const link = u => '#/t/' + encodeURIComponent(u);
 function nav(active){
-  const it = [['home', '#/', 'Trainers'], ['rank', '#/rank', 'Rankings'], ['battle', '#/battle', 'Battle'], ['log', '#/log', 'Live Log'], ['hof', '#/hof', 'Hall of Fame']];
-  document.getElementById('btabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}">${ICON[k]}${l}</a>`).join('');
-  document.getElementById('dtabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}">${k === 'battle' ? '⚔️ ' : ''}${l}</a>`).join('');
+  const it = [['home', '#/', 'Trainers', 'Trainers'], ['rank', '#/rank', 'Rankings', 'Ranks'], ['play', 'play.html', 'Play', 'Play'], ['battle', '#/battle', 'Battle', 'Battle'], ['log', '#/log', 'Live Log', 'Log'], ['hof', '#/hof', 'Hall of Fame', 'HoF']];
+  document.getElementById('btabs').innerHTML = it.map(([k, h, l, ls]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}${k === 'play' ? ' pl' : ''}">${ICON[k]}${ls}</a>`).join('');
+  document.getElementById('dtabs').innerHTML = it.map(([k, h, l]) => `<a href="${h}" class="${k === active ? 'on' : ''}${k === 'battle' ? ' bt' : ''}${k === 'play' ? ' pl' : ''}">${k === 'battle' ? '⚔️ ' : ''}${l}</a>`).join('');
 }
 function setLive(){
   const b = document.getElementById('livebar'); if (!b) return;
@@ -548,6 +557,7 @@ function viewHome(){
       <div class="search">${ICON.home}<input id="q" type="search" placeholder="Your TikTok name" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"><div class="sugg" id="sugg" hidden></div></div></section>
     ${T.length ? '' : `<div class="card" style="margin-top:12px;font-weight:800;color:var(--mute);text-align:center">The boxes fill up during the next live. Come back soon!</div>`}
     <div class="today"><div><b>${fmt(T.length)}</b><span>Trainers</span></div><div><b>${fmt(T.reduce((s, t) => s + t.n, 0))}</b><span>Caught</span></div><div><b>${fmt(day.n)}</b><span>Today</span></div></div>
+    <a class="pbanner" href="play.html"><span class="pbi"></span><div><b>PLAY NOW</b><span>Catch together with everyone · 50 free throws a day</span></div><em>Play</em></a>
     <a class="bbanner" href="#/battle"><i>NEW</i><span class="bi">⚔️</span><div><b>Battle the 4 Leagues</b><span>Beat 32 Gym Leaders &amp; the Elite Four. Become Champion!</span></div><em>Battle now</em></a>
     <a class="cmdban" href="#/help"><div><b>📖 All commands</b><span style="display:block">Everything you can write in the live chat</span></div><em>›</em></a>
     ${hwHomeHtml()}
@@ -636,7 +646,8 @@ function viewTrainer(u){
   const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], shN(t, arr[i]) > 0)}</button>` : '<div class="tm e"></div>').join('');
   const regs = REGIONS.map(r => { const have = r.ids.filter(id => t.c[id] > 0).length, done = t.badges.includes(r.n) || have >= r.ids.length;
     return `<div class="reg ${done ? 'done' : ''}"><span>${r.n}</span><div class="bar"><i style="width:${Math.round(have / r.ids.length * 100)}%"></i></div><em>${done ? 'BADGE' : have + '/' + r.ids.length}</em></div>`; }).join('');
-  const meta = [`#${t.rank} all time`, t.st > 1 ? t.st + '-day streak' : '', t.last ? 'last catch ' + t.last.split('-').reverse().slice(0, 2).join('/') : ''].filter(Boolean);
+  const pc = (PBOARD || []).find(x => x.u.toLowerCase() === t.u.toLowerCase());
+  const meta = [`#${t.rank} all time`, pc ? pc.catches + ' site catches' : '', t.st > 1 ? t.st + '-day streak' : '', t.last ? 'last catch ' + t.last.split('-').reverse().slice(0, 2).join('/') : ''].filter(Boolean);
   const wm = !isMe(t.u) && ME ? wishMatch(t) : [];
   const act = (isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : ME ? `<button class="btn" id="propose">Propose trade</button>` : `<button class="btn ghost" id="claim">This is me</button>`) + `<button class="btn ghost" id="sharec">Share card</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
@@ -983,7 +994,7 @@ const CMDS = [
   ['Trades & wishlist', '#4ac8ff', [['WT', 'Trade a duplicate with a random one'], ['WT meloetta', 'Legendary for legendary trade'], ['WISH pikachu', 'Add to your wishlist (max 3): everyone sees WANTED when it appears'], ['WISH', 'See your wishlist'], ['WISH off pikachu · WISH off', 'Remove one or all']]],
   ['Mega, Gigantamax & forms', '#b0308a', [['MEGA charizard', 'Use a Mega Stone: adds the Mega form (you keep the base). Add x, y or z for the right one'], ['MEGA altaria shiny · normal', 'Choose the shiny or normal Mega (shiny needs a shiny base)'], ['GMAX charizard', 'Use a Max Soup (from Dynamax raids): adds the Gigantamax form'], ['FORM giratina', 'Use your Orb: adds the Origin Forme (the Orb stays)']]],
   ['Candy shop', '#ff5fa2', [['CANDY pikachu', 'Recycle the normal duplicates of a common or rare Pokémon (your last copy always stays)'], ['CANDY all', 'Recycle all normal common & rare duplicates'], ['SHOP', 'See the prices'], ['BUY ultra 5', 'Buy items: great 5 · ultra 15 · quick/dusk/timer 10 · lure 60 · soup 150 · stone 200 · master 400'], ['BUY lure', 'The next Pokémon is rare, for everyone']]],
-  ['Website', '#7a5cf0', [['!home 1234', 'Verify your page: tap "This is me" on your box, then write the code in the live chat'], ['Trades', 'On your page: trade with other trainers, even when the live is off'], ['Battle', '4 Leagues, Elite Four and Champions: badges give Ultra Balls in the live'], ['Team · Evolve · Candy Shop', 'Change your team, evolve and use the Candy Shop from your page'], ['Partner · Favorites · Wishlist', 'Customize your page or hide it']]]
+  ['Website', '#7a5cf0', [['!home 1234', 'Verify your page: tap "This is me" on your box, then write the code in the live chat'], ['Play', 'Catch on the site together with everyone: 50 free Poké Balls a day, plus your Great/Ultra/Master Balls and AUTO from the live'], ['Trades', 'On your page: trade with other trainers, even when the live is off'], ['Battle', '4 Leagues, Elite Four and Champions: badges give Ultra Balls in the live'], ['Team · Evolve · Candy Shop', 'Change your team, evolve and use the Candy Shop from your page'], ['Partner · Favorites · Wishlist', 'Customize your page or hide it']]]
 ];
 function viewHelp(){
   nav('');
@@ -1188,6 +1199,8 @@ async function loadBattle(){
   if (!AUTH) return;
   try { const r = await rpc('my_battle', {p_token: AUTH.token}); if (r) BPROG = r; } catch(e){}
 }
+let PBOARD = [];
+async function loadPlayBoard(){ if (DEMO) return; try { PBOARD = await rpc('play_board', {}) || []; } catch(e){ PBOARD = []; } }
 async function loadBoard(){ try { BBOARD = await rpc('battle_board', {}); } catch(e){ BBOARD = []; } }
 const badgeIco = (g, on) => `<span class="gbadge ${on ? 'on' : ''}" style="--c:${TYPEC[g.t]}" title="${g.b}"><i></i></span>`;
 function badgesRow(n, li){ const G = li === undefined ? GYMS : LEAGUES[li].gyms, off = li === undefined ? 0 : li * 8; return `<div class="gbrow ${li === undefined ? 'all' : ''}">${G.map((g, i) => badgeIco(g, off + i < n)).join('')}</div>`; }
@@ -1216,7 +1229,7 @@ function viewBattle(){
   const elite = `<div class="gym elite ${eliteOk ? '' : 'locked'}" style="--c:${L.c}"><div class="gyi"><b>Elite Four</b><small>${eliteOk ? '4 battles in a row with the same team · lose one and the run starts over · then the Champion' : 'Win the 8 badges of this League first'}</small>
       <div class="erow">${L.elite.map((e, i) => `<span class="ech ${i < run ? 'on' : ''}" style="--c:${TYPEC[e.t]}" title="${esc(e.n)}">${monsRow(e.team)}</span>`).join('')}</div></div>
       ${eliteOk ? `<button class="mini" id="erun">${run ? 'Continue (' + run + '/4)' : 'Start'}</button>` : '<span class="lock">LOCKED</span>'}</div>`;
-  const cc = champCard(li, `<div class="cact">${amChamp ? '<span class="lock" style="color:var(--gold)">YOU ♛</span>' : eliteOk ? `<small class="lock">${3 - (BPROG.ct || 0)}/3 today</small>` : ''}</div>`);
+  const cc = champCard(li, `<div class="cact">${amChamp ? '<span class="lock" style="color:var(--gold)">YOU ♛</span>' : ''}</div>`);
   return `<div class="rankg"><h2>Battles</h2>
     <div class="card"><div class="bhead"><div><b>${BPROG.badges}/32 badges</b><small>${fmt(BPROG.wins)} wins${BPROG.cleared ? ' · ' + BPROG.cleared + ' League' + (BPROG.cleared > 1 ? 's' : '') + ' cleared' : ''}${myChampLeagues().length ? ' · ♛ ' + champTitle(ME.u) : ''}</small></div>${badgesRow(BPROG.badges)}</div>
       <button class="btn" id="rndt" style="width:100%;margin-top:12px">Battle a random trainer</button>
@@ -1254,7 +1267,6 @@ function runStage(li, i, mons, snap){
       if (!ok){ try { await rpc('battle_lose', {p_token: AUTH.token, p_kind: 'elite', p_league: li + 1}); } catch(e){} await loadBattle(); route(); return; }
       if (i < 3) return runStage(li, i + 1, mons, snap);
       if (myChampLeagues().includes(li + 1)){ toast('You beat the Elite Four. You are already the Champion!'); await loadBattle(); route(); return; }
-      if ((BPROG.ct || 0) >= 3){ toast('Elite Four beaten! You can challenge the Champion again tomorrow (3 per day).'); await loadBattle(); route(); return; }
       runStage(li, 4, mons, snap);
     });
   } else {
@@ -1539,7 +1551,7 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 async function start(){
-  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); await Promise.all([loadTrades(), loadBattle(), loadBoard()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
+  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); await Promise.all([loadTrades(), loadBattle(), loadBoard(), loadPlayBoard()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
   route();
   const pend = LS.get('lch_pending', null); if (pend && Date.now() < pend.until && !AUTH) pollClaim(pend.u, null);
   setInterval(setUpd, 30000);
