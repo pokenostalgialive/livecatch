@@ -1173,7 +1173,7 @@ function drawMissions(){
   el.innerHTML = `<div class="card strk"><div class="sk1"><span class="skf">🔥</span><div><b>${MST.streak}-day streak</b><small>Catch at least 1 Pokémon every day (live or Play)</small></div></div>
       <div class="sk2">${(MST.streak_list || []).map(x => { const r = STRK.find(y => y[0] === x.m); return `<div class="skm ${x.claimed ? 'mcl' : x.ok ? 'ok' : ''}"><b>${x.m} days</b><small>${r ? r[1] : ''}</small>${x.claimed ? '<span>✓</span>' : x.ok ? `<button class="mini" data-cl="s:${x.m}">Claim</button>` : `<span>${Math.min(MST.streak, x.m)}/${x.m}</span>`}</div>`; }).join('')}</div></div>
     <div class="lgday">Daily missions · ${dd}/5 · new in ${left(MST.day_ends)}</div><div class="list">${MST.day.map(m => row(m, 'd', '2 Great')).join('')}${bonus('db', dd, 5, MST.day_bonus, '+1 Ultra Ball')}</div>
-    <div class="lgday">Weekly missions · ${wd}/7 · new in ${left(MST.week_ends)}</div><div class="list">${MST.week.map(m => row(m, 'w', '10 Ultra')).join('')}${bonus('wb', wd, 7, MST.week_bonus, '+2 Ultra Balls · a new ball trail in the live · WEEKLY CHAMP badge next week')}</div>
+    <div class="lgday">Weekly missions · ${wd}/7 · new in ${left(MST.week_ends)}</div><div class="list">${MST.week.map(m => row(m, 'w', '5 Ultra')).join('')}${bonus('wb', wd, 7, MST.week_bonus, '+2 Ultra Balls · a new ball trail in the live · WEEKLY CHAMP badge next week')}</div>
     <p class="hint" style="margin-top:12px">Rewards arrive in your bag the next time you are active in the live. Weeks completed: ${MST.weeks_done || 0} (4 = keep a trail forever).</p>`;
   el.querySelectorAll('[data-cl]').forEach(b => b.onclick = async () => { const [sc, i] = b.dataset.cl.split(':'); b.disabled = true;
     try { const r = await rpc('mission_claim', {p_token: AUTH.token, p_scope: sc, p_idx: +i}); toast(`+${r.qty} ${r.item[0].toUpperCase() + r.item.slice(1)} Ball${r.qty > 1 ? 's' : ''}! It arrives in the next live.`); await loadMissions(); }
@@ -1188,7 +1188,7 @@ function demoMissions(fn, b){
   if (fn === 'missions_state') return JSON.parse(JSON.stringify(DEMOM));
   if (fn === 'mission_claim'){ const L = b.p_scope === 'd' ? DEMOM.day : b.p_scope === 'w' ? DEMOM.week : null;
     if (L) L[b.p_idx].claimed = true; else if (b.p_scope === 's') DEMOM.streak_list.find(x => x.m === b.p_idx).claimed = true; else DEMOM[b.p_scope === 'db' ? 'day_bonus' : 'week_bonus'] = true;
-    return {item: b.p_scope === 'd' ? 'great' : b.p_scope === 's' && b.p_idx === 30 ? 'master' : 'ultra', qty: b.p_scope === 'd' ? 2 : b.p_scope === 'w' ? 10 : 1}; }
+    return {item: b.p_scope === 'd' ? 'great' : b.p_scope === 's' && b.p_idx === 30 ? 'master' : 'ultra', qty: b.p_scope === 'd' ? 2 : b.p_scope === 'w' ? 5 : 1}; }
   if (fn === 'weekly_champs') return [{u: 'giulia_shinyhunt', weeks: 2, last: true, this: false}];
 }
 async function loadWChamps(){ try { const L = await rpc('weekly_champs', {}) || []; WCHAMPS = {}; for (const x of L) WCHAMPS[x.u.toLowerCase()] = x; } catch(e){} }
