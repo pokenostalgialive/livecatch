@@ -98,6 +98,11 @@ img{display:block}
 .sk2{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}.skm{background:rgba(127,127,127,.08);border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
 .skm b{font-size:13px;font-weight:900}.skm small{font-size:10px;font-weight:700;color:var(--mute);line-height:1.2}.skm span{font-size:12px;font-weight:900;color:var(--mute)}.skm.ok{background:rgba(255,210,63,.22)}.skm.mcl{opacity:.55}.skm.mcl span{color:#16a99e}
 .skm .mini{padding:4px 8px;font-size:11px}
+.bagbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.bagbtns .shopbtn{margin:0;width:auto}.wardbtn{background:linear-gradient(90deg,#7a5cf0,#2f6fe0)}
+.fr-ghost{animation:ghosta 2.6s ease-in-out infinite}@keyframes ghosta{0%,100%{filter:drop-shadow(0 0 3px rgba(150,90,255,.6))}50%{filter:drop-shadow(0 0 10px rgba(150,90,255,.95))}}
+.wprev{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;margin:6px 0 4px;border-radius:16px;background:rgba(127,127,127,.08)}.wprev .av{width:52px;height:52px;font-size:20px}.wprev b{font-size:19px;font-weight:900}
+.wopts{display:flex;flex-wrap:wrap;gap:6px}.wopt{padding:8px 12px;border-radius:12px;background:rgba(127,127,127,.1);font-weight:800;font-size:13px;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.wopt.on{background:var(--ink);color:#fff}.wopt:disabled{opacity:.5;cursor:default}.wopt small{font-size:10px;font-weight:700;color:var(--mute)}
 .bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
 .bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
 .bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
@@ -555,8 +560,11 @@ const lvFrom = (n, s, dex) => Math.min(100, Math.floor(Math.sqrt((10 * n + 50 * 
 const lvPct = t => { if (t.lv >= 100) return 100; const xp = 10 * t.n + 50 * t.s + 20 * t.dex, a = 40 * (t.lv - 1) ** 2, b = 40 * t.lv ** 2; return Math.max(0, Math.min(100, Math.round((xp - a) / (b - a) * 100))); };
 // level cosmetics (same as the live): Lv5 blue name · Lv10 silver frame · Lv20 gold name · Lv25 gold frame + VETERAN · Lv50 rainbow name + ELITE · Lv75 golden aura · Lv100 crown + LEGEND TRAINER
 // site only: box wallpapers Lv15 stars · Lv30 ember · Lv40 light
-const nameCls = t => t.lv >= 50 ? 'nm-rb' : t.lv >= 20 ? 'nm-au' : t.lv >= 5 ? 'nm-bl' : '';
-const frameCls = t => (t.lv >= 25 ? ' fr-au' : t.lv >= 10 ? ' fr-ag' : '') + (t.lv >= 75 ? ' fr-aura' : '');
+let SKINCH = {};
+const skc = t => SKINCH[t.u.toLowerCase()] || {};
+const nameCls = t => { const c = skc(t).name; if (c && c !== 'auto') return {white: '', blue: 'nm-bl', gold: 'nm-au', rainbow: 'nm-rb'}[c] || ''; return t.lv >= 50 ? 'nm-rb' : t.lv >= 20 ? 'nm-au' : t.lv >= 5 ? 'nm-bl' : ''; };
+const frameCls = t => { const c = skc(t), f = c.frame && c.frame !== 'auto' ? ({none: '', silver: ' fr-ag', gold: ' fr-au'}[c.frame] || '') : (t.lv >= 25 ? ' fr-au' : t.lv >= 10 ? ' fr-ag' : '');
+  const a = c.aura && c.aura !== 'auto' ? ({none: '', gold: ' fr-aura', ghost: ' fr-ghost'}[c.aura] || '') : (t.lv >= 75 ? ' fr-aura' : ''); return f + a; };
 const lvTitle = lv => lv >= 100 ? 'LEGEND TRAINER' : lv >= 50 ? 'ELITE' : lv >= 25 ? 'VETERAN' : null;
 const boxWall = t => t.lv >= 40 ? 'bw-light' : t.lv >= 30 ? 'bw-ember' : t.lv >= 15 ? 'bw-stars' : '';
 let WCHAMPS = {};
@@ -717,6 +725,7 @@ function bindTrainer(){
   const et = document.getElementById('editteam'); if (et) et.onclick = openTeam;
   const em2 = document.getElementById('evomany'); if (em2) em2.onclick = openBulkEvo;
   const sb = document.getElementById('shopbtn'); if (sb) sb.onclick = () => openShop('recycle');
+  const wb = document.getElementById('wardbtn'); if (wb) wb.onclick = openWardrobe;
   const ea = document.getElementById('evoall'); if (ea) ea.onclick = () => { EVO_ALL = true; const y = scrollY; route(); scrollTo(0, y); };
   document.querySelectorAll('[data-evo]').forEach(b => b.onclick = () => doEvolve(+b.dataset.evo, +b.dataset.to, b));
   const pp = document.getElementById('propose'); if (pp) pp.onclick = () => openPropose(BY[BOXSTATE.u.toLowerCase()]);
@@ -764,6 +773,8 @@ async function rpc(fn, body){
 function demoRpc(fn, b){      // ?demo only: fakes the server (verification completes by itself after 4 s)
   if (/trade/.test(fn)) return demoTrades(fn, b);
   if (/battle|champions/.test(fn)) return demoBattle(fn, b);
+  if (fn === 'my_skins'){ const t = BY[ME.u.toLowerCase()]; return {choice: Object.assign({ball: 'auto', trail: 'auto', name: 'auto', frame: 'auto', aura: 'auto'}, SKINCH[ME.u.toLowerCase()] || {}), unlocked: {lv: t.lv, ball: ['auto', 'normal', 'pumpkin'], trail: ['auto', 'none', 'stars', 'fire'], name: ['auto', 'white', 'blue', 'gold'], frame: ['auto', 'none', 'silver', 'gold'], aura: ['auto', 'none']}}; }
+  if (fn === 'skin_choices') return [];
   if (/mission|weekly_champs/.test(fn)) return demoMissions(fn, b);
   if (fn === 'live_log_list') return demoLog(b);
   if (fn === 'shop_recycle') return b.p_items.reduce((g, x) => g + x.n * candyVal(x.id, x.sh), 0);
@@ -1068,6 +1079,38 @@ function demoTrades(fn, b){      // ?demo only
 
 
 
+
+/* ===== WARDROBE: choose ball, trail, name colour, avatar frame and aura (the live reads skin_choices() every 5 min) ===== */
+const WARD = [['name', 'Name colour', [['auto', 'Best unlocked'], ['white', 'White'], ['blue', 'Blue', 'Lv 5'], ['gold', 'Gold', 'Lv 20'], ['rainbow', 'Rainbow', 'Lv 50']]],
+  ['frame', 'Avatar frame', [['auto', 'Best unlocked'], ['none', 'None'], ['silver', 'Silver', 'Lv 10'], ['gold', 'Gold', 'Lv 25']]],
+  ['aura', 'Aura', [['auto', 'Best unlocked'], ['none', 'None'], ['gold', 'Golden aura', 'Lv 75'], ['ghost', 'Ghost aura', 'Halloween']]],
+  ['trail', 'Ball trail (live)', [['auto', 'Best unlocked'], ['none', 'None'], ['stars', 'Stars', 'Lv 15'], ['fire', 'Fire', 'Lv 30'], ['bats', 'Bats', 'Halloween'], ['week', 'Weekly trail', 'Complete 7 weekly missions']]],
+  ['ball', 'Poké Ball (live)', [['auto', 'Best unlocked'], ['normal', 'Normal'], ['pumpkin', 'Pumpkin Ball', 'Halloween']]]];
+async function loadSkinChoices(){ try { const L = await rpc('skin_choices', {}) || []; SKINCH = {}; for (const x of L) SKINCH[x.u.toLowerCase()] = x; } catch(e){} }
+async function openWardrobe(){
+  const me = BY[ME.u.toLowerCase()]; if (!me) return;
+  const bg = openSheet('<h3>Wardrobe</h3><p class="sub">Loading...</p>', 'edit'), sh = bg.querySelector('.sheet');
+  let W; try { W = await rpc('my_skins', {p_token: AUTH.token}); } catch(e){ sh.querySelector('.sub').textContent = e.message; return; }
+  if (!W){ sh.querySelector('.sub').textContent = 'Link your TikTok name first.'; return; }
+  const st = Object.assign({}, W.choice), un = W.unlocked || {};
+  const draw = () => {
+    const prev = Object.assign({}, me), save = SKINCH[me.u.toLowerCase()]; SKINCH[me.u.toLowerCase()] = Object.assign({u: me.u}, st);
+    const pv = `<div class="wprev">${avatar(prev)}<b class="${nameCls(prev)}">${esc(me.u)}</b></div>`;
+    if (save) SKINCH[me.u.toLowerCase()] = save; else delete SKINCH[me.u.toLowerCase()];
+    sh.innerHTML = `<div class="grab"></div><h3>👕 Wardrobe</h3><p class="sub">Choose how you look on the site and in the live. "Best unlocked" puts on new stuff by itself.</p>${pv}
+      ${WARD.map(([k, lab, opts]) => `<div class="lgday">${lab}</div><div class="wopts">${opts.map(([v, n, req]) => { const ok = (un[k] || []).includes(v);
+        return `<button class="wopt ${st[k] === v ? 'on' : ''}" data-k="${k}" data-v="${v}" ${ok ? '' : 'disabled'}>${esc(n)}${ok || !req ? '' : `<small>🔒 ${esc(req)}</small>`}</button>`; }).join('')}</div>`).join('')}
+      <div class="savebar"><button class="btn ghost" id="wc">Close</button><button class="btn" id="ws">Save</button></div>`;
+    sh.querySelectorAll('.wopt:not([disabled])').forEach(b => b.onclick = () => { st[b.dataset.k] = b.dataset.v; draw(); });
+    sh.querySelector('#wc').onclick = bg.close;
+    sh.querySelector('#ws').onclick = async e => { e.target.disabled = true;
+      try { if (!DEMO) await rpc('set_skins', {p_token: AUTH.token, p_ball: st.ball, p_trail: st.trail, p_name: st.name, p_frame: st.frame, p_aura: st.aura});
+        SKINCH[me.u.toLowerCase()] = Object.assign({u: me.u}, st); bg.close(); toast('Saved! The live shows it within 5 minutes.'); route(); }
+      catch(err){ toast(err.message); e.target.disabled = false; } };
+  };
+  draw();
+}
+
 /* ===== MISSIONS (5 daily + 7 weekly, same for everyone) + STREAK (3/7/14/30 days) ===== */
 let MST = null;
 const TYN = x => x ? x[0].toUpperCase() + x.slice(1) : '';
@@ -1224,7 +1267,7 @@ function stonesHtml(t){      // BAG: balls + items the player owns (from the gam
   if (t.soup > 0) it.push(['Max Soup', '<span class="bgx">🍲</span>', t.soup, 'GMAX + Pokémon in live']);
   const me = isMe(t.u);
   if (!it.length && !me) return '';
-  return `<h2>Bag</h2>${me ? `<button class="btn shopbtn" id="shopbtn">🍬 Candy Shop</button>` : ''}${it.length ? `<div class="card bag">${it.map(([n, ic, c, h]) => `<div class="bgi"><span class="bgic">${ic}</span><span class="bgn"><b>${esc(n)}</b>${h ? `<small>${h}</small>` : ''}</span><em>x${fmt(c)}</em></div>`).join('')}</div>` : ''}`;
+  return `<h2>Bag</h2>${me ? `<div class="bagbtns"><button class="btn shopbtn" id="shopbtn">🍬 Candy Shop</button><button class="btn wardbtn" id="wardbtn">👕 Wardrobe</button></div>` : ''}${it.length ? `<div class="card bag">${it.map(([n, ic, c, h]) => `<div class="bgi"><span class="bgic">${ic}</span><span class="bgn"><b>${esc(n)}</b>${h ? `<small>${h}</small>` : ''}</span><em>x${fmt(c)}</em></div>`).join('')}</div>` : ''}`;
 }
 function hwHomeHtml(){
   if (!hwOn()) return '';
@@ -1686,7 +1729,7 @@ function route(){
 window.addEventListener('hashchange', route);
 async function start(){
   await googleInit();
-  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); await Promise.all([loadTrades(), loadBattle(), loadBoard(), loadPlayBoard(), loadWChamps()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
+  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); await Promise.all([loadTrades(), loadBattle(), loadBoard(), loadPlayBoard(), loadWChamps(), loadSkinChoices()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
   route();
   const pend = LS.get('lch_pending', null); if (pend && Date.now() < pend.until && !AUTH) pollClaim(pend.u, null);
   setInterval(setUpd, 30000);
