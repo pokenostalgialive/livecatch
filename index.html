@@ -78,6 +78,26 @@ img{display:block}
 .lvline{display:flex;align-items:center;gap:6px;margin:4px 0 2px}.lvline .lvt{margin-left:0}.lvbar{flex:1;max-width:160px;height:6px;border-radius:9px;background:rgba(127,127,127,.2);overflow:hidden}.lvbar i{display:block;height:100%;background:linear-gradient(90deg,#2f6fe0,#16a99e)}
 .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff!important;color:#1f1f1f!important;border:1px solid #dadce0;font-weight:800}
 .gg{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;background:conic-gradient(#ea4335 0 25%,#fbbc05 0 50%,#34a853 0 75%,#4285f4 0)}
+.nm-bl{color:#1e9bd7}.nm-au{background:linear-gradient(90deg,#c98a00,#ffcf3f,#c98a00);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nm-rb{background:linear-gradient(90deg,#ff4d4d,#ff9f1a,#ffd23f,#3ddc84,#2f9bff,#a46bff,#ff4d4d);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rbw 4s linear infinite}
+@keyframes rbw{to{background-position:200% 0}}
+.fr-ag{box-shadow:0 0 0 2px #fff,0 0 0 4px #c9d1dc!important}.fr-au{box-shadow:0 0 0 2px #fff,0 0 0 4px #ffc21a!important}
+.prof .fr-ag{box-shadow:0 0 0 4px #fff,0 0 0 7px #c9d1dc!important}.prof .fr-au{box-shadow:0 0 0 4px #fff,0 0 0 7px #ffc21a!important}
+.fr-aura{animation:aura 2.4s ease-in-out infinite}@keyframes aura{0%,100%{filter:drop-shadow(0 0 3px rgba(255,200,40,.6))}50%{filter:drop-shadow(0 0 10px rgba(255,200,40,.95))}}
+.lvcr{margin-left:4px;font-size:14px}
+.wkb{display:inline-block;margin-left:4px;font-size:9.5px;font-weight:900;color:#fff;background:linear-gradient(90deg,#ff5fa2,#a46bff);border-radius:7px;padding:1px 6px;vertical-align:2px}
+.box.bw-stars{background:radial-gradient(1.5px 1.5px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 70% 20%,#fff,transparent),radial-gradient(1.5px 1.5px at 40% 80%,#fff,transparent),radial-gradient(1px 1px at 85% 65%,#fff,transparent),linear-gradient(160deg,#27306b,#4a2c7a)}
+.box.bw-ember{background:radial-gradient(60% 50% at 50% 110%,rgba(255,120,30,.6),transparent),linear-gradient(160deg,#5a1d1d,#a8361b)}
+.box.bw-light{background:radial-gradient(55% 45% at 50% 0%,rgba(255,255,255,.6),transparent),linear-gradient(160deg,#e8a317,#d6457a 55%,#5b6cff)}
+.misban{margin-top:12px;background:linear-gradient(90deg,#fff7e0,#fff);border:1.5px solid #ffd76a}
+.msr{gap:10px!important;border-bottom:1px solid var(--line)}.msr:last-child{border-bottom:0}.msr .who b{white-space:normal;line-height:1.25}.msr .who small{display:block;font-size:12px;color:var(--mute);font-weight:700}
+.msb{display:block;height:6px;border-radius:9px;background:rgba(127,127,127,.18);overflow:hidden;margin-top:5px}.msb i{display:block;height:100%;background:linear-gradient(90deg,#16a99e,#2f6fe0)}
+.msr.ok .msb i,.msr.mcl .msb i{background:linear-gradient(90deg,#ffb000,#ffd23f)}.msr.mcl{opacity:.6}.msr .mini{line-height:1.1;padding:6px 10px}.msr .mini small{font-size:10px;font-weight:700}
+.msrw{flex:none;font-size:11.5px;font-weight:800;color:var(--mute);text-align:right;max-width:70px}.msd{flex:none;font-size:20px;font-weight:900;color:#16a99e}.msr.bonus{background:linear-gradient(90deg,rgba(255,210,63,.14),transparent)}
+.strk{padding:14px}.sk1{display:flex;align-items:center;gap:10px}.skf{font-size:32px}.sk1 b{display:block;font-size:19px;font-weight:900}.sk1 small{font-size:12px;font-weight:700;color:var(--mute)}
+.sk2{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}.skm{background:rgba(127,127,127,.08);border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.skm b{font-size:13px;font-weight:900}.skm small{font-size:10px;font-weight:700;color:var(--mute);line-height:1.2}.skm span{font-size:12px;font-weight:900;color:var(--mute)}.skm.ok{background:rgba(255,210,63,.22)}.skm.mcl{opacity:.55}.skm.mcl span{color:#16a99e}
+.skm .mini{padding:4px 8px;font-size:11px}
 .bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
 .bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
 .bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
@@ -491,10 +511,12 @@ let D = null, T = [], BY = {};
 function build(data){
   D = data; const dex = data.dex || {}, av = data.av || {}, wk = (data.week || {}).n || {};
   T = Object.entries(dex).map(([u, d]) => {
+    const _t = (() => {
     const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0 && M.n[k]).map(Number), mega = Object.keys(c).filter(k => c[k] > 0 && MEGA[k]).map(Number).sort((a, b) => a - b), forms = Object.keys(c).filter(k => c[k] > 0 && FORMS[k]).map(Number);
     const _lvd = +d.lv || 0;
     return {lv: _lvd || lvFrom(d.n || 0, d.s || 0, own.length), u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, forms, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length + forms.filter(isLegForm).length,
       team: (d.team || []).filter(id => M.n[id] || ALT[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, soup: d.soup || 0, bag: (d.bag && typeof d.bag === 'object') ? d.bag : {}, candy: +d.candy || 0, og: +d.og === 1 || d.og === true, ac: (d.ac && typeof d.ac === 'object') ? d.ac : {}, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
+    })(); if (!_t.title) _t.title = lvTitle(_t.lv); return _t;
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -512,7 +534,7 @@ function ago(t){ if (!t) return ''; const m = Math.round((Date.now() - t) / 6000
 const COLORS = ['#16a99e', '#2f6fe0', '#e5587e', '#7a5cf0', '#e8a917', '#ef7d2d', '#3fa129', '#d23f8c'];
 function avatar(t, cls = 'av'){
   const ch = (t.u.replace(/[^a-z0-9]/gi, '')[0] || '?').toUpperCase(), col = COLORS[[...t.u].reduce((s, c) => s + c.charCodeAt(0), 0) % COLORS.length];
-  const a = `<span class="${cls}" style="background:${col}">${t.av ? `<img src="${esc(t.av)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}${t.av ? '' : ch}</span>`;
+  const a = `<span class="${cls}${t.lv ? frameCls(t) : ''}" style="background:${col}">${t.av ? `<img src="${esc(t.av)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}${t.av ? '' : ch}</span>`;
   return t.skins && t.skins.witch ? `<span class="avw">${a}<span class="hat">${SKICON.witch}</span></span>` : a;
 }
 const link = u => '#/t/' + encodeURIComponent(u);
@@ -531,7 +553,15 @@ function setUpd(){ setLive(); document.getElementById('upd').innerHTML = (D && D
 /* ===== RANKINGS ===== */
 const lvFrom = (n, s, dex) => Math.min(100, Math.floor(Math.sqrt((10 * n + 50 * s + 20 * dex) / 40)) + 1);      // same formula as the live: XP = 10 catches + 50 shiny + 20 species
 const lvPct = t => { if (t.lv >= 100) return 100; const xp = 10 * t.n + 50 * t.s + 20 * t.dex, a = 40 * (t.lv - 1) ** 2, b = 40 * t.lv ** 2; return Math.max(0, Math.min(100, Math.round((xp - a) / (b - a) * 100))); };
-const lvTag = t => `<span class="lvt">Lv ${t.lv}</span>${t.og ? '<span class="ogt">OG</span>' : ''}`;
+// level cosmetics (same as the live): Lv5 blue name · Lv10 silver frame · Lv20 gold name · Lv25 gold frame + VETERAN · Lv50 rainbow name + ELITE · Lv75 golden aura · Lv100 crown + LEGEND TRAINER
+// site only: box wallpapers Lv15 stars · Lv30 ember · Lv40 light
+const nameCls = t => t.lv >= 50 ? 'nm-rb' : t.lv >= 20 ? 'nm-au' : t.lv >= 5 ? 'nm-bl' : '';
+const frameCls = t => (t.lv >= 25 ? ' fr-au' : t.lv >= 10 ? ' fr-ag' : '') + (t.lv >= 75 ? ' fr-aura' : '');
+const lvTitle = lv => lv >= 100 ? 'LEGEND TRAINER' : lv >= 50 ? 'ELITE' : lv >= 25 ? 'VETERAN' : null;
+const boxWall = t => t.lv >= 40 ? 'bw-light' : t.lv >= 30 ? 'bw-ember' : t.lv >= 15 ? 'bw-stars' : '';
+let WCHAMPS = {};
+const wkBadge = t => { const w = WCHAMPS[t.u.toLowerCase()]; return w && w.last ? '<span class="wkb" title="Completed all weekly missions last week">WEEKLY CHAMP</span>' : ''; };
+const lvTag = t => `${t.lv >= 100 ? '<span class="lvcr" title="Level 100">👑</span>' : ''}<span class="lvt">Lv ${t.lv}</span>${t.og ? '<span class="ogt">OG</span>' : ''}${wkBadge(t)}`;
 const RANKS = {
   level: {l: 'Level', v: t => t.lv, u: 'level'},
   catches: {l: 'Catches', v: t => t.n, u: 'caught'},
@@ -547,7 +577,7 @@ function rankRows(key, limit){
   if (!rows.length) return `<div class="list"><div class="row" style="color:var(--mute);font-weight:700">No data yet</div></div>`;
   return `<div class="list">${rows.map(([t, v], i) => `<a class="row" href="${link(t.u)}" style="text-decoration:none;color:inherit">
     <span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${avatar(t)}
-    <span class="who"><b>${esc(t.u)}${crown(t.u)}${skinBadge(t)}${lvTag(t)}</b>${t.title ? `<small>${esc(t.title)}</small>` : ''}</span>
+    <span class="who"><b><span class="${nameCls(t)}">${esc(t.u)}</span>${crown(t.u)}${skinBadge(t)}${lvTag(t)}</b>${t.title ? `<small>${esc(t.title)}</small>` : ''}</span>
     <span class="val">${fmt(v)}<small>${R.u}</small></span></a>`).join('')}</div>`;
 }
 
@@ -568,6 +598,7 @@ function viewHome(){
       <div class="search">${ICON.home}<input id="q" type="search" placeholder="Your TikTok name" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"><div class="sugg" id="sugg" hidden></div></div></section>
     ${T.length ? '' : `<div class="card" style="margin-top:12px;font-weight:800;color:var(--mute);text-align:center">The boxes fill up during the next live. Come back soon!</div>`}
     <div class="today"><div><b>${fmt(T.length)}</b><span>Trainers</span></div><div><b>${fmt(T.reduce((s, t) => s + t.n, 0))}</b><span>Caught</span></div><div><b>${fmt(day.n)}</b><span>Today</span></div></div>
+    <a class="cmdban misban" href="#/missions"><div><b>🎯 Missions</b><span style="display:block">5 daily · 7 weekly · streak rewards</span></div><em>›</em></a>
     <a class="pbanner" href="play.html"><span class="pbi"></span><div><b>PLAY NOW</b><span>Catch together with everyone · 50 free throws a day</span></div><em>Play</em></a>
     <a class="bbanner" href="#/battle"><i>NEW</i><span class="bi">⚔️</span><div><b>Battle the 4 Leagues</b><span>Beat 32 Gym Leaders &amp; the Elite Four. Become Champion!</span></div><em>Battle now</em></a>
     <a class="cmdban" href="#/help"><div><b>📖 All commands</b><span style="display:block">Everything you can write in the live chat</span></div><em>›</em></a>
@@ -662,7 +693,7 @@ function viewTrainer(u){
   const wm = !isMe(t.u) && ME ? wishMatch(t) : [];
   const act = (isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : ME ? `<button class="btn" id="propose">Propose trade</button>` : `<button class="btn ghost" id="claim">This is me</button>`) + `<button class="btn ghost" id="sharec">Share card</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
-    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}${crown(t.u)}${skinBadge(t)}</h1><div class="lvline">${lvTag(t)}<span class="lvbar"><i style="width:${lvPct(t)}%"></i></span></div>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
+    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1><span class="${nameCls(t)}">${esc(t.u)}</span>${crown(t.u)}${skinBadge(t)}</h1><div class="lvline">${lvTag(t)}<span class="lvbar"><i style="width:${lvPct(t)}%"></i></span></div>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
       <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div>
       <div class="acts">${act}</div>${wm.length ? `<div class="wmatch">Has ${wm.length} Pokémon from your wishlist: ${wm.slice(0, 6).map(id => `<span class="gm2">${img(id, false)}</span>`).join('')}</div>` : ''}</div>
     ${(() => { const b = (BBOARD || []).find(x => x.u.toLowerCase() === t.u.toLowerCase()); const ct = champTitle(t.u); return (b && b.badges) || ct ? `<div class="card tbadges"><div>${ct ? `<b class="ctl">♛ ${esc(ct)}</b>` : ''}<b>Gym badges ${b ? b.badges : 0}/32</b></div>${badgesRow(b ? b.badges : 0)}</div>` : ''; })()}
@@ -678,7 +709,7 @@ function viewTrainer(u){
     ${hwOn() ? '' : skinsHtml(t)}
   </div><div>
     <h2>Pokémon box</h2><div class="chips" id="bf">${F.map(([k, l]) => `<button class="chip ${k === BOXSTATE.f ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
-    <div class="box" id="box"></div>
+    <div class="box ${boxWall(t)}" id="box"></div>
   </div></div>`;
 }
 function bindTrainer(){
@@ -733,6 +764,7 @@ async function rpc(fn, body){
 function demoRpc(fn, b){      // ?demo only: fakes the server (verification completes by itself after 4 s)
   if (/trade/.test(fn)) return demoTrades(fn, b);
   if (/battle|champions/.test(fn)) return demoBattle(fn, b);
+  if (/mission|weekly_champs/.test(fn)) return demoMissions(fn, b);
   if (fn === 'live_log_list') return demoLog(b);
   if (fn === 'shop_recycle') return b.p_items.reduce((g, x) => g + x.n * candyVal(x.id, x.sh), 0);
   if (fn === 'shop_buy') return 0;
@@ -1035,6 +1067,57 @@ function demoTrades(fn, b){      // ?demo only
 
 
 
+
+/* ===== MISSIONS (5 daily + 7 weekly, same for everyone) + STREAK (3/7/14/30 days) ===== */
+let MST = null;
+const TYN = x => x ? x[0].toUpperCase() + x.slice(1) : '';
+const mText = m => ({catch: `Catch ${m.goal} Pokémon`, type: `Catch ${m.goal} ${TYN(m.t)}-type Pokémon`, dex: `Register ${m.goal} new species`, shiny: `Catch ${m.goal} shiny Pokémon`,
+  win: `Win ${m.goal} battles on the site`, play: `Catch ${m.goal} Pokémon on Play`, trade: `Complete ${m.goal} trade${m.goal > 1 ? 's' : ''}`})[m.k] || m.k;
+const mHint = m => ({catch: 'In the live or on Play', type: 'In the live or on Play', dex: 'Species you never caught before', shiny: 'In the live or on Play', win: 'Leagues or trainers in Battle', play: 'The Play page', trade: 'Trades on the site'})[m.k] || '';
+const left = t => { const ms = new Date(t) - Date.now(); if (ms <= 0) return 'soon'; const h = Math.floor(ms / 36e5); return h >= 24 ? Math.floor(h / 24) + 'd ' + (h % 24) + 'h' : h + 'h ' + Math.floor(ms % 36e5 / 6e4) + 'm'; };
+const STRK = [[3, '2 Great Balls'], [7, '1 Ultra Ball'], [14, '2 Ultra Balls'], [30, '1 Master Ball']];
+function viewMissions(){
+  nav('');
+  if (!AUTH) return `<div class="rankg"><h2>Missions</h2><div class="card"><b>Daily and weekly missions</b><p class="empty" style="text-align:left">5 daily missions, 7 weekly missions and streak rewards, in the live and on Play. ${GUEST ? 'Link your TikTok name to start: open your box and tap <b>This is me</b>.' : 'Sign in and link your TikTok name to start.'}</p>${GUEST ? '' : '<button class="btn" onclick="openAccount()">Sign in</button>'}</div></div>`;
+  return `<div class="rankg"><h2>Missions</h2><div id="mis"><div class="card empty" style="margin:0">Loading...</div></div></div>`;
+}
+async function loadMissions(){
+  const el = document.getElementById('mis'); if (!el || !AUTH) return;
+  try { MST = await rpc('missions_state', {p_token: AUTH.token}); } catch(e){ el.innerHTML = `<div class="card empty" style="margin:0">Missions are not available right now.</div>`; return; }
+  if (!MST){ el.innerHTML = `<div class="card empty" style="margin:0">Missions are not available right now.</div>`; return; }
+  drawMissions();
+}
+function drawMissions(){
+  const el = document.getElementById('mis'); if (!el || !MST) return;
+  const row = (m, sc, rw) => { const done = m.prog >= m.goal, pc = Math.min(100, Math.round(m.prog / m.goal * 100));
+    return `<div class="row msr ${m.claimed ? 'mcl' : done ? 'ok' : ''}"><span class="who"><b>${esc(mText(m))}</b><small>${esc(mHint(m))} · ${Math.min(m.prog, m.goal)}/${m.goal}</small><span class="msb"><i style="width:${pc}%"></i></span></span>
+      ${m.claimed ? '<span class="msd">✓</span>' : done ? `<button class="mini" data-cl="${sc}:${m.i}">Claim<br><small>${rw}</small></button>` : `<span class="msrw">${rw}</span>`}</div>`; };
+  const dd = MST.day.filter(m => m.claimed).length, wd = MST.week.filter(m => m.claimed).length;
+  const bonus = (sc, n, tot, claimed, txt) => `<div class="row msr bonus ${claimed ? 'mcl' : n >= tot ? 'ok' : ''}"><span class="who"><b>All ${tot} done</b><small>${txt}</small><span class="msb"><i style="width:${Math.round(n / tot * 100)}%"></i></span></span>
+      ${claimed ? '<span class="msd">✓</span>' : n >= tot ? `<button class="mini" data-cl="${sc}:0">Claim</button>` : `<span class="msrw">${n}/${tot}</span>`}</div>`;
+  el.innerHTML = `<div class="card strk"><div class="sk1"><span class="skf">🔥</span><div><b>${MST.streak}-day streak</b><small>Catch at least 1 Pokémon every day (live or Play)</small></div></div>
+      <div class="sk2">${(MST.streak_list || []).map(x => { const r = STRK.find(y => y[0] === x.m); return `<div class="skm ${x.claimed ? 'mcl' : x.ok ? 'ok' : ''}"><b>${x.m} days</b><small>${r ? r[1] : ''}</small>${x.claimed ? '<span>✓</span>' : x.ok ? `<button class="mini" data-cl="s:${x.m}">Claim</button>` : `<span>${Math.min(MST.streak, x.m)}/${x.m}</span>`}</div>`; }).join('')}</div></div>
+    <div class="lgday">Daily missions · ${dd}/5 · new in ${left(MST.day_ends)}</div><div class="list">${MST.day.map(m => row(m, 'd', '2 Great')).join('')}${bonus('db', dd, 5, MST.day_bonus, '+1 Ultra Ball')}</div>
+    <div class="lgday">Weekly missions · ${wd}/7 · new in ${left(MST.week_ends)}</div><div class="list">${MST.week.map(m => row(m, 'w', '1 Ultra')).join('')}${bonus('wb', wd, 7, MST.week_bonus, '+2 Ultra Balls · a new ball trail in the live · WEEKLY CHAMP badge next week')}</div>
+    <p class="hint" style="margin-top:12px">Rewards arrive in your bag the next time you are active in the live. Weeks completed: ${MST.weeks_done || 0} (4 = keep a trail forever).</p>`;
+  el.querySelectorAll('[data-cl]').forEach(b => b.onclick = async () => { const [sc, i] = b.dataset.cl.split(':'); b.disabled = true;
+    try { const r = await rpc('mission_claim', {p_token: AUTH.token, p_scope: sc, p_idx: +i}); toast(`+${r.qty} ${r.item[0].toUpperCase() + r.item.slice(1)} Ball${r.qty > 1 ? 's' : ''}! It arrives in the next live.`); await loadMissions(); }
+    catch(e){ toast(e.message); b.disabled = false; } });
+}
+let DEMOM = null;
+function demoMissions(fn, b){
+  if (!DEMOM) DEMOM = {day: [{i: 0, k: 'catch', goal: 25, prog: 31, claimed: false}, {i: 1, k: 'type', t: 'water', goal: 6, prog: 2, claimed: false}, {i: 2, k: 'dex', goal: 2, prog: 2, claimed: true}, {i: 3, k: 'win', goal: 3, prog: 1, claimed: false}, {i: 4, k: 'play', goal: 10, prog: 4, claimed: false}],
+    week: [{i: 0, k: 'catch', goal: 250, prog: 120}, {i: 1, k: 'type', t: 'fire', goal: 25, prog: 25}, {i: 2, k: 'type', t: 'ghost', goal: 25, prog: 9}, {i: 3, k: 'dex', goal: 15, prog: 6}, {i: 4, k: 'shiny', goal: 1, prog: 0}, {i: 5, k: 'win', goal: 15, prog: 4}, {i: 6, k: 'trade', goal: 1, prog: 1}].map(m => Object.assign({claimed: false}, m)),
+    day_bonus: false, week_bonus: false, streak: 8, streak_list: [{m: 3, ok: true, claimed: true}, {m: 7, ok: true, claimed: false}, {m: 14, ok: false, claimed: false}, {m: 30, ok: false, claimed: false}], weeks_done: 1,
+    day_ends: new Date(Date.now() + 5.2 * 36e5).toISOString(), week_ends: new Date(Date.now() + 3.4 * 864e5).toISOString()};
+  if (fn === 'missions_state') return JSON.parse(JSON.stringify(DEMOM));
+  if (fn === 'mission_claim'){ const L = b.p_scope === 'd' ? DEMOM.day : b.p_scope === 'w' ? DEMOM.week : null;
+    if (L) L[b.p_idx].claimed = true; else if (b.p_scope === 's') DEMOM.streak_list.find(x => x.m === b.p_idx).claimed = true; else DEMOM[b.p_scope === 'db' ? 'day_bonus' : 'week_bonus'] = true;
+    return {item: b.p_scope === 'd' ? 'great' : b.p_scope === 's' && b.p_idx === 30 ? 'master' : 'ultra', qty: b.p_scope === 'd' ? 2 : 1}; }
+  if (fn === 'weekly_champs') return [{u: 'giulia_shinyhunt', weeks: 2, last: true, this: false}];
+}
+async function loadWChamps(){ try { const L = await rpc('weekly_champs', {}) || []; WCHAMPS = {}; for (const x of L) WCHAMPS[x.u.toLowerCase()] = x; } catch(e){} }
+
 /* ===== COMMANDS (everything you can write in the live chat + what you can do on the site) ===== */
 const CMDS = [
   ['Catch', '#16a99e', [['C', 'Throw a Poké Ball at the Pokémon on screen'], ['G · U · M', 'Throw a Great, Ultra or Master Ball from your bag'], ['QUICK · DUSK · TIMER', 'Special balls: Quick is strong in the first seconds, Dusk at night and in the Shiny Zone, Timer gets stronger with time'], ['GOLD', 'Grab the Golden Ball when it appears'], ['pikachu', "Who's That Pokémon: write the name of the black silhouette to win a Great Ball"], ['CODE pika', 'Secret code from the group chat: +1 Ultra Ball (once per code)']]],
@@ -1044,7 +1127,7 @@ const CMDS = [
   ['Trades & wishlist', '#4ac8ff', [['WT', 'Trade a duplicate with a random one'], ['WT meloetta', 'Legendary for legendary trade'], ['WISH pikachu', 'Add to your wishlist (max 3): everyone sees WANTED when it appears'], ['WISH', 'See your wishlist'], ['WISH off pikachu · WISH off', 'Remove one or all']]],
   ['Mega, Gigantamax & forms', '#b0308a', [['MEGA charizard', 'Use a Mega Stone: adds the Mega form (you keep the base). Add x, y or z for the right one'], ['MEGA altaria shiny · normal', 'Choose the shiny or normal Mega (shiny needs a shiny base)'], ['GMAX charizard', 'Use a Max Soup (from Dynamax raids): adds the Gigantamax form'], ['FORM giratina', 'Use your Orb: adds the Origin Forme (the Orb stays)']]],
   ['Candy shop', '#ff5fa2', [['CANDY pikachu', 'Recycle the normal duplicates of a common or rare Pokémon (your last copy always stays)'], ['CANDY all', 'Recycle all normal common & rare duplicates'], ['SHOP', 'See the prices'], ['BUY ultra 5', 'Buy items: great 5 · ultra 15 · quick/dusk/timer 10 · lure 60 · soup 150 · stone 200 · master 400'], ['BUY lure', 'The next Pokémon is rare, for everyone']]],
-  ['Website', '#7a5cf0', [['!home 1234', 'Verify your page: tap "This is me" on your box, then write the code in the live chat'], ['Play', 'Catch on the site together with everyone: 50 free Poké Balls a day, plus your Great/Ultra/Master Balls and AUTO from the live'], ['Trades', 'On your page: trade with other trainers, even when the live is off'], ['Battle', '4 Leagues, Elite Four and Champions: badges give Ultra Balls in the live'], ['Team · Evolve · Candy Shop', 'Change your team, evolve and use the Candy Shop from your page'], ['Partner · Favorites · Wishlist', 'Customize your page or hide it']]]
+  ['Website', '#7a5cf0', [['!home 1234', 'Verify your page: tap "This is me" on your box, then write the code in the live chat'], ['Missions', '5 daily and 7 weekly missions plus streak rewards: open Missions on the home page'], ['Play', 'Catch on the site together with everyone: 50 free Poké Balls a day, plus your Great/Ultra/Master Balls and AUTO from the live'], ['Trades', 'On your page: trade with other trainers, even when the live is off'], ['Battle', '4 Leagues, Elite Four and Champions: badges give Ultra Balls in the live'], ['Team · Evolve · Candy Shop', 'Change your team, evolve and use the Candy Shop from your page'], ['Partner · Favorites · Wishlist', 'Customize your page or hide it']]]
 ];
 function viewHelp(){
   nav('');
@@ -1591,18 +1674,19 @@ function route(){
   const app = document.getElementById('app'); if (!D) return;
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), [a, b] = [h.split('/')[0], h.split('/').slice(1).join('/')];
   document.querySelectorAll('.sheet-bg').forEach(x => x.remove());
-  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : a === 'help' ? viewHelp() : viewHome())
+  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : a === 'help' ? viewHelp() : a === 'missions' ? viewMissions() : viewHome())
     + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br>${CONFIG.KOFI ? `<a class="kofi" href="${CONFIG.KOFI}" target="_blank" rel="noopener">☕ Support the project</a><br>` : ''}<a href="#/help">Commands</a> · <a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
   if (a === 'hof') recentHtml();
   if (a === 'battle') bindBattle();
   if (a === 'log') loadLog(true);
   if (a === 'help') bindHelp();
+  if (a === 'missions') loadMissions();
 }
 window.addEventListener('hashchange', route);
 async function start(){
   await googleInit();
-  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); await Promise.all([loadTrades(), loadBattle(), loadBoard(), loadPlayBoard()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
+  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); await Promise.all([loadTrades(), loadBattle(), loadBoard(), loadPlayBoard(), loadWChamps()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
   route();
   const pend = LS.get('lch_pending', null); if (pend && Date.now() < pend.until && !AUTH) pollClaim(pend.u, null);
   setInterval(setUpd, 30000);
