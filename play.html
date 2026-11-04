@@ -389,7 +389,7 @@ function titleCalc(u){
 }
 const titC = {};
 // il Campione di Lega del sito batte ogni altro titolo
-function titleOf(u){ { const ch = champOf(u); if (ch) return ch.join(' & ') + ' CHAMPION'; } if (hasSkin(u, 'ghost')) return 'GHOST MASTER'; const c = titC[u], now = performance.now(); if (c && now - c.t < 3000) return c.v; const v = titleCalc(u); titC[u] = {v, t: now}; return v; }
+function titleOf(u){ { const ch = champOf(u); if (ch) return ch.join(' & ') + ' CHAMPION'; } if (hasSkin(u, 'ghost')) return 'GHOST MASTER'; const c = titC[u], now = performance.now(); if (c && now - c.t < 3000) return c.v; const v = titleCalc(u) || lvTitle(cosLv(u)); titC[u] = {v, t: now}; return v; }
 function titleCheck(u){
   const d = DEX[u]; if (!d) return; const t = titleCalc(u);
   if (t && t !== d.title){ d.title = t; dexDirty = true; titC[u] = {v: t, t: performance.now()};
@@ -1366,7 +1366,9 @@ const OG_UNTIL = '2026-12-01';
 const trainerXP = d => d ? 10 * (d.n || 0) + 50 * (d.s || 0) + 20 * Object.keys(d.c || {}).length : 0;
 const lvOfXP = xp => Math.min(100, Math.floor(Math.sqrt(xp / 40)) + 1);
 const xpOfLv = lv => 40 * (lv - 1) * (lv - 1);
-const trainerLv = u => lvOfXP(trainerXP(DEX[u]));
+// livello con cache (si calcola per ogni ball a ogni frame): rifatto ogni 2 s o dopo una cattura
+const lvC = {};
+const trainerLv = u => { const c = lvC[u], now = performance.now(); if (c && now - c.t < 2000) return c.v; const v = lvOfXP(trainerXP(DEX[u])); lvC[u] = {v, t: now}; return v; };
 const lvCol = lv => lv >= 75 ? 'hsl(' + ((tick * 4) % 360) + ',100%,68%)' : lv >= 50 ? '#c08cff' : lv >= 25 ? '#ffd23f' : lv >= 10 ? '#4ac8ff' : '#b8bccb';
 const isOG = u => !!(DEX[u] && DEX[u].og);
 // premi dei livelli: ogni 5 = 2 Great, ogni 10 = 1 Ultra, 25 / 50 / 75 / 100 = 1 Master
@@ -1375,7 +1377,7 @@ let lvUps = [], welcomes = [];
 const welcomed = new Set();
 // chiamata da addCatch: prima e dopo la cattura
 function trainerAfterCatch(u, lv0){
-  const d = DEX[u]; if (!d) return;
+  const d = DEX[u]; if (!d) return; delete lvC[u];
   // OG: chi gioca prima del lancio del nuovo sistema
   if (!d.og && Date.now() < dateKey(OG_UNTIL)) d.og = 1;
   const lv = trainerLv(u); if (lv <= (d.lv || lv0)){ d.lv = Math.max(d.lv || 0, lv); return; }
@@ -1446,6 +1448,21 @@ function drawWelcomeBack(){
 }
 // una volta sola: chi ha gia' giocato diventa OG, e il livello di partenza viene dalla sua storia (niente LEVEL UP a raffica)
 if (!store.get('plc_trainer_v1', false)){ for (const u in DEX){ const d = DEX[u]; if (!d || !d.n) continue; if (Date.now() < dateKey(OG_UNTIL)) d.og = 1; d.lv = lvOfXP(trainerXP(d)); } store.set('plc_trainer_v1', true); dexDirty = true; }
+
+// ---------- SBLOCCHI ESTETICI DEL LIVELLO (04/11): si vedono sulla ball in live ----------
+// Lv 5 nome azzurro · 10 cornice avatar argento · 15 scia di stelline · 20 nome oro · 25 cornice oro + VETERAN · 30 scia di fuoco
+// 40 esplosione di luce alla cattura · 50 nome arcobaleno + ELITE · 75 aura mentre la ball trema · 100 corona + LEGEND TRAINER
+const cosLv = u => (WEB && u !== window.LC_ME) ? 0 : trainerLv(u);
+const lvTitle = lv => lv >= 100 ? 'LEGEND TRAINER' : lv >= 50 ? 'ELITE' : lv >= 25 ? 'VETERAN' : null;
+function lvNameCol(u, base){ if (base && base !== '#ffffff') return base; const lv = cosLv(u); return lv >= 50 ? 'hsl(' + ((tick * 5) % 360) + ',100%,72%)' : lv >= 20 ? '#ffd23f' : lv >= 5 ? '#9fe7ff' : base || '#ffffff'; }
+function lvFrame(u, x, y, r){ const lv = cosLv(u); if (lv < 10) return; g.strokeStyle = lv >= 25 ? '#ffd23f' : '#d8dee8'; g.lineWidth = Math.max(2, r * 0.22); g.beginPath(); g.arc(x, y, r + 1, 0, 7); g.stroke(); }
+function lvTrail(f, x, y, kk){ const lv = cosLv(f.u); if (lv < 15 || tick % 2) return;
+  if (lv >= 30) parts.push({x: x + (Math.random() - .5) * 10 * kk, y: y + (Math.random() - .5) * 10 * kk, vx: (Math.random() - .5) * 40, vy: 20 + Math.random() * 40, life: .45, c: pick(['#ff3a1e', '#ff8a1e', '#ffd23f'])});
+  else parts.push({x, y, vx: (Math.random() - .5) * 50, vy: (Math.random() - .5) * 50, life: .5, c: pick(['#ffffff', '#ffd23f', '#9fe7ff'])}); }
+function lvAura(f, x, y, kk){ if (cosLv(f.u) < 75) return; const pu = 0.5 + 0.5 * Math.sin(tick * 0.2), gr = g.createRadialGradient(x, y, 4, x, y, 52 * kk);
+  gr.addColorStop(0, 'rgba(255,210,63,' + (0.35 + 0.25 * pu) + ')'); gr.addColorStop(1, 'rgba(255,210,63,0)'); g.fillStyle = gr; g.fillRect(x - 54 * kk, y - 54 * kk, 108 * kk, 108 * kk); }
+function lvBurst(f, x, y){ if (f.lvB || cosLv(f.u) < 40) return; f.lvB = 1; const c = cosLv(f.u) >= 75 ? '#ffd23f' : cosLv(f.u) >= 25 ? '#ffe98a' : '#ffffff';
+  for (let i = 0; i < 26; i++){ const a = i / 26 * 6.283, sp = 180 + Math.random() * 160; parts.push({x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .7, c}); } }
 
 // ===================================================================
 // 11 LIVE CATCH HOME (Supabase): snapshot pubblico, scambi, azioni, premi, merge, verifica account
@@ -2842,8 +2859,10 @@ function drawBalls(){
     const sc = f.sc || 4, kk = sc / 4;
     if (f.res && !f.ok){ const q = Math.min(1, (f.t - (fly + 0.25 + f.shakes * sh)) / 0.3); g.globalAlpha = 1 - q; skinBall(f.u, f.ball, x - 14 * q, y, sc, -0.6 * q); skinBall(f.u, f.ball, x + 14 * q, y, sc, 0.6 * q); g.globalAlpha = 1; }
     else { if (hasSkin(f.u, 'ghost')){ const gr = g.createRadialGradient(x, y, 4, x, y, 40 * kk); gr.addColorStop(0, 'rgba(180,106,255,.55)'); gr.addColorStop(1, 'rgba(180,106,255,0)'); g.fillStyle = gr; g.fillRect(x - 42 * kk, y - 42 * kk, 84 * kk, 84 * kk); }
+      if (f.t < fly) lvTrail(f, x, y, kk); else if (!f.res) lvAura(f, x, y, kk);
       if (f.t < fly && hasSkin(f.u, 'bats') && tick % 2 === 0) parts.push({x, y, vx: (Math.random() - .5) * 60, vy: -30 - Math.random() * 40, life: .5, c: Math.random() < .5 ? '#2a0a3a' : '#ff8a1e'});
       skinBall(f.u, f.ball, x, y, sc, rot); }
+    if (f.res && f.ok) lvBurst(f, x, y);
     if (f.res && f.first) crown(x, y - 54 * kk - 16, 14 * kk + 4);
     if (f.res && f.ok && !f.first){ for (let i = 0; i < 3; i++) star(x + (-32 + i * 32) * kk, y - 62 * kk - Math.sin(tick * 0.2 + i) * 4, 10 * kk, '#ffd23f'); }
     const fs = sc > 4 ? 22 : sc === 4 ? 17 : 14, nm = f.u.slice(0, sc > 4 ? 9 : sc === 4 ? 7 : 6); const tw = measure(nm, fs);
@@ -2856,7 +2875,7 @@ function drawBalls(){
     if (f.u === topS){ crownMini(x, y - 54 * kk - 30 * kk, '#ffd23f'); text('#1 SUPPORTER', x, y - 54 * kk - 48 * kk, Math.round(12 * kk), '#ffd23f', 'center', 3); }
     // corona del Campione di Lega
     if (f.u !== topS && champOf(f.u)) crownMini(x, y - 54 * kk - 30 * kk, '#ffd23f');
-    avatar(f.u, x - tw/2 - 5 - (fs + 9) / 2, y - 54 * kk + (fs + 9) / 2, (fs + 9) / 2 + 1); if (hasSkin(f.u, 'witch')) witchHat(x - tw/2 - 5 - (fs + 9) / 2, y - 54 * kk - 2, kk * 0.7); text(nm, x, y - 54 * kk + (fs + 9) / 2 + 1, fs, supNameCol(f.u), 'center', 1);
+    if (avatar(f.u, x - tw/2 - 5 - (fs + 9) / 2, y - 54 * kk + (fs + 9) / 2, (fs + 9) / 2 + 1)) lvFrame(f.u, x - tw/2 - 5 - (fs + 9) / 2, y - 54 * kk + (fs + 9) / 2, (fs + 9) / 2 + 1); if (cosLv(f.u) >= 100 && f.u !== topS && !champOf(f.u)) crownMini(x, y - 54 * kk - 30 * kk, '#ffd23f'); if (hasSkin(f.u, 'witch')) witchHat(x - tw/2 - 5 - (fs + 9) / 2, y - 54 * kk - 2, kk * 0.7); text(nm, x, y - 54 * kk + (fs + 9) / 2 + 1, fs, lvNameCol(f.u, supNameCol(f.u)), 'center', 1);
     { const tl = sc >= 4 ? titleOf(f.u) : null, tlY = y - 54 * kk - 12 * kk; if (tl) text(tl, x, tlY, Math.round(13 * kk), champOf(f.u) ? '#ffd23f' : '#ff8fb1', 'center', 3);
       if (!f.res && autoOn(f.u)){ const tr = autoTier(f.u); autoTag(x, tl ? tlY - 18 * kk : y - 54 * kk - 14 * kk, kk * 0.8, tr === 'ultra' ? 'AUTO ULTRA' : tr === 'great' ? 'AUTO GREAT' : 'AUTO +10%'); }
       // livello allenatore (e OG) accanto al nome, quando le ball sono grandi
