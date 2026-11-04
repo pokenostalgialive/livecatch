@@ -3172,7 +3172,7 @@ wsConnect(); playTrack(); requestAnimationFrame(frame);
 if (WEB){
   const DEMO = /[?&]demo/.test(location.search);
   const AUTH = (() => { try { return JSON.parse(localStorage.getItem('lch_auth') || 'null'); } catch(e){ return null; } })() || (DEMO ? {u: 'ash_ketchum', token: 'demo'} : null);
-  const ME = AUTH ? AUTH.u : null; window.LC_ME = ME;
+  const GUEST = !!(AUTH && /^g:/.test(AUTH.u)), ME = AUTH ? (GUEST ? 'guest' : AUTH.u) : null; window.LC_ME = ME;
   CFG.gap = 1e9; CFG.voice = false; CFG.upg = false; CFG.safe = true; CFG.news = false;
   const FAR = Date.now() + 1e12;
   raidNext = FAR; raidStart = Date.now(); raidWarned = true; mystNext = FAR; hordeNext = FAR; goldNext = FAR; homeAd = FAR; fanAd = FAR; shareAd = FAR; newsNext = FAR; szStart = 0; szEnd = 0;
@@ -3218,7 +3218,8 @@ if (WEB){
     <div class="wfoot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br><a href="index.html">Back to the Dex</a></div>`;
   const $ = id => document.getElementById(id), esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
   if (AUTH) $('wact').innerHTML = `<div class="wb"><button id="bC">THROW<small id="lC">Poké Ball</small></button><button id="bG">G<small id="lG">Great</small></button><button id="bU">U<small id="lU">Ultra</small></button><button id="bM">M<small id="lM">Master</small></button></div><button id="auto">AUTO-THROW</button>`;
-  else $('wact').innerHTML = `<a class="wlink" href="index.html">Link your account to play</a>`;
+  else $('wact').innerHTML = `<a class="wlink" href="index.html">Sign in to play</a>`;
+  if (GUEST){ for (const b of ['bG', 'bU', 'bM', 'auto']) $(b).style.display = 'none'; $('wact').insertAdjacentHTML('beforeend', `<a class="wlink" style="margin-top:8px;background:#2a2c3e;color:#ffd23f;border:2px solid #ffd23f" href="index.html">Link your TikTok name: your catches go into your Dex and you can use your balls from the live</a>`); }
 
   // ---------- ?demo: server finto, per provare la pagina senza Supabase ----------
   const DM = {feed: [], fid: 0, me: {left: 50, catches: 3, slot: -1, caught: false, miss: 0, have: {great: 3, ultra: 2, master: 1, auto: 'ultra'}}};
@@ -3234,7 +3235,7 @@ if (WEB){
   // gli altri giocatori: qui non c'e' il loro Pokedex, quindi niente "WELCOME NEW TRAINER" / "NEW!" finti
   function known(u, id){ const d = D(u); NEWBIE[u] = 0; if (!d.n) d.n = 500; d.mega = 99; d.lv = 100; if (!d.c[id]) d.c[id] = 1; }
   // il mio Pokedex vero (solo la mia voce dello snapshot): cosi' "NEW!" e' giusto per me
-  async function myDex(){ if (!AUTH || DEMO) { if (ME){ const d = D(ME); d.n = d.n || 500; d.mega = 99; } return; }
+  async function myDex(){ if (!AUTH || DEMO || GUEST) { if (ME){ const d = D(ME); d.n = d.n || 500; d.mega = 99; } return; }
     try { const r = await fetch(HOME_CFG.url + '/rest/v1/snapshot?id=eq.1&select=me:data->dex->' + encodeURIComponent('"' + ME + '"'), {headers: {apikey: HOME_CFG.key, Authorization: 'Bearer ' + HOME_CFG.key}});
       const j = await r.json(); const d = j && j[0] && j[0].me; if (d && d.c){ DEX[ME] = Object.assign({n: 0, s: 0, c: {}, sh: []}, d); DEX[ME].mega = Math.max(DEX[ME].mega || 0, Math.floor((DEX[ME].n || 0) / 1000)); DEX[ME].lv = trainerLv(ME); NEWBIE[ME] = 0; trainerHello(ME); } } catch(e){} }
   function startSlot(){
@@ -3260,8 +3261,8 @@ if (WEB){
     $('wfeed').innerHTML = fe.length ? fe.map(f => `<div class="wr ${f.ok ? 'ok' : ''} ${f.ok && f.sh ? 'sh' : ''}"><span><b>${esc(f.u)}</b> ${f.ok ? 'caught' : 'missed'} ${f.sh ? 'shiny ' : ''}${esc(A.mons[f.mon] ? A.mons[f.mon].name : '#' + f.mon)}${f.ball && f.ball !== 'poke' ? ' <small style="color:#9aa3c0">(' + f.ball + ')</small>' : ''}</span><span class="r">${f.ok ? '✓' : '✗'}</span></div>`).join('') : '<div class="wr">Nobody has thrown yet. Be the first!</div>';
     const me = S.me; if (!me || !AUTH) return; const h = me.have || {}, dis = busy || me.caught;
     $('bC').disabled = dis || me.left <= 0; $('lC').textContent = me.caught ? 'caught!' : me.left > 0 ? me.left + ' left today' : 'none left today';
-    for (const [b, k, nm] of [['bG', 'great', 'Great'], ['bU', 'ultra', 'Ultra'], ['bM', 'master', 'Master']]){ $(b).disabled = dis || !(h[k] > 0); $('l' + b[1]).textContent = nm + ' x' + (h[k] || 0); }
-    const au = $('auto'); if (h.auto){ au.style.display = 'block'; au.textContent = autoOnW ? 'AUTO ' + h.auto.toUpperCase() + ' · ON (tap to stop)' : 'AUTO ' + h.auto.toUpperCase() + ' · tap to start'; au.className = autoOnW ? 'on' : ''; }
+    if (!GUEST) for (const [b, k, nm] of [['bG', 'great', 'Great'], ['bU', 'ultra', 'Ultra'], ['bM', 'master', 'Master']]){ $(b).disabled = dis || !(h[k] > 0); $('l' + b[1]).textContent = nm + ' x' + (h[k] || 0); }
+    const au = $('auto'); if (GUEST){} else if (h.auto){ au.style.display = 'block'; au.textContent = autoOnW ? 'AUTO ' + h.auto.toUpperCase() + ' · ON (tap to stop)' : 'AUTO ' + h.auto.toUpperCase() + ' · tap to start'; au.className = autoOnW ? 'on' : ''; }
     else { au.style.display = 'none'; autoOnW = false; }
   }
   async function wthrow(ball){
