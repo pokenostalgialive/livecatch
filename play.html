@@ -405,6 +405,7 @@ function addCatch(u, id, shiny){
   weekRoll(); WEEK.n[u] = (WEEK.n[u] || 0) + 1; if (shiny) WEEK.s[u] = (WEEK.s[u] || 0) + 1; if (LEG.has(id)) WEEK.l[u] = (WEEK.l[u] || 0) + 1;
   { const sc = score(id, shiny), b = WEEK.best[u]; if (!b || sc > b[2]) WEEK.best[u] = [id, shiny ? 1 : 0, sc]; }
   if (!DEX[u] && popQ.length < 3) popQ.push({u, t: 0, kind: 'welcome'});
+  const lv0 = trainerLv(u);
   const d = D(u);
   // streak: un giorno in piu' se ieri aveva catturato
   if (d.last !== todayKey()){
@@ -442,6 +443,7 @@ function addCatch(u, id, shiny){
   else if (d.n === 50) mile(u, '50 catches: 2 ULTRA BALLS', '#ffd23f');
   if (R){ U(u)[R[0]] += R[1]; const nm = ballName(R[1], R[0]);
     banner(d.n + ' CATCHES!', u + ' wins ' + nm + (R[0] === 'master' ? ' - comment M to throw' : ''), R[0] === 'master' ? '#b46aff' : R[0] === 'ultra' ? '#ffd23f' : '#4ac8ff'); jingle([660, 880, 1100, 1320], 90, 0.1); }
+  trainerAfterCatch(u, lv0);
 }
 
 // ===================================================================
@@ -877,7 +879,7 @@ const isHost = u => String(u).toLowerCase().replace(/^@/, '') === HOST;
 // TikTok nasconde i commenti identici inviati due volte di fila: c, cc, C1, c!, "c c", catch... devono funzionare tutti
 const oneLetter = (t, w, k) => new RegExp('^' + k + '+[0-9]*$').test(w) || t.replace(/[^a-z]/g, '').replace(new RegExp(k, 'g'), '') === '' && t.includes(k);
 function chat(u, txt){
-  newbieMark(u); lastAct[u] = Date.now(); arrival(u); fanDaily(u); orbNote(u); champHello(u);
+  newbieMark(u); lastAct[u] = Date.now(); arrival(u); fanDaily(u); orbNote(u); champHello(u); trainerHello(u);
   if (chooseChat(u, txt)) return;
   // comandi dell'host dal suo account
   if (isHost(u)){
@@ -1356,6 +1358,96 @@ function fuseCmd(u, raw, undo){
 }
 
 // ===================================================================
+// 10d ALLENATORE (04/11): livello 1-100 calcolato dalla storia (niente si azzera), OG TRAINER, bentornato, LEVEL UP a schermo
+// XP = 10 per cattura + 50 per shiny + 20 per specie diversa  ·  livello = floor(sqrt(XP / 40)) + 1 (max 100)
+// stessa formula sul sito (Live Catch Dex): scritta in NOTE_TRA_CHAT
+// ===================================================================
+const OG_UNTIL = '2026-12-01';
+const trainerXP = d => d ? 10 * (d.n || 0) + 50 * (d.s || 0) + 20 * Object.keys(d.c || {}).length : 0;
+const lvOfXP = xp => Math.min(100, Math.floor(Math.sqrt(xp / 40)) + 1);
+const xpOfLv = lv => 40 * (lv - 1) * (lv - 1);
+const trainerLv = u => lvOfXP(trainerXP(DEX[u]));
+const lvCol = lv => lv >= 75 ? 'hsl(' + ((tick * 4) % 360) + ',100%,68%)' : lv >= 50 ? '#c08cff' : lv >= 25 ? '#ffd23f' : lv >= 10 ? '#4ac8ff' : '#b8bccb';
+const isOG = u => !!(DEX[u] && DEX[u].og);
+// premi dei livelli: ogni 5 = 2 Great, ogni 10 = 1 Ultra, 25 / 50 / 75 / 100 = 1 Master
+const lvReward = lv => lv % 25 === 0 ? ['master', 1] : lv % 10 === 0 ? ['ultra', 1] : lv % 5 === 0 ? ['great', 2] : null;
+let lvUps = [], welcomes = [];
+const welcomed = new Set();
+// chiamata da addCatch: prima e dopo la cattura
+function trainerAfterCatch(u, lv0){
+  const d = DEX[u]; if (!d) return;
+  // OG: chi gioca prima del lancio del nuovo sistema
+  if (!d.og && Date.now() < dateKey(OG_UNTIL)) d.og = 1;
+  const lv = trainerLv(u); if (lv <= (d.lv || lv0)){ d.lv = Math.max(d.lv || 0, lv); return; }
+  const from = d.lv || lv0; d.lv = lv; dexDirty = true;
+  let rw = null; for (let k = from + 1; k <= lv; k++){ const r = lvReward(k); if (r){ U(u)[r[0]] += r[1]; rw = r; } }
+  if (lvUps.length < 3 && !lvUps.some(x => x.u === u)) lvUps.push({u, from, lv, rw, t: 0});
+  if (lv % 5 === 0) mile(u, 'reached TRAINER LEVEL ' + lv, '#7dff9a');
+}
+function dateKey(s){ const [y, m, dd] = s.split('-').map(Number); return new Date(y, m - 1, dd).getTime(); }
+// primo messaggio della giornata di chi torna: cartellina BENTORNATO (una al giorno a testa, mai piu' di 2 in coda)
+function trainerHello(u){
+  if (welcomed.has(u) || LOUNGE) return; welcomed.add(u);
+  const d = DEX[u]; if (!d || !d.n) return;
+  const key = todayKey(); if (d.hi === key) return; d.hi = key; dexDirty = true;
+  if (welcomes.length < 2) welcomes.push({u, t: 0});
+}
+function trainerUpdate(dt){
+  if (lvUps.length){ lvUps[0].t += dt; if (lvUps[0].t > 3.6) lvUps.shift(); }
+  if (welcomes.length){ welcomes[0].t += dt; if (welcomes[0].t > 3.4) welcomes.shift(); }
+}
+// pastiglia "Lv 32" (e OG) accanto al nome
+function lvPill(u, x, y, h, k){ if (WEB && u !== window.LC_ME) return 0; const lv = trainerLv(u), s = 'Lv' + lv, fs = Math.round(h * 0.62), w = measure(s, fs) + 10 * k;
+  g.fillStyle = 'rgba(10,10,20,.88)'; g.fillRect(x, y, w, h); g.strokeStyle = lvCol(lv); g.lineWidth = Math.max(1.5, 2 * k); g.strokeRect(x + 1, y + 1, w - 2, h - 2);
+  text(s, x + w / 2, y + h / 2 + 1, fs, lvCol(lv), 'center', 0); let ww = w;
+  if (isOG(u)){ const ow = measure('OG', fs) + 10 * k; g.fillStyle = '#ffd23f'; g.fillRect(x + w + 3, y, ow, h); text('OG', x + w + 3 + ow / 2, y + h / 2 + 1, fs, '#1a1400', 'center', 0); ww += ow + 3; }
+  return ww; }
+// ---------- LEVEL UP: fascia al centro, numero che sale, premio ----------
+function drawLevelUp(){
+  const L = lvUps[0]; if (!L) return; const T = L.t, a = Math.max(0, Math.min(1, T * 6, (3.6 - T) * 3)), cy = 760, col = lvCol(L.lv), big = L.lv % 5 === 0;
+  if (T < 0.05 && !L.fx){ L.fx = 1; jingle(big ? [523, 659, 784, 1046, 1319, 1568, 2093] : [659, 880, 1175, 1568], 85, 0.13); shake = Math.max(shake, big ? 0.5 : 0.2); }
+  if (tick % 3 === 0 && T < 2.8){ const fx = 120 + Math.random() * 840, fy = cy - 160 + Math.random() * 320, fc = pick(['#7dff9a', '#ffd23f', '#4ac8ff', '#ffffff', '#c08cff']);
+    for (let i = 0; i < 18; i++){ const an = i / 18 * 6.283, sp = 140 + Math.random() * 180; parts.push({x: fx, y: fy, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp - 60, life: .8, c: fc}); } }
+  g.save(); g.globalAlpha = a;
+  const gr = g.createLinearGradient(0, cy - 190, 0, cy + 190); gr.addColorStop(0, 'rgba(4,20,12,0)'); gr.addColorStop(0.2, 'rgba(4,24,14,.97)'); gr.addColorStop(0.8, 'rgba(4,24,14,.97)'); gr.addColorStop(1, 'rgba(4,20,12,0)');
+  g.fillStyle = gr; g.fillRect(0, cy - 190, W, 380);
+  rays(W / 2, cy - 40, 18, 900, tick * 0.01, '#7dff9a', 0.10);
+  g.fillStyle = '#7dff9a'; g.fillRect(0, cy - 152, W, 5); g.fillRect(0, cy + 147, W, 5);
+  const pz = 1 + Math.max(0, 0.35 - T) * 2.2 + 0.03 * Math.sin(tick * 0.3); g.translate(W / 2, cy); g.scale(pz, pz);
+  text('LEVEL UP!', 0, -105, 66, '#7dff9a', 'center', 8);
+  const hasAv = avatar(L.u, -250, 10, 62); if (!hasAv){ g.fillStyle = '#1d2a3a'; g.beginPath(); g.arc(-250, 10, 62, 0, 7); g.fill(); crown(-250, 2, 30); }
+  g.strokeStyle = col; g.lineWidth = 6; g.beginPath(); g.arc(-250, 10, 66, -Math.PI / 2, -Math.PI / 2 + 6.283 * Math.min(1, T / 1.2)); g.stroke();
+  const nm = L.u.slice(0, 16); text(nm, 60, -22, fitSize(nm, 46, 560), '#ffffff', 'left', 5);
+  // il numero sale da quello vecchio a quello nuovo
+  const shown = T < 0.5 ? L.from : T < 1.2 ? Math.round(L.from + (L.lv - L.from) * (T - 0.5) / 0.7) : L.lv, bz = T > 1.2 && T < 1.5 ? 1.35 - (T - 1.2) : 1;
+  g.save(); g.translate(60, 52); g.scale(bz, bz); text('Lv ' + shown, 0, 0, 72, col, 'left', 7); g.restore();
+  if (isOG(L.u)){ g.fillStyle = '#ffd23f'; g.fillRect(330, 26, 96, 46); text('OG', 378, 50, 30, '#1a1400', 'center', 0); }
+  if (L.rw && T > 1.3){ const s = 'REWARD: ' + (L.rw[1] > 1 ? L.rw[1] + ' ' : '') + L.rw[0].toUpperCase() + ' BALL' + (L.rw[1] > 1 ? 'S' : ''); ballImg(L.rw[0], -60, 118, 2.2, Math.sin(tick * 0.2) * 0.3); text(s, -20, 120, fitSize(s, 30, 520), '#ffd23f', 'left', 4); }
+  else if (T > 1.3){ const nx = L.lv + (5 - L.lv % 5), s = 'next reward at Lv ' + nx; text(s, 0, 120, 26, '#c8f5d4', 'center', 4); }
+  g.restore();
+}
+// ---------- BENTORNATO: cartellina che scivola da sinistra, sotto il riquadro del Pokemon ----------
+function drawWelcomeBack(){
+  const w0 = welcomes[0]; if (!w0) return; const T = w0.t, a = Math.max(0, Math.min(1, T * 6, (3.4 - T) * 3)), sl = Math.max(0, 1 - T * 4), d = DEX[w0.u]; if (!d) return;
+  const lv = trainerLv(w0.u), col = lvCol(lv), x = 24 - sl * sl * 700, y = WEB ? 840 : 1438, w = 640, h = 132, xp = trainerXP(d), p0 = xpOfLv(lv), p1 = xpOfLv(lv + 1), fr = lv >= 100 ? 1 : (xp - p0) / (p1 - p0);
+  g.save(); g.globalAlpha = a;
+  g.fillStyle = 'rgba(10,12,24,.94)'; g.fillRect(x, y, w, h); g.fillStyle = col; g.fillRect(x, y, 8, h);
+  g.strokeStyle = 'rgba(255,255,255,.15)'; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, w - 2, h - 2);
+  const hasAv = avatar(w0.u, x + 68, y + 66, 46); if (!hasAv){ g.fillStyle = '#26304a'; g.beginPath(); g.arc(x + 68, y + 66, 46, 0, 7); g.fill(); text(w0.u.slice(0, 1).toUpperCase(), x + 68, y + 68, 40, '#ffffff', 'center', 0); }
+  g.strokeStyle = col; g.lineWidth = 4; g.beginPath(); g.arc(x + 68, y + 66, 49, 0, 7); g.stroke();
+  text('WELCOME BACK', x + 132, y + 26, 18, '#7dff9a', 'left', 2);
+  const nm = w0.u.slice(0, 16); text(nm, x + 132, y + 58, fitSize(nm, 34, 300), '#ffffff', 'left', 4);
+  { const pw = lvPill(w0.u, x + 132 + Math.min(300, measure(nm, fitSize(nm, 34, 300))) + 14, y + 42, 32, 1.2); }
+  // barra XP verso il prossimo livello
+  g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(x + 132, y + 84, 300, 12); g.fillStyle = col; g.fillRect(x + 132, y + 84, 300 * Math.max(0, Math.min(1, fr * Math.min(1, T * 1.5))), 12);
+  const sub = d.n + ' caught' + (d.st > 1 ? '  ·  ' + d.st + '-day streak' : '') + (titleOf(w0.u) ? '  ·  ' + titleOf(w0.u) : '');
+  text(sub, x + 132, y + 114, fitSize(sub, 17, w - 150), '#c8cbe0', 'left', 2);
+  g.restore();
+}
+// una volta sola: chi ha gia' giocato diventa OG, e il livello di partenza viene dalla sua storia (niente LEVEL UP a raffica)
+if (!store.get('plc_trainer_v1', false)){ for (const u in DEX){ const d = DEX[u]; if (!d || !d.n) continue; if (Date.now() < dateKey(OG_UNTIL)) d.og = 1; d.lv = lvOfXP(trainerXP(d)); } store.set('plc_trainer_v1', true); dexDirty = true; }
+
+// ===================================================================
 // 11 LIVE CATCH HOME (Supabase): snapshot pubblico, scambi, azioni, premi, merge, verifica account
 // ===================================================================
 const HOME_CFG = { url: 'https://pdkxuxpvglrupzacpjdg.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBka3h1eHB2Z2xydXB6YWNwamRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NjM4MTMsImV4cCI6MjEwODMzOTgxM30.sBaf9mCEu_0pgSWIo7qhaSJtmhWxtPvNHC5THXangAw', secret: '' };
@@ -1422,7 +1514,7 @@ function homeBag(u, d){ const b = {}, st = users[u] || {};
 function homeSnapshot(){
   const dex = store.get('plc_dex_v1', {}), out = {};
   for (const [u, d] of Object.entries(dex)){
-    out[u] = {n: d.n || 0, s: d.s || 0, c: d.c || {}, sh: d.sh || [], sc: d.sc || {}, team: d.team || [], st: d.st || 0, last: d.last || '', title: d.title || null, badges: d.badges || [], skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, wish: d.wish || [], soup: d.soup || 0, bag: homeBag(u, d), candy: d.candy || 0, ac: d.ac || {}};
+    out[u] = {n: d.n || 0, s: d.s || 0, c: d.c || {}, sh: d.sh || [], sc: d.sc || {}, team: d.team || [], st: d.st || 0, last: d.last || '', lv: lvOfXP(trainerXP(d)), og: d.og ? 1 : 0, title: d.title || null, badges: d.badges || [], skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, wish: d.wish || [], soup: d.soup || 0, bag: homeBag(u, d), candy: d.candy || 0, ac: d.ac || {}};
   }
   const wk = store.get('plc_week', {}), wp = store.get('plc_week_prev', {}), day = store.get('plc_day', {});
   return {v: 1, t: Date.now(), dex: out, hof: store.get('plc_hof', {}),
@@ -1652,7 +1744,7 @@ function update(dt){
   if (megas.length){ megas[0].t += dt; if (megas[0].t > MEGA_T){ const m = megas.shift(); roulette('shiny', m.u); } }
   ageFirst(bigThx, 3.2, dt);
   if (likeRoulPend > 0 && roulette('shinylegend')) likeRoulPend--;
-  rouletteUpdate(dt); goldUpdate(dt); chooseUpdate();
+  rouletteUpdate(dt); goldUpdate(dt); chooseUpdate(); trainerUpdate(dt);
   if (spot){ spot.t += dt; if (spot.t > 9) spot = null; }
   ageFirst(shows, 5, dt);
   ageFirst(reveals, 4.5, dt);
@@ -2359,7 +2451,7 @@ function drawTrainers(){
     if (i % 2 === 0){ g.fillStyle = 'rgba(255,255,255,.05)'; g.fillRect(x + 8, yy - 19, w - 16, 38); }
     if (i < 3) crownMini(x + 26, yy, ['#ffcc28', '#c8ced8', '#d68c50'][i]); else text((i + 1) + '.', x + 18, yy, 20, '#ffffff', 'left', 2);
     const hasAv = avatar(u, x + 64, yy, 16); text(u.slice(0, 14), x + (hasAv ? 88 : 54), yy, fitSize(u.slice(0, 14), 20, hasAv ? 190 : 220), '#ffffff', 'left', 2);
-    if (d){ const [lt, lc] = LVL(d.n); g.fillStyle = lc; g.fillRect(x + 284, yy - 15, 112, 30); text(lt, x + 340, yy + 1, fitSize(lt, 19, 104), '#000000', 'center', 0); }
+    if (d){ const lv = lvOfXP(trainerXP(d)), lt = (d.og ? 'OG ' : '') + 'Lv ' + lv; g.fillStyle = lvCol(lv); g.fillRect(x + 284, yy - 15, 112, 30); text(lt, x + 340, yy + 1, fitSize(lt, 19, 104), '#000000', 'center', 0); }
     if (title === 'SHINY HUNTERS'){ star(x + w - 70, yy, 11, '#ffd23f'); text(String(n), x + w - 20, yy, 20, '#ffd23f', 'right', 2); }
     else if (title === 'LEGEND COLLECTORS'){ star(x + w - 100, yy, 11, '#ff6a4a'); text(n + '/' + LEG.size, x + w - 20, yy, fitSize(n + '/' + LEG.size, 18, 76), '#ff6a4a', 'right', 2); }
     else text(String(n), x + w - 20, yy, 20, col, 'right', 2); });
@@ -2767,8 +2859,10 @@ function drawBalls(){
     avatar(f.u, x - tw/2 - 5 - (fs + 9) / 2, y - 54 * kk + (fs + 9) / 2, (fs + 9) / 2 + 1); if (hasSkin(f.u, 'witch')) witchHat(x - tw/2 - 5 - (fs + 9) / 2, y - 54 * kk - 2, kk * 0.7); text(nm, x, y - 54 * kk + (fs + 9) / 2 + 1, fs, supNameCol(f.u), 'center', 1);
     { const tl = sc >= 4 ? titleOf(f.u) : null, tlY = y - 54 * kk - 12 * kk; if (tl) text(tl, x, tlY, Math.round(13 * kk), champOf(f.u) ? '#ffd23f' : '#ff8fb1', 'center', 3);
       if (!f.res && autoOn(f.u)){ const tr = autoTier(f.u); autoTag(x, tl ? tlY - 18 * kk : y - 54 * kk - 14 * kk, kk * 0.8, tr === 'ultra' ? 'AUTO ULTRA' : tr === 'great' ? 'AUTO GREAT' : 'AUTO +10%'); }
-      if (isSubU(f.u)){ g.fillStyle = '#b46aff'; g.fillRect(x + tw/2 + 7, y - 54 * kk, 44 * kk, fs + 9); text('SUB', x + tw/2 + 7 + 22 * kk, y - 54 * kk + (fs + 9) / 2 + 1, Math.round(12 * kk), '#ffffff', 'center', 0); }
-      if (isFan(f.u)){ const fx = x + tw/2 + 7 + (isSubU(f.u) ? 48 * kk : 0); g.fillStyle = '#ff5aa8'; g.fillRect(fx, y - 54 * kk, 44 * kk, fs + 9); text('FAN', fx + 22 * kk, y - 54 * kk + (fs + 9) / 2 + 1, Math.round(12 * kk), '#ffffff', 'center', 0); } }
+      // livello allenatore (e OG) accanto al nome, quando le ball sono grandi
+      let px = x + tw/2 + 7; if (sc >= 4) px += lvPill(f.u, px, y - 54 * kk, fs + 9, kk) + 4;
+      if (isSubU(f.u)){ g.fillStyle = '#b46aff'; g.fillRect(px, y - 54 * kk, 44 * kk, fs + 9); text('SUB', px + 22 * kk, y - 54 * kk + (fs + 9) / 2 + 1, Math.round(12 * kk), '#ffffff', 'center', 0); }
+      if (isFan(f.u)){ const fx = px + (isSubU(f.u) ? 48 * kk : 0); g.fillStyle = '#ff5aa8'; g.fillRect(fx, y - 54 * kk, 44 * kk, fs + 9); text('FAN', fx + 22 * kk, y - 54 * kk + (fs + 9) / 2 + 1, Math.round(12 * kk), '#ffffff', 'center', 0); } }
     if (f.res && f.ok){ if (f.isNew){ const pz = 1 + 0.12 * Math.sin(tick * 0.3); g.save(); g.translate(x, y + 50 * kk); g.scale(pz, pz); text('NEW!', 0, 0, sc > 4 ? 26 : sc === 4 ? 20 : 14, '#ffd23f', 'center', 3); g.restore(); } else text('GOTCHA!', x, y + 50 * kk, sc > 4 ? 21 : sc === 4 ? 16 : 11, '#7dff9a', 'center', 3); }
     // i tre puntini delle scosse, come nei giochi
     else if (!f.res && f.t > f.fly + 0.25){ const st = f.t - f.fly - 0.25, n = Math.min(3, Math.floor(st / f.sh) + 1);
@@ -2790,7 +2884,7 @@ function drawTransition(){
   g.fillStyle = '#000000'; for (let i = 0; i < n; i++){ const ww = W * Math.max(0, Math.min(1, cover * 1.3 - (i % 3) * 0.1)); if (i % 2) g.fillRect(W - ww, i * bh, ww, bh + 1); else g.fillRect(0, i * bh, ww, bh + 1); }
 }
 // ---------- cartelli e show grandi (stesso ordine della Lounge e del gioco) ----------
-function drawOverlays(){ drawBigThanks(); drawShareCard(); drawAutoCard(); drawFanCard(); drawJoinCard(); drawShopCard(); drawNews(); }
+function drawOverlays(){ drawWelcomeBack(); drawBigThanks(); drawShareCard(); drawAutoCard(); drawFanCard(); drawJoinCard(); drawShopCard(); drawNews(); }
 
 // ---------- la schermata di gioco: ordine dei layer dal fondo in su ----------
 function draw(){
@@ -2824,7 +2918,7 @@ function draw(){
   drawRaidBar();
   if (!DMX){ drawAuto(); drawBags(); drawWT(); drawQuests(); drawSkinCards(); }
   drawOverlays();
-  drawBoost(); drawHelp(); drawGold(); drawBanners(); drawReveal(); drawRoulette(); drawLegTrade(); drawSpot(); drawMega(); drawMegaShow();
+  drawBoost(); drawHelp(); drawGold(); drawBanners(); drawReveal(); drawRoulette(); drawLegTrade(); drawSpot(); drawMega(); drawMegaShow(); drawLevelUp();
   drawTransition();
   drawCine();
   drawSlShow();
@@ -3078,7 +3172,7 @@ wsConnect(); playTrack(); requestAnimationFrame(frame);
 if (WEB){
   const DEMO = /[?&]demo/.test(location.search);
   const AUTH = (() => { try { return JSON.parse(localStorage.getItem('lch_auth') || 'null'); } catch(e){ return null; } })() || (DEMO ? {u: 'ash_ketchum', token: 'demo'} : null);
-  const ME = AUTH ? AUTH.u : null;
+  const ME = AUTH ? AUTH.u : null; window.LC_ME = ME;
   CFG.gap = 1e9; CFG.voice = false; CFG.upg = false; CFG.safe = true; CFG.news = false;
   const FAR = Date.now() + 1e12;
   raidNext = FAR; raidStart = Date.now(); raidWarned = true; mystNext = FAR; hordeNext = FAR; goldNext = FAR; homeAd = FAR; fanAd = FAR; shareAd = FAR; newsNext = FAR; szStart = 0; szEnd = 0;
@@ -3138,11 +3232,11 @@ if (WEB){
   let S = null, off = 0, slot = null, lastFeed = 0, first = true, busy = false, autoOnW = false, msgT = null;
   const msg = (s, ms) => { $('wmsg').textContent = s; clearTimeout(msgT); if (ms) msgT = setTimeout(() => $('wmsg').textContent = '', ms); };
   // gli altri giocatori: qui non c'e' il loro Pokedex, quindi niente "WELCOME NEW TRAINER" / "NEW!" finti
-  function known(u, id){ const d = D(u); NEWBIE[u] = 0; if (!d.n) d.n = 500; d.mega = 99; if (!d.c[id]) d.c[id] = 1; }
+  function known(u, id){ const d = D(u); NEWBIE[u] = 0; if (!d.n) d.n = 500; d.mega = 99; d.lv = 100; if (!d.c[id]) d.c[id] = 1; }
   // il mio Pokedex vero (solo la mia voce dello snapshot): cosi' "NEW!" e' giusto per me
   async function myDex(){ if (!AUTH || DEMO) { if (ME){ const d = D(ME); d.n = d.n || 500; d.mega = 99; } return; }
     try { const r = await fetch(HOME_CFG.url + '/rest/v1/snapshot?id=eq.1&select=me:data->dex->' + encodeURIComponent('"' + ME + '"'), {headers: {apikey: HOME_CFG.key, Authorization: 'Bearer ' + HOME_CFG.key}});
-      const j = await r.json(); const d = j && j[0] && j[0].me; if (d && d.c){ DEX[ME] = Object.assign({n: 0, s: 0, c: {}, sh: []}, d); DEX[ME].mega = Math.max(DEX[ME].mega || 0, Math.floor((DEX[ME].n || 0) / 1000)); NEWBIE[ME] = 0; } } catch(e){} }
+      const j = await r.json(); const d = j && j[0] && j[0].me; if (d && d.c){ DEX[ME] = Object.assign({n: 0, s: 0, c: {}, sh: []}, d); DEX[ME].mega = Math.max(DEX[ME].mega || 0, Math.floor((DEX[ME].n || 0) / 1000)); DEX[ME].lv = trainerLv(ME); NEWBIE[ME] = 0; trainerHello(ME); } } catch(e){} }
   function startSlot(){
     const e = S.enc; enc = null; summary = null; flying = []; throwsQ = []; sucks = []; special.length = 0; for (const k in users){ users[k].pend = null; users[k].next = 0; }
     special.unshift({type: 'pick', id: +e.id, shiny: !!e.sh, hard: false, donor: null}); MON(+e.id);
