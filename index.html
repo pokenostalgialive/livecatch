@@ -1568,9 +1568,9 @@ function demoSpec(fn, b){
   if (fn === 'spec_trade_respond'){ const x = DSPT.find(y => y.id === b.p_id); if (x) x.status = b.p_accept ? 'done' : 'declined'; return b.p_accept ? 'done' : 'declined'; }
 }
 
-/* ===== NEW LOOK "NIGHT ARCADE": lobby home (opt-in with ?new, back with ?old) ===== */
+/* ===== NEW LOOK "NIGHT ARCADE": lobby home (default; ?old = old look) ===== */
 let NX = false;
-function nxInit(){ const q = location.search; if (/[?&]new\b/.test(q)) LS.set('lch_new', 1); if (/[?&]old\b/.test(q)) LS.set('lch_new', null); NX = !!LS.get('lch_new', null); document.body.classList.toggle('nx', NX); }
+function nxInit(){ const q = location.search; if (/[?&]old\b/.test(q)) LS.set('lch_old', 1); if (/[?&]new\b/.test(q)) LS.set('lch_old', null); NX = !LS.get('lch_old', null); document.body.classList.toggle('nx', NX); }      // new look for everyone (?old = old look)
 // sky follows the viewer's own clock: sun 6-20 (dawn 6-8, dusk 18-20), moon 20-6, both move along an arc
 function skyNow(){ const d = new Date(), h = d.getHours() + d.getMinutes() / 60; let cls, body, t;
   if (h >= 6 && h < 20){ t = (h - 6) / 14; body = 'sun'; cls = h < 8 ? 'dawn' : h >= 18 ? 'dusk' : 'day'; } else { t = ((h - 20 + 24) % 24) / 10; body = 'moon'; cls = 'night'; }
