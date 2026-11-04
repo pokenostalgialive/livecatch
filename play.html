@@ -375,13 +375,23 @@ function checkRegions(u){
     banner(r.n + ' COMPLETE!', u + ' caught every ' + r.n + ' Pokemon: badge + MASTER BALL', '#ffd23f'); mile(u, r.n + ' DEX COMPLETE', '#ffd23f');
     jingle([523, 659, 784, 1046, 1319, 1568, 2093], 110, 0.16); shake = 0.8; speak(u + ' completed the ' + r.n + ' Pokedex!');
   }
+  // premi del Pokedex per regione (04/11): 25% cornice della regione, 50% titolo EXPLORER (100% = badge + MASTER BALL qui sopra)
+  const X = d.rx || (d.rx = {});
+  for (const r of REGIONS){ const t = regTier(d, r); if (t > (X[r.n] || 0) && t < 3){ X[r.n] = t; dexDirty = true; const col = REGCOL[r.n];
+    if (t === 2){ banner(r.n + ' EXPLORER', u + ' caught 50% of ' + r.n + ': new title', col); mile(u, 'is now ' + r.n + ' EXPLORER', col); }
+    else { banner(r.n + ' 25%', u + ' unlocked the ' + r.n + ' frame', col); mile(u, 'unlocked the ' + r.n + ' frame', col); }
+    jingle([659, 880, 1175, 1568], 90, 0.12); } }
 }
+// 0 = niente, 1 = 25%, 2 = 50%, 3 = completo
+function regTier(d, r){ const p = regHave(d, r) / r.ids.length; return p >= 1 ? 3 : p >= 0.5 ? 2 : p >= 0.25 ? 1 : 0; }
+const REGCOL = {KANTO: '#ff5a4a', JOHTO: '#ffd23f', HOENN: '#3ad08a', SINNOH: '#4ac8ff', UNOVA: '#e8e8f0', KALOS: '#4a7dff', ALOLA: '#ff9a3a', GALAR: '#c08cff', PALDEA: '#ff5ab4'};
 
 // ---------- titoli sul nome: POKEDEX MASTER > REGION MASTER > SHINY HUNTER > LEGEND COLLECTOR > TYPE MASTER ----------
 function titleCalc(u){
   const d = DEX[u]; if (!d) return null; const own = ownedIds(d);
   if (own.length >= 500) return 'POKEDEX MASTER';
   if (d.badges && d.badges.length) return d.badges.length > 1 ? d.badges.length + '-REGION MASTER' : d.badges[0] + ' MASTER';
+  { const X = d.rx || {}, ex = REGIONS.filter(r => (X[r.n] || 0) >= 2); if (ex.length) return ex[ex.length - 1].n + ' EXPLORER'; }
   if ((d.s || 0) >= 10) return 'SHINY HUNTER';
   if (own.filter(id => LEG.has(id)).length >= 20) return 'LEGEND COLLECTOR';
   const tc = {}; for (const id of own) for (const t of (PTYPE[id] || '').split('/')) if (t) tc[t] = (tc[t] || 0) + 1;
@@ -1449,6 +1459,8 @@ function drawWelcomeBack(){
 }
 // una volta sola: chi ha gia' giocato diventa OG, e il livello di partenza viene dalla sua storia (niente LEVEL UP a raffica)
 if (!store.get('plc_trainer_v1', false)){ for (const u in DEX){ const d = DEX[u]; if (!d || !d.n) continue; if (Date.now() < dateKey(OG_UNTIL)) d.og = 1; d.lv = lvOfXP(trainerXP(d)); } store.set('plc_trainer_v1', true); dexDirty = true; }
+// premi del Pokedex per regione: chi era gia' oltre il 25/50% li riceve in silenzio (niente pioggia di banner)
+if (!store.get('plc_regrw_v1', false)){ for (const u in DEX){ const d = DEX[u]; if (!d || !d.c) continue; const X = {}; for (const r of REGIONS){ const t = Math.min(2, regTier(d, r)); if (t) X[r.n] = t; } d.rx = X; } store.set('plc_regrw_v1', true); dexDirty = true; }
 
 // ---------- SBLOCCHI ESTETICI DEL LIVELLO (04/11): si vedono sulla ball in live ----------
 // Lv 5 nome azzurro · 10 cornice avatar argento · 15 scia di stelline · 20 nome oro · 25 cornice oro + VETERAN · 30 scia di fuoco
@@ -1466,10 +1478,10 @@ const weekOwn = u => { const w = typeof weeklyOf === 'function' ? weeklyOf(u) : 
 const UNLOCK = {ball: {normal: () => true, pumpkin: u => skinOwn(u, 'pumpkin')},
   trail: {none: () => true, stars: u => cosLv(u) >= 15, fire: u => cosLv(u) >= 30, bats: u => skinOwn(u, 'bats'), week: weekOwn},
   name: {white: () => true, blue: u => cosLv(u) >= 5, gold: u => cosLv(u) >= 20, rainbow: u => cosLv(u) >= 50},
-  frame: {none: () => true, silver: u => cosLv(u) >= 10, gold: u => cosLv(u) >= 25},
+  frame: Object.assign({none: () => true, silver: u => cosLv(u) >= 10, gold: u => cosLv(u) >= 25}, ...REGIONS.map(r => ({[r.n.toLowerCase()]: u => regOwn(u, r.n)}))),
   aura: {none: () => true, gold: u => cosLv(u) >= 75, ghost: u => skinOwn(u, 'ghost')}};
 // ordine del "migliore" per lo slot in automatico
-const BEST = {ball: ['pumpkin', 'normal'], trail: ['week', 'fire', 'bats', 'stars', 'none'], name: ['rainbow', 'gold', 'blue', 'white'], frame: ['gold', 'silver', 'none'], aura: ['ghost', 'gold', 'none']};
+const BEST = {ball: ['pumpkin', 'normal'], trail: ['week', 'fire', 'bats', 'stars', 'none'], name: ['rainbow', 'gold', 'blue', 'white'], frame: ['gold'].concat(REGIONS.map(r => r.n.toLowerCase()).reverse(), ['silver', 'none']), aura: ['ghost', 'gold', 'none']};
 const skC = {};
 function skinOf(u, slot){
   const key = u + '|' + slot, c = skC[key], now = performance.now(); if (c && now - c.t < 2000) return c.v;
@@ -1479,7 +1491,11 @@ function skinOf(u, slot){
     v = want && want !== 'auto' && UNLOCK[slot][want] && UNLOCK[slot][want](u) ? want : BEST[slot].find(k => UNLOCK[slot][k](u)); }
   skC[key] = {v, t: now}; return v; }
 function lvNameCol(u, base){ if (base && base !== '#ffffff') return base; const k = skinOf(u, 'name'); return k === 'rainbow' ? 'hsl(' + ((tick * 5) % 360) + ',100%,72%)' : k === 'gold' ? '#ffd23f' : k === 'blue' ? '#9fe7ff' : base || '#ffffff'; }
-function lvFrame(u, x, y, r){ const k = skinOf(u, 'frame'); if (k === 'none') return; g.strokeStyle = k === 'gold' ? '#ffd23f' : '#d8dee8'; g.lineWidth = Math.max(2, r * 0.22); g.beginPath(); g.arc(x, y, r + 1, 0, 7); g.stroke(); }
+function lvFrame(u, x, y, r){ const k = skinOf(u, 'frame'); if (k === 'none') return; const rc = REGCOL[k.toUpperCase()];
+  if (rc){ g.strokeStyle = rc; g.lineWidth = Math.max(2, r * 0.16); g.beginPath(); g.arc(x, y, r + 1, 0, 7); g.stroke(); g.lineWidth = Math.max(1, r * 0.07); g.strokeStyle = '#ffffff'; g.beginPath(); g.arc(x, y, r + 1 + r * 0.2, 0, 7); g.stroke(); return; }
+  g.strokeStyle = k === 'gold' ? '#ffd23f' : '#d8dee8'; g.lineWidth = Math.max(2, r * 0.22); g.beginPath(); g.arc(x, y, r + 1, 0, 7); g.stroke(); }
+// cornice della regione: sbloccata al 25% del Pokedex di quella regione (o col badge)
+function regOwn(u, n){ if (WEB && u !== window.LC_ME) return false; const d = DEX[u]; return !!d && (((d.rx || {})[n] || 0) >= 1 || (d.badges || []).includes(n)); }
 function lvTrail(f, x, y, kk){ const k = skinOf(f.u, 'trail'); if (k === 'none' || tick % 2) return;
   if (k === 'week'){ weeklyTrail(f, x, y, kk); return; }
   if (k === 'bats') parts.push({x, y, vx: (Math.random() - .5) * 60, vy: -30 - Math.random() * 40, life: .5, c: Math.random() < .5 ? '#2a0a3a' : '#ff8a1e'});
@@ -1521,6 +1537,7 @@ function homeMerge(oldU, newU){
   b.n = (b.n || 0) + (a.n || 0); b.s = (b.s || 0) + (a.s || 0);
   b.st = Math.max(b.st || 0, a.st || 0); if ((a.last || '') > (b.last || '')) b.last = a.last;
   b.badges = [...new Set((b.badges || []).concat(a.badges || []))];
+  if (a.rx){ b.rx = b.rx || {}; for (const k in a.rx) b.rx[k] = Math.max(b.rx[k] || 0, a.rx[k]); }
   if (!(b.team || []).length) b.team = a.team || [];
   b.skins = Object.assign({}, a.skins || {}, b.skins || {}); b.hw = (b.hw || 0) + (a.hw || 0); b.hwr = (b.hwr || 0) + (a.hwr || 0); b.stones = (b.stones || 0) + (a.stones || 0); b.soup = (b.soup || 0) + (a.soup || 0); b.candy = (b.candy || 0) + (a.candy || 0); if (a.ac){ b.ac = b.ac || {}; for (const k in a.ac) b.ac[k] = (b.ac[k] || 0) + a.ac[k]; }
   b.wish = [...new Set((b.wish || []).concat(a.wish || []))].slice(0, 3);
@@ -1571,7 +1588,7 @@ function homeBag(u, d){ const b = {}, st = users[u] || {};
 function homeSnapshot(){
   const dex = store.get('plc_dex_v1', {}), out = {};
   for (const [u, d] of Object.entries(dex)){
-    out[u] = {n: d.n || 0, s: d.s || 0, c: d.c || {}, sh: d.sh || [], sc: d.sc || {}, team: d.team || [], st: d.st || 0, last: d.last || '', lv: lvOfXP(trainerXP(d)), og: d.og ? 1 : 0, title: d.title || null, badges: d.badges || [], skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, wish: d.wish || [], soup: d.soup || 0, bag: homeBag(u, d), candy: d.candy || 0, ac: d.ac || {}};
+    out[u] = {n: d.n || 0, s: d.s || 0, c: d.c || {}, sh: d.sh || [], sc: d.sc || {}, team: d.team || [], st: d.st || 0, last: d.last || '', lv: lvOfXP(trainerXP(d)), og: d.og ? 1 : 0, title: d.title || null, badges: d.badges || [], skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, wish: d.wish || [], soup: d.soup || 0, bag: homeBag(u, d), candy: d.candy || 0, ac: d.ac || {}, rx: d.rx || {}};
   }
   const wk = store.get('plc_week', {}), wp = store.get('plc_week_prev', {}), day = store.get('plc_day', {});
   return {v: 1, t: Date.now(), dex: out, hof: store.get('plc_hof', {}),
