@@ -1352,7 +1352,7 @@ const TCLS = ['Youngster', 'Lass', 'Hiker', 'Swimmer', 'Ace Trainer', 'Camper', 
 const TNAMES = ['Leo', 'Mia', 'Tom', 'Zoe', 'Max', 'Ivy', 'Sam', 'Ada', 'Ben', 'Lia', 'Kai', 'Nora', 'Eli', 'Rin', 'Dan', 'Una'];
 let BPROG = {badges: 0, wins: 0, cleared: 0, elite: 0, elite_league: 1, mb: false, ct: 0, champs: []};      // my progress (server)
 let BBOARD = null, CHAMPS = [];      // CHAMPS = current champions of the 4 leagues
-const curLeague = () => Math.min(BPROG.cleared, NL - 1);      // league index I'm playing (0-3)
+const curLeague = () => Math.min(Math.floor(BPROG.badges / 8), NL - 1);      // highest open League: the 8 badges of the previous one open the next (0-3)
 const champOf = li => CHAMPS.find(c => c.league === li + 1) || null;
 const myChampLeagues = () => (BPROG.champs || []).map(x => +x);
 const champTitle = u => { const L = CHAMPS.filter(c => c.u.toLowerCase() === String(u).toLowerCase()).map(c => LEAGUES[c.league - 1].n.replace(' League', '')); return L.length ? L.join(' & ') + ' CHAMPION' : ''; };
@@ -1416,9 +1416,9 @@ function viewBattle(){
   const board = `<h2>Trainers ranking</h2><div id="bboard"><div class="card empty" style="margin:0">Loading...</div></div>`;
   if (!me) return `<div class="rankg"><h2>Battles</h2><div class="card"><b>Battle with your own Pokémon</b><p class="empty">Open your page, tap <b>This is me</b> and write the code in the live chat. Then come back here to challenge the 4 Leagues.</p><a class="btn" href="#/" style="display:block;text-align:center;text-decoration:none;margin-top:12px">Find my page</a></div>${champs}${board}</div>`;
   if (BL === null || BL > curLeague()) BL = curLeague();
-  const li = BL, L = LEAGUES[li], nb = Math.max(0, Math.min(8, BPROG.badges - li * 8)), cur = li === curLeague() && BPROG.cleared < NL, done = li < BPROG.cleared;
+  const li = BL, L = LEAGUES[li], nb = Math.max(0, Math.min(8, BPROG.badges - li * 8)), cur = li <= curLeague(), done = li < BPROG.cleared;
   const tabs = LEAGUES.map((x, i) => `<button class="chip ${i === li ? 'on' : ''}" data-lg="${i}" ${i > curLeague() ? 'disabled' : ''} style="--c:${x.c}">${i > curLeague() ? '🔒 ' : ''}${esc(x.n.replace(' League', ''))}${myChampLeagues().includes(i + 1) ? ' ♛' : ''}</button>`).join('');
-  const gy = L.gyms.map((g, i) => { const dn = i < nb, open = (cur || done) && i === nb && !done;
+  const gy = L.gyms.map((g, i) => { const dn = i < nb, open = cur && i === nb && nb < 8;
     return `<div class="gym ${dn ? 'done' : open ? 'open' : 'locked'}" style="--c:${TYPEC[g.t]}">${badgeIco(g, dn)}<div class="gyi"><b>${g.n}</b><small>Leader ${g.l} · ${g.t.toUpperCase()}${dn ? ' · ' + g.b : ''}</small>${monsRow(g.team)}</div>
       ${dn ? `<button class="mini ghost" data-gym="${li}-${i}">Rematch</button>` : open ? `<button class="mini" data-gym="${li}-${i}">Challenge</button>` : '<span class="lock">LOCKED</span>'}</div>`; }).join('');
   const eliteOk = nb >= 8, run = BPROG.elite_league === li + 1 ? BPROG.elite : 0, amChamp = myChampLeagues().includes(li + 1);
@@ -1602,7 +1602,7 @@ function demoBattle(fn, b){
   if (fn === 'champions') return demoCh;
   if (fn === 'battle_lose') return null;
   if (fn === 'battle_win'){ const r = Object.assign({champs: []}, BPROG); r.wins++; const li = b.p_league - 1;
-    if (b.p_kind === 'gym' && li === r.cleared && b.p_gym === r.badges - li * 8 + 1) r.badges++;
+    if (b.p_kind === 'gym' && r.badges >= li * 8 && b.p_gym === r.badges - li * 8 + 1) r.badges++;
     if (b.p_kind === 'elite'){ r.elite = b.p_gym; r.elite_league = b.p_league; }
     if (b.p_kind === 'champ'){ r.elite = 0; r.cleared = Math.max(r.cleared, b.p_league); r.champs = [...new Set(r.champs.concat(b.p_league))]; r.became = true; if (!r.mb){ r.mb = true; r.reward = 'master'; }
       const i = demoCh.findIndex(c => c.league === b.p_league); const c = {league: b.p_league, u: ME.u, team: b.p_team, since: new Date().toISOString(), wins: 0}; if (i >= 0) demoCh[i] = c; else demoCh.push(c); }
