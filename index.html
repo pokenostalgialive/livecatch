@@ -557,6 +557,15 @@ body.nx{--bg1:#0a1030;--bg2:#1b1f5e;--card:#18225c;--card2:#212d74;--ink:#fff;--
 .nx .gym{box-shadow:0 4px 0 #070b22}.nx .gym.open{box-shadow:0 0 0 2px var(--gold),0 4px 0 #070b22}.nx .gym.locked{opacity:.55}.nx .gym small,.nx .gym .lock{color:var(--mute)}
 .nx .lgrow .tm{background:none!important;box-shadow:none;color:var(--mute)}.nx .row:active{background:rgba(255,255,255,.06)}
 .nx .warn{background:rgba(255,180,0,.14);color:#ffd88a}.nx .binfo,.nx .blog,.nx .bmv,.nx .bx{background:rgba(14,22,70,.92)!important;color:#fff}.nx .bmv small,.nx .binfo small{color:var(--mute)}.nx .lname{color:var(--c);filter:brightness(1.3)}
+.pdh{padding:16px}.pdh small{display:block;font-size:12px;font-weight:800;color:var(--mute)}.pdh .big{display:flex;gap:10px;margin:10px 0}.pdh .big div{flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:10px;text-align:center}
+.pdh .big b{display:block;font-family:'Lilita One';font-weight:400;font-size:24px}.pdh .big span{font-size:11px;font-weight:800;color:var(--mute)}
+.lcmd{display:flex;gap:5px;margin-top:6px}.lcmd i{flex:1;height:10px;border-radius:5px;background:rgba(255,255,255,.1)}.lcmd i.ok{background:var(--rc)}
+.pdx{padding:12px 14px;margin-bottom:10px;border-left:5px solid var(--rc)!important}.pdx .hd{display:flex;align-items:center;gap:8px}.pdx .hd b{font-family:'Lilita One';font-weight:400;font-size:19px;color:var(--rc);filter:brightness(1.25)}
+.pdx .hd em{margin-left:auto;font-style:normal;font-family:'Lilita One';font-size:20px}.pdx .hd .bdg{font-size:10px;font-weight:900;background:linear-gradient(90deg,#f2c230,#e8a917);color:#3a2300;border-radius:7px;padding:2px 7px}
+.pdx .rb{position:relative;height:12px;border-radius:99px;background:#060a24;margin:8px 0 3px}.pdx .rb i{display:block;height:100%;border-radius:99px;background:var(--rc)}.pdx .rb b{position:absolute;top:-2px;width:2px;height:16px;background:rgba(255,255,255,.35)}
+.pdx .rb.s{height:8px}.pdx .rb.s i{background:linear-gradient(90deg,#f2c230,#fff3b0,#f2c230)}.pdx .nx2{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;color:var(--mute)}.pdx .nx2 b{color:#fff}.pdx .nx2 .near{color:#3ddc84}
+.pdx .ms{display:flex;align-items:center;gap:4px;margin-top:8px;flex-wrap:wrap}.pdx .ms img{width:34px;height:34px;filter:brightness(0) invert(.35)}.pdx .ms button{margin-left:auto}
+.mgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-height:60vh;overflow:auto}.mgrid div{background:rgba(255,255,255,.05);border-radius:12px;padding:6px 2px;text-align:center}.mgrid img{width:52px;height:52px;margin:0 auto;filter:brightness(0) invert(.4)}.mgrid small{display:block;font-size:10.5px;font-weight:800;color:#dfe6ff;line-height:1.15}
 /* ---------- LOBBY ---------- */
 html.lobh{overflow:hidden;height:100%;overscroll-behavior:none}.nx.lob .top,.nx.lob .livebar,.nx.lob .foot{display:none}.nx.lob{padding-bottom:0;position:fixed;inset:0;overflow:hidden;overscroll-behavior:none}.nx.lob #app{max-width:none;padding:0}
 .nx.lob .lby{position:fixed;left:0;right:0;top:0;bottom:var(--navh,66px);height:auto;min-height:0;touch-action:manipulation;overscroll-behavior:none}
@@ -1453,6 +1462,36 @@ function bindTradesView(){
   Promise.all([loadTrades(), loadSpecTrades()]).then(() => { const el = document.getElementById('trbox'); if (el && location.hash.startsWith('#/trades')){ el.innerHTML = tradesHtml() + specOffersHtml(); bindTrades(); bindSpecOffers(); } });
 }
 
+/* ===== POKÉDEX page (from the lobby): region progress normal + shiny, next reward, what is missing ===== */
+const RWN = ['frame', 'EXPLORER', 'MASTER + Master Ball'], RWS = ['Shiny frame', 'SHINY HUNTER', 'SHINY MASTER + Master Ball'];
+const regNeed = x => { if (x.lv >= 3) return null; const th = [Math.ceil(x.tot / 4), Math.ceil(x.tot / 2), x.tot][x.lv]; return Math.max(1, th - x.have); };
+const dexNear = t => { const RL = regLv(t), SL = srLv(t); return REGIONS.filter(r => { const a = regNeed(RL[r.n]), b = regNeed(SL[r.n]); return (a !== null && a <= 5) || (b !== null && b <= 2); }).length; };
+function viewDex(){
+  nav('');
+  const back = `<a class="back" href="#/">${ICON.left}Lobby</a>`, me = AUTH && ME ? BY[ME.u.toLowerCase()] : null;
+  if (!me) return `<div class="rankg">${back}<h2>Pokédex</h2><div class="card"><p class="empty" style="text-align:left">Link your TikTok name to see your Pokédex progress.</p></div></div>`;
+  const RL = regLv(me), SL = srLv(me), done = REGIONS.filter(r => RL[r.n].lv >= 3).length, Rn = n => n[0] + n.slice(1).toLowerCase();
+  const tot = REGIONS.reduce((s, r) => s + RL[r.n].tot, 0), have = REGIONS.reduce((s, r) => s + RL[r.n].have, 0), shy = REGIONS.reduce((s, r) => s + SL[r.n].have, 0);
+  const cards = REGIONS.map(r => { const x = RL[r.n], y = SL[r.n], pc = Math.min(100, Math.round(x.have / x.tot * 100)), sp = Math.min(100, Math.round(y.have / y.tot * 100)), nx = regNeed(x), ny = regNeed(y);
+    const miss = r.ids.filter(id => !(me.c[id] > 0));
+    return `<div class="card pdx" style="--rc:${RCOL[r.n]}"><div class="hd"><b>${r.n}</b>${x.lv >= 3 ? '<span class="bdg">BADGE</span>' : ''}<em>${pc}%</em></div>
+      <div class="rb"><i style="width:${pc}%"></i><b style="left:25%"></b><b style="left:50%"></b></div>
+      <div class="nx2"><span>${x.have}/${x.tot} species</span>${nx === null ? '<b>Completed!</b>' : `<span class="${nx <= 5 ? 'near' : ''}">Next: <b>${x.lv === 0 ? Rn(r.n) + ' frame' : r.n + ' ' + RWN[x.lv]}</b> · ${nx} to go</span>`}</div>
+      <div class="rb s"><i style="width:${sp}%"></i><b style="left:25%"></b><b style="left:50%"></b></div>
+      <div class="nx2"><span>✦ ${y.have}/${y.tot} shiny</span>${ny === null ? '<b>Shiny master!</b>' : `<span class="${ny <= 2 ? 'near' : ''}">Next: <b>${y.lv === 0 ? RWS[0] : r.n + ' ' + RWS[y.lv]}</b> · ${ny} to go</span>`}</div>
+      ${miss.length ? `<div class="ms">${miss.slice(0, 6).map(id => img(id, false)).join('')}<button class="mini ghost" data-miss="${r.n}">Missing ${miss.length}</button></div>` : ''}</div>`; }).join('');
+  return `<div class="rankg">${back}<h2>Pokédex</h2>
+    <div class="card pdh" style="--rc:#ffd23f"><small>YOUR POKÉDEX</small><div class="big"><div><b>${fmt(have)}</b><span>of ${fmt(tot)} species</span></div><div><b>${fmt(shy)}</b><span>shiny species</span></div><div><b>${done}/9</b><span>regions done</span></div></div>
+      <small>Complete all 9 regions: title LIVE CATCH MASTER, rainbow name and the unique Arceus</small><div class="lcmd">${REGIONS.map(r => `<i class="${RL[r.n].lv >= 3 ? 'ok' : ''}" style="--rc:${RCOL[r.n]}"></i>`).join('')}</div></div>
+    ${cards}<p class="hint" style="text-align:left">Rewards for each region: 25% = avatar frame · 50% = title · 100% = badge, title and Master Ball (the same for shiny). Mythicals and event Pokémon don't count.</p></div>`;
+}
+function bindDex(){
+  const me = AUTH && ME ? BY[ME.u.toLowerCase()] : null; if (!me) return;
+  document.querySelectorAll('[data-miss]').forEach(b => b.onclick = () => { const r = REGIONS.find(x => x.n === b.dataset.miss), miss = r.ids.filter(id => !(me.c[id] > 0));
+    const bg = openSheet(`<h3>${r.n} · missing ${miss.length}</h3><p class="sub">Catch them in the live or on Play</p><div class="mgrid">${miss.map(id => `<div>${img(id, false)}<small>${esc(name(id))}<br>${pad(id)}</small></div>`).join('')}</div><div class="savebar"><button class="btn ghost" id="mc">Close</button></div>`, 'edit');
+    bg.querySelector('#mc').onclick = bg.close; });
+}
+
 /* ===== SPECIAL BOX: Pokémon with a tag (season pass, mythicals, unique Arceus). Never recycled or evolved; traded only one for one ===== */
 const SPK = {S0: 'SEASON 0', S1: 'SEASON 1', MYTH: 'MYTHICAL', DEX: 'POKÉDEX'};
 const spLabel = x => SPK[x.k] || (/^S\d+$/.test(x.k || '') ? 'SEASON ' + sNum(x.k) : String(x.k || 'EVENT').toUpperCase());
@@ -1541,7 +1580,7 @@ function skyHtml(){ const s = skyNow(); return `<div class="lsc ${s.cls}" id="ls
 setInterval(() => { const el = document.getElementById('lsc'); if (!el) return; const s = skyNow(), c = el.querySelector('.cel'); el.className = 'lsc ' + s.cls; c.className = 'cel ' + s.body; c.style.setProperty('--cx', s.x + '%'); c.style.setProperty('--cy', s.y + '%'); }, 60000);
 const ITEMSPR = k => `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/${k}.png`;
 const LIC = {mis: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/>', ev: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
-  my: '<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.6 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>', tr: '<path d="M7 7h12l-3-3M17 17H5l3 3"/>', wa: '<path d="M8 4l4 2 4-2 4 4-3 3v9H7v-9L4 8z"/>', bag: '<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>',
+  dex: '<rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M5 10h4M15 10h4M9 16h6"/>', tr: '<path d="M7 7h12l-3-3M17 17H5l3 3"/>', wa: '<path d="M8 4l4 2 4-2 4 4-3 3v9H7v-9L4 8z"/>', bag: '<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>',
   play: '<path d="M8 5l11 7-11 7z" fill="currentColor"/>', bat: '<path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M9.5 17.5L21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4"/>'};
 const lic = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${LIC[k]}</svg>`;
 const lsi = (k, lab, href, id, click) => `<a class="lsi" ${href ? `href="${href}"` : ''} ${click ? `data-lc="${click}"` : ''}><span>${lic(k)}<em id="${id}" hidden></em></span><small>${lab}</small></a>`;
@@ -1567,7 +1606,7 @@ function viewLobby(){
       <span class="who"><b class="${nameCls(me)}">${esc(me.u)}</b><small>${esc(me.title || 'TRAINER')}</small><span class="lxp"><i style="width:${lvPct(me)}%"></i><span>Lv ${me.lv} · ${lvPct(me)}%</span></span></span>
       <span class="lcur">${cur}</span></a>
     <div class="lst">${skyHtml()}
-      <div class="lsd l">${lsi('mis', 'Missions', '#/missions', 'lbm')}${lsi('ev', 'Events', '#/events', 'lbe')}${lsi('my', 'Mythicals', link(me.u), 'lby')}</div>
+      <div class="lsd l">${lsi('mis', 'Missions', '#/missions', 'lbm')}${lsi('ev', 'Events', '#/events', 'lbe')}${lsi('dex', 'Pokédex', '#/pokedex', 'lbd')}</div>
       <div class="lsd r">${lsi('tr', 'Trades', '#/trades', 'lbt')}${lsi('wa', 'Wardrobe', '', 'lbw', 'ward')}${lsi('bag', 'Shop', '', 'lbs', 'shop')}</div>
       <div class="lpt" data-pid="${partner}">${img(partner, shN(me, partner) > 0)}<span>${esc(name(partner))}</span></div>
       <div class="ltm">${team.map(id => `<a data-pid="${id}">${img(id, shN(me, id) > 0)}</a>`).join('')}</div></div>${cta}</div>`;
@@ -1578,6 +1617,7 @@ async function lobbyLoad(){
   const me = AUTH && ME ? BY[ME.u.toLowerCase()] : null, $ = id => document.getElementById(id), badge = (id, v) => { const e = $(id); if (e){ e.hidden = !v; e.textContent = v; } };
   document.querySelectorAll('.lby [data-pid]').forEach(x => x.onclick = () => me && sheet(me, +x.dataset.pid, shN(me, +x.dataset.pid) > 0));
   document.querySelectorAll('.lby [data-lc]').forEach(x => x.onclick = () => x.dataset.lc === 'ward' ? openWardrobe() : openShop());
+  if (me) badge('lbd', dexNear(me) || '');
   if (me) badge('lbt', incoming().length + (SPTR ? SPTR.filter(x => x.status === 'open' && x.b === ME.u).length : 0) || '');
   rpc('events_now', {}).then(E => { const L = (E && E.events) || [], on = L.find(evOn);
     if (on) badge('lbe', 'NOW');
@@ -1589,7 +1629,6 @@ async function lobbyLoad(){
     const c = $('lscl'); if (ready){ c.textContent = 'Claim!'; c.classList.remove('off'); } else c.textContent = fmtLeft(S.ends); }).catch(() => {});
   rpc('missions_state', {p_token: AUTH.token}).then(m => { if (!m) return; const ok = x => x.prog >= x.goal && !x.claimed, dd = m.day.filter(x => x.claimed).length, wd = m.week.filter(x => x.claimed).length;
     badge('lbm', m.day.filter(ok).length + m.week.filter(ok).length + (dd >= 5 && !m.day_bonus ? 1 : 0) + (wd >= 7 && !m.week_bonus ? 1 : 0) + (m.streak_list || []).filter(x => x.ok && !x.claimed).length || ''); }).catch(() => {});
-  rpc('myth_state', {p_token: AUTH.token}).then(L => badge('lby', (L || []).filter(x => !x.owned && !x.tried).length || '')).catch(() => {});
 }
 
 /* ===== PLAY MAP: regions open on Play (Kanto open, the next one at 50% of the previous) + zones by level ===== */
@@ -2266,7 +2305,7 @@ function route(){
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), [a, b] = [h.split('/')[0], h.split('/').slice(1).join('/')];
   document.querySelectorAll('.sheet-bg').forEach(x => x.remove());
   document.body.classList.toggle('lob', NX && !a); document.documentElement.classList.toggle('lobh', NX && !a);
-  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : a === 'help' ? viewHelp() : a === 'missions' ? viewMissions() : a === 'season' ? viewSeason() : a === 'trades' ? viewTrades() : a === 'events' ? viewEvents() : viewHome())
+  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : a === 'help' ? viewHelp() : a === 'missions' ? viewMissions() : a === 'season' ? viewSeason() : a === 'trades' ? viewTrades() : a === 'pokedex' ? viewDex() : a === 'events' ? viewEvents() : viewHome())
     + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br>${CONFIG.KOFI ? `<a class="kofi" href="${CONFIG.KOFI}" target="_blank" rel="noopener">☕ Support the project</a><br>` : ''}<a href="#/help">Commands</a> · <a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
   if (a === 'hof'){ recentHtml(); mythBoardHtml(); }
@@ -2276,6 +2315,7 @@ function route(){
   if (a === 'missions') loadMissions();
   if (a === 'season') loadSeason();
   if (a === 'trades') bindTradesView();
+  if (a === 'pokedex') bindDex();
   if (a === 'events') loadEvents();
   if (a === 't') bindSpec(b);
   if (!a) NX ? lobbyLoad() : homeEvents();
