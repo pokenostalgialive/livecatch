@@ -76,6 +76,8 @@ img{display:block}
 .lvt{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:900;color:#fff;background:linear-gradient(90deg,#2f6fe0,#16a99e);border-radius:7px;padding:1px 6px;vertical-align:2px}
 .ogt{display:inline-block;margin-left:4px;font-size:10.5px;font-weight:900;color:#5a3d00;background:linear-gradient(90deg,#ffd23f,#ffb000);border-radius:7px;padding:1px 6px;vertical-align:2px}
 .lvline{display:flex;align-items:center;gap:6px;margin:4px 0 2px}.lvline .lvt{margin-left:0}.lvbar{flex:1;max-width:160px;height:6px;border-radius:9px;background:rgba(127,127,127,.2);overflow:hidden}.lvbar i{display:block;height:100%;background:linear-gradient(90deg,#2f6fe0,#16a99e)}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff!important;color:#1f1f1f!important;border:1px solid #dadce0;font-weight:800}
+.gg{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;background:conic-gradient(#ea4335 0 25%,#fbbc05 0 50%,#34a853 0 75%,#4285f4 0)}
 .bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
 .bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
 .bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
@@ -443,6 +445,7 @@ h2:first-child{margin-top:4px}
 <script src="meta.js"></script>
 <script src="demo_data.js"></script>
 <script src="battle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" onerror="window.supabase=null"></script>
 <script>
 /* ===== CONFIG =====
    Default: live data from Supabase (sent by the game every 5 min).
@@ -523,7 +526,7 @@ function setLive(){
   const on = !!(D && D.live === true && D.t && Date.now() - D.t < 15 * 60000);
   b.hidden = !on; if (on){ b.href = CONFIG.LIVE_URL; b.innerHTML = '<span class="dot"></span>LIVE NOW · Join and catch<em>Watch</em>'; }
 }
-function setUpd(){ setLive(); document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}"><span>@${esc(AUTH.u)}</span>${incoming().length ? `<em>${incoming().length}</em>` : ''}</a>` : ''); }
+function setUpd(){ setLive(); document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}"><span>@${esc(AUTH.u)}</span>${incoming().length ? `<em>${incoming().length}</em>` : ''}</a>` : `<a class="mepill" href="javascript:void 0" onclick="openAccount()"><span>${GUEST ? 'Guest · link TikTok' : 'Sign in'}</span></a>`); }
 
 /* ===== RANKINGS ===== */
 const lvFrom = (n, s, dex) => Math.min(100, Math.floor(Math.sqrt((10 * n + 50 * s + 20 * dex) / 40)) + 1);      // same formula as the live: XP = 10 catches + 50 shiny + 20 species
@@ -716,7 +719,8 @@ function sheet(t, id, sh){
 const LS = { get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
   set(k, v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
 const DEMO = CONFIG.SOURCE === 'demo';
-let PROF = {}, AUTH = LS.get('lch_auth', null), ME = null;      // AUTH = {u, token} saved on this phone after !home
+let PROF = {}, AUTH = LS.get('lch_auth', null), ME = null, GUEST = null;
+if (AUTH && /^g:/.test(AUTH.u)){ GUEST = AUTH; AUTH = null; }      // signed in with Google but TikTok name not linked yet: guest (Play only)      // AUTH = {u, token} saved on this phone after !home
 const demoProf = {giulia_shinyhunt: {fav: [448, 445, 700, 282, 6, 94], wish: [384, 483, 484, 249], partner: 448}}, demoClaims = {};
 function devId(){ let d = LS.get('lch_dev', null); if (!d){ d = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''); LS.set('lch_dev', d); } return d; }
 const SBH = () => ({'Content-Type': 'application/json', apikey: CONFIG.SB_KEY, Authorization: 'Bearer ' + CONFIG.SB_KEY});
@@ -761,6 +765,40 @@ function openSheet(html, cls = ''){
 }
 function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
 
+/* ===== SIGN IN WITH GOOGLE (Supabase Auth): Google gives the usual session key; link to the TikTok name once with !home ===== */
+let SBC = null;
+const sbc = () => { if (SBC || DEMO || !window.supabase) return SBC; try { SBC = window.supabase.createClient(CONFIG.SB_URL, CONFIG.SB_KEY, {auth: {flowType: 'pkce', detectSessionInUrl: true, persistSession: true, storageKey: 'lch_sb'}}); } catch(e){ SBC = null; } return SBC; };
+async function gToken(){ const c = sbc(); if (!c) return null; try { const {data} = await c.auth.getSession(); return data && data.session ? data.session.access_token : null; } catch(e){ return null; } }
+async function gRpc(fn, body){
+  const t = await gToken(); if (!t) throw new Error('not signed in');
+  const r = await fetch(CONFIG.SB_URL + '/rest/v1/rpc/' + fn, {method: 'POST', headers: {'Content-Type': 'application/json', apikey: CONFIG.SB_KEY, Authorization: 'Bearer ' + t}, body: JSON.stringify(body || {})});
+  const txt = await r.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch(e){}
+  if (!r.ok) throw new Error((j && j.message) || 'Something went wrong'); return j;
+}
+async function googleInit(){
+  const c = sbc(); if (!c) return;
+  if (/[?&](code|error)=/.test(location.search)){ try { await c.auth.getSession(); } catch(e){} history.replaceState(null, '', location.pathname + location.hash); }
+  if (AUTH || !(await gToken())) return;
+  try { const r = await gRpc('google_session'); const a = {u: r.u, token: r.token, google: 1};
+    LS.set('lch_auth', a); if (r.linked){ AUTH = a; GUEST = null; } else { GUEST = a; AUTH = null; } } catch(e){}
+}
+async function googleSignIn(){
+  if (DEMO) return toast('Google sign-in works on the real site');
+  const c = sbc(); if (!c) return toast('Google sign-in is not available right now');
+  try { await c.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + location.pathname}}); } catch(e){ toast(e.message); }
+}
+async function googleSignOut(){ const c = sbc(); if (c){ try { await c.auth.signOut(); } catch(e){} } GUEST = null; }
+function openAccount(){
+  const bg = openSheet(GUEST ? `<h3>Signed in with Google</h3><p class="sub">You can already play on <b>Play</b>. To get your box, trades, battles and the shop, link your TikTok name <b>once</b>:</p>
+      <p class="sub" style="text-align:left">1. Search your TikTok name on the home page and open your box.<br>2. Tap <b>This is me</b> and write the code in the live chat.<br>3. Done: from then on just sign in with Google, on any phone.</p>
+      <a class="btn" href="play.html" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">Play now</a><button class="btn ghost" id="gout">Sign out</button>`
+    : `<h3>Sign in</h3><p class="sub">Sign in to play on the site and keep your progress on every phone.</p>
+      <button class="btn gbtn" id="gin"><span class="gg">G</span>Continue with Google</button>
+      <p class="hint">Already play in the live? After signing in, link your TikTok name once with the code in the live chat.</p>`);
+  const gi = bg.querySelector('#gin'); if (gi) gi.onclick = googleSignIn;
+  const go = bg.querySelector('#gout'); if (go) go.onclick = async () => { await googleSignOut(); LS.set('lch_auth', null); bg.close(); toast('Signed out'); route(); };
+}
+
 /* "This is me": code on the site -> "!home 1234" in the live chat from that TikTok account -> this phone is linked */
 async function openClaim(u){
   const bg = openSheet(`<h3>Is this you?</h3><p class="sub">Getting your code...</p>`);
@@ -786,7 +824,10 @@ function pollClaim(u, bg){
     let tok = null; try { tok = await rpc('check_claim', {p_u: u, p_dev: devId()}); } catch(e){}
     if (!tok) return;
     clearInterval(pollT); LS.set('lch_pending', null);
-    AUTH = {u, token: tok}; LS.set('lch_auth', AUTH); await loadMe(); await loadTrades(); await loadBattle();
+    AUTH = {u, token: tok}; let linked = false;
+    if (await gToken()){ try { await gRpc('link_google', {p_token: tok}); linked = true; AUTH.google = 1; GUEST = null; } catch(e){} }
+    LS.set('lch_auth', AUTH); await loadMe(); await loadTrades(); await loadBattle();
+    if (linked) setTimeout(() => toast('Linked to your Google account: next time just sign in with Google.'), 3300);
     if (bg && !bg.closed) bg.close();
     toast('Verified! Now you can edit your page.'); route();
   }, DEMO ? 1500 : 4000);
@@ -821,7 +862,7 @@ function openEdit(){
       draw(); });
     const pq = sh.querySelector('#pq'); if (pq) pq.oninput = () => { st.q = pq.value; const p = pq.selectionStart; draw(); const n = sh.querySelector('#pq'); n.focus(); n.setSelectionRange(p, p); };
     const hid = sh.querySelector('#hid'); if (hid) hid.onchange = () => E.hidden = hid.checked;
-    const lo = sh.querySelector('#logout'); if (lo) lo.onclick = async () => { try { await rpc('logout', {p_token: AUTH.token}); } catch(e){} AUTH = null; ME = null; LS.set('lch_auth', null); bg.close(); toast('Logged out on this phone'); route(); };
+    const lo = sh.querySelector('#logout'); if (lo) lo.onclick = async () => { try { await rpc('logout', {p_token: AUTH.token}); } catch(e){} await googleSignOut(); AUTH = null; ME = null; LS.set('lch_auth', null); bg.close(); toast('Logged out on this phone'); route(); };
     sh.querySelector('#cancel').onclick = bg.close;
     sh.querySelector('#save').onclick = async e => { e.target.disabled = true; e.target.textContent = 'Saving...';
       try { await rpc('save_profile', {p_token: AUTH.token, p_fav: E.fav, p_wish: E.wish, p_partner: E.partner || null, p_hidden: E.hidden});
@@ -839,7 +880,8 @@ function viewPrivacy(){
   <h4>Who runs this page</h4><p>Live Catch Dex is a free fan page for the players of the Live Catch game on TikTok, run by the host of the live.${CONFIG.KOFI ? ' Tips via "Support the project" are voluntary and only help keep the page online: they give nothing in the game and are never shown on the site.' : ''} Contact: ${CONFIG.CONTACT}.</p>
   <h4>What is shown</h4><p>Only your TikTok username, your public TikTok profile picture and your game data from the live (Pokémon caught, shiny, legendaries, team, streak, rankings). No gift or coin amounts are shown.</p>
   <h4>Where it comes from</h4><p>The Live Catch game reads the public events of the live (username, public profile picture and the game commands written in chat) to run the game. Chat messages are not published on this page.</p>
-  <h4>If you link your page</h4><p>When you use "This is me" and write <b>!home</b> in the live chat, we save a random key in your browser to keep you logged in, and your choices (partner, favorites, wishlist, privacy). No email, no password, no other personal data.</p>
+  <h4>If you link your page</h4><p>When you use "This is me" and write <b>!home</b> in the live chat, we save a random key in your browser to keep you logged in, and your choices (partner, favorites, wishlist, privacy).</p>
+  <h4>Sign in with Google</h4><p>If you sign in with Google, Google tells us your email and name only to identify your account (stored by our database provider, Supabase). We never show them on the site, never send emails and never share them. Your page only shows your TikTok name. You can sign out at any time; to delete your account, contact us.</p>
   <h4>Why</h4><p>To run the community features of the game (boxes, rankings, Hall of Fame), which is the legitimate interest of the game and of its players.</p>
   <h4>Where the data is kept</h4><p>Game data is kept in a Supabase database. The page is hosted on GitHub Pages. Pokémon images are loaded from jsDelivr (PokeAPI) and profile pictures from TikTok's servers: these services may see your IP address, as for any website.</p>
   <h4>Cookies</h4><p>No ads, no tracking, no analytics. Only technical browser storage to keep you logged in.</p>
@@ -1559,6 +1601,7 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 async function start(){
+  await googleInit();
   try { const [d] = await Promise.all([load(), loadProfiles(), loadMe()]); build(d); await Promise.all([loadTrades(), loadBattle(), loadBoard(), loadPlayBoard()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
   route();
   const pend = LS.get('lch_pending', null); if (pend && Date.now() < pend.until && !AUTH) pollClaim(pend.u, null);
