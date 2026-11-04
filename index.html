@@ -103,6 +103,11 @@ img{display:block}
 .wprev{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;margin:6px 0 4px;border-radius:16px;background:rgba(127,127,127,.08)}.wprev .av{width:52px;height:52px;font-size:20px}.wprev b{font-size:19px;font-weight:900}
 .wopts{display:flex;flex-wrap:wrap;gap:6px}.wopt{padding:8px 12px;border-radius:12px;background:rgba(127,127,127,.1);font-weight:800;font-size:13px;display:flex;flex-direction:column;align-items:center;line-height:1.2}
 .wopt.on{background:var(--ink);color:#fff}.wopt:disabled{opacity:.5;cursor:default}.wopt small{font-size:10px;font-weight:700;color:var(--mute)}
+.fr-rg{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--rc)!important}.prof .fr-rg{box-shadow:0 0 0 4px #fff,0 0 0 7px var(--rc)!important}
+.fr-kanto{--rc:#ff5a4a}.fr-johto{--rc:#ffd23f}.fr-hoenn{--rc:#3ad08a}.fr-sinnoh{--rc:#4ac8ff}.fr-unova{--rc:#c9c9d6}.fr-kalos{--rc:#4a7dff}.fr-alola{--rc:#ff9a3a}.fr-galar{--rc:#c08cff}.fr-paldea{--rc:#ff5ab4}
+.reg{grid-template-columns:76px 1fr 92px!important}.rbar{position:relative;overflow:visible!important}.rbar i{background:var(--rc)!important;opacity:.9}.rbar b{position:absolute;top:-2px;width:2px;height:14px;background:rgba(0,0,0,.25);border-radius:2px}
+.reg.done .rbar i{background:linear-gradient(90deg,#f2c230,#e8a917)!important}
+.rrw{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;margin:-2px 0 4px}.rrw span{font-size:10px;font-weight:800;color:var(--mute);background:rgba(127,127,127,.1);border-radius:7px;padding:2px 6px}.rrw span.ok{background:color-mix(in srgb,var(--rc) 22%,transparent);color:var(--ink)}
 .bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
 .bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
 .bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
@@ -521,7 +526,7 @@ function build(data){
     const _lvd = +d.lv || 0;
     return {lv: _lvd || lvFrom(d.n || 0, d.s || 0, own.length), u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, forms, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length + forms.filter(isLegForm).length,
       team: (d.team || []).filter(id => M.n[id] || ALT[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, soup: d.soup || 0, bag: (d.bag && typeof d.bag === 'object') ? d.bag : {}, candy: +d.candy || 0, og: +d.og === 1 || d.og === true, ac: (d.ac && typeof d.ac === 'object') ? d.ac : {}, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
-    })(); if (!_t.title) _t.title = lvTitle(_t.lv); return _t;
+    })(); _t.rx = d.rx || {}; _t.title = finalTitle(_t); return _t;
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -560,10 +565,23 @@ const lvFrom = (n, s, dex) => Math.min(100, Math.floor(Math.sqrt((10 * n + 50 * 
 const lvPct = t => { if (t.lv >= 100) return 100; const xp = 10 * t.n + 50 * t.s + 20 * t.dex, a = 40 * (t.lv - 1) ** 2, b = 40 * t.lv ** 2; return Math.max(0, Math.min(100, Math.round((xp - a) / (b - a) * 100))); };
 // level cosmetics (same as the live): Lv5 blue name · Lv10 silver frame · Lv20 gold name · Lv25 gold frame + VETERAN · Lv50 rainbow name + ELITE · Lv75 golden aura · Lv100 crown + LEGEND TRAINER
 // site only: box wallpapers Lv15 stars · Lv30 ember · Lv40 light
+const RCOL = {KANTO: '#ff5a4a', JOHTO: '#ffd23f', HOENN: '#3ad08a', SINNOH: '#4ac8ff', UNOVA: '#c9c9d6', KALOS: '#4a7dff', ALOLA: '#ff9a3a', GALAR: '#c08cff', PALDEA: '#ff5ab4'};
+// region rewards (same as the live): 25% = region frame · 50% = "X EXPLORER" title · 100% = badge + "X MASTER" + Master Ball
+const regLv = t => { if (t._rl) return t._rl; const rx = t.rx || {}, o = {};
+  for (const r of REGIONS){ const have = r.ids.filter(id => t.c[id] > 0).length, tot = r.ids.length;
+    o[r.n] = {have, tot, lv: Math.max(t.badges.includes(r.n) || have >= tot ? 3 : have * 2 >= tot ? 2 : have * 4 >= tot ? 1 : 0, +rx[r.n] || 0)}; }
+  return (t._rl = o); };
+const TYPEM = /^(NORMAL|FIRE|WATER|GRASS|ELECTRIC|ICE|FIGHTING|POISON|GROUND|FLYING|PSYCHIC|BUG|ROCK|GHOST|DRAGON|DARK|STEEL|FAIRY) MASTER$/;
+function finalTitle(t){
+  let ti = t.title; const rl = regLv(t), exp = REGIONS.map(r => r.n).filter(n => rl[n].lv === 2).pop();
+  if (exp && (!ti || ti === 'SHINY HUNTER' || ti === 'LEGEND COLLECTOR' || (TYPEM.test(ti) && ti !== 'GHOST MASTER'))) ti = exp + ' EXPLORER';
+  return ti || lvTitle(t.lv);
+}
 let SKINCH = {};
 const skc = t => SKINCH[t.u.toLowerCase()] || {};
 const nameCls = t => { const c = skc(t).name; if (c && c !== 'auto') return {white: '', blue: 'nm-bl', gold: 'nm-au', rainbow: 'nm-rb'}[c] || ''; return t.lv >= 50 ? 'nm-rb' : t.lv >= 20 ? 'nm-au' : t.lv >= 5 ? 'nm-bl' : ''; };
-const frameCls = t => { const c = skc(t), f = c.frame && c.frame !== 'auto' ? ({none: '', silver: ' fr-ag', gold: ' fr-au'}[c.frame] || '') : (t.lv >= 25 ? ' fr-au' : t.lv >= 10 ? ' fr-ag' : '');
+const frameCls = t => { const c = skc(t), rl = regLv(t), rg = REGIONS.map(r => r.n).filter(n => rl[n].lv >= 1).pop();
+  const f = c.frame && c.frame !== 'auto' ? ({none: '', silver: ' fr-ag', gold: ' fr-au'}[c.frame] ?? (RCOL[c.frame.toUpperCase()] ? ' fr-rg fr-' + c.frame : '')) : (t.lv >= 25 ? ' fr-au' : rg ? ' fr-rg fr-' + rg.toLowerCase() : t.lv >= 10 ? ' fr-ag' : '');
   const a = c.aura && c.aura !== 'auto' ? ({none: '', gold: ' fr-aura', ghost: ' fr-ghost'}[c.aura] || '') : (t.lv >= 75 ? ' fr-aura' : ''); return f + a; };
 const lvTitle = lv => lv >= 100 ? 'LEGEND TRAINER' : lv >= 50 ? 'ELITE' : lv >= 25 ? 'VETERAN' : null;
 const boxWall = t => t.lv >= 40 ? 'bw-light' : t.lv >= 30 ? 'bw-ember' : t.lv >= 15 ? 'bw-stars' : '';
@@ -694,8 +712,10 @@ function viewTrainer(u){
   const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id] || ALT[id]), wish = [...new Set((P.wish || []).concat(t.lwish))].filter(id => M.n[id] || ALT[id]), partner = (M.n[P.partner] || ALT[P.partner]) ? P.partner : 0;
   const F = [['caught', 'Caught ' + t.dex], ['shiny', 'Shiny ' + t.s], ['legend', 'Legendary ' + t.leg], ['mega', 'Mega ' + t.mg + '/' + MEGAIDS.length], ['rare', 'Rare']].concat(Object.keys(t.ac).some(k => t.ac[k] > 0) ? [['alpha', 'Alpha']] : [], [['dex', 'Full Pokédex']]);
   const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], shN(t, arr[i]) > 0)}</button>` : '<div class="tm e"></div>').join('');
-  const regs = REGIONS.map(r => { const have = r.ids.filter(id => t.c[id] > 0).length, done = t.badges.includes(r.n) || have >= r.ids.length;
-    return `<div class="reg ${done ? 'done' : ''}"><span>${r.n}</span><div class="bar"><i style="width:${Math.round(have / r.ids.length * 100)}%"></i></div><em>${done ? 'BADGE' : have + '/' + r.ids.length}</em></div>`; }).join('');
+  const RL = regLv(t), Rn = n => n[0] + n.slice(1).toLowerCase();
+  const regs = REGIONS.map(r => { const x = RL[r.n], done = x.lv >= 3, pc = Math.min(100, Math.round(x.have / x.tot * 100));
+    return `<div class="reg ${done ? 'done' : ''}" style="--rc:${RCOL[r.n]}"><span>${r.n}</span><div class="bar rbar"><i style="width:${pc}%"></i><b style="left:25%"></b><b style="left:50%"></b></div><em>${done ? 'BADGE' : x.have + '/' + x.tot + ' · ' + pc + '%'}</em>
+      <div class="rrw"><span class="${x.lv >= 1 ? 'ok' : ''}">25% ${Rn(r.n)} frame</span><span class="${x.lv >= 2 ? 'ok' : ''}">50% ${r.n} EXPLORER</span><span class="${x.lv >= 3 ? 'ok' : ''}">100% ${r.n} MASTER + Master Ball</span></div></div>`; }).join('');
   const pc = (PBOARD || []).find(x => x.u.toLowerCase() === t.u.toLowerCase());
   const meta = [`#${t.rank} all time`, pc ? pc.catches + ' site catches' : '', t.st > 1 ? t.st + '-day streak' : '', t.last ? 'last catch ' + t.last.split('-').reverse().slice(0, 2).join('/') : ''].filter(Boolean);
   const wm = !isMe(t.u) && ME ? wishMatch(t) : [];
@@ -773,7 +793,7 @@ async function rpc(fn, body){
 function demoRpc(fn, b){      // ?demo only: fakes the server (verification completes by itself after 4 s)
   if (/trade/.test(fn)) return demoTrades(fn, b);
   if (/battle|champions/.test(fn)) return demoBattle(fn, b);
-  if (fn === 'my_skins'){ const t = BY[ME.u.toLowerCase()]; return {choice: Object.assign({ball: 'auto', trail: 'auto', name: 'auto', frame: 'auto', aura: 'auto'}, SKINCH[ME.u.toLowerCase()] || {}), unlocked: {lv: t.lv, ball: ['auto', 'normal', 'pumpkin'], trail: ['auto', 'none', 'stars', 'fire'], name: ['auto', 'white', 'blue', 'gold'], frame: ['auto', 'none', 'silver', 'gold'], aura: ['auto', 'none']}}; }
+  if (fn === 'my_skins'){ const t = BY[ME.u.toLowerCase()]; return {choice: Object.assign({ball: 'auto', trail: 'auto', name: 'auto', frame: 'auto', aura: 'auto'}, SKINCH[ME.u.toLowerCase()] || {}), unlocked: {lv: t.lv, ball: ['auto', 'normal', 'pumpkin'], trail: ['auto', 'none', 'stars', 'fire'], name: ['auto', 'white', 'blue', 'gold'], frame: ['auto', 'none', 'silver', 'gold'].concat(REGIONS.filter(r => regLv(t)[r.n].lv >= 1).map(r => r.n.toLowerCase())), aura: ['auto', 'none']}}; }
   if (fn === 'skin_choices') return [];
   if (/mission|weekly_champs/.test(fn)) return demoMissions(fn, b);
   if (fn === 'live_log_list') return demoLog(b);
@@ -1082,7 +1102,7 @@ function demoTrades(fn, b){      // ?demo only
 
 /* ===== WARDROBE: choose ball, trail, name colour, avatar frame and aura (the live reads skin_choices() every 5 min) ===== */
 const WARD = [['name', 'Name colour', [['auto', 'Best unlocked'], ['white', 'White'], ['blue', 'Blue', 'Lv 5'], ['gold', 'Gold', 'Lv 20'], ['rainbow', 'Rainbow', 'Lv 50']]],
-  ['frame', 'Avatar frame', [['auto', 'Best unlocked'], ['none', 'None'], ['silver', 'Silver', 'Lv 10'], ['gold', 'Gold', 'Lv 25']]],
+  ['frame', 'Avatar frame', [['auto', 'Best unlocked'], ['none', 'None'], ['silver', 'Silver', 'Lv 10'], ['gold', 'Gold', 'Lv 25']].concat(M.reg.map(([n]) => [n.toLowerCase(), n[0] + n.slice(1).toLowerCase(), 'Catch 25% of ' + n[0] + n.slice(1).toLowerCase()]))],
   ['aura', 'Aura', [['auto', 'Best unlocked'], ['none', 'None'], ['gold', 'Golden aura', 'Lv 75'], ['ghost', 'Ghost aura', 'Halloween']]],
   ['trail', 'Ball trail (live)', [['auto', 'Best unlocked'], ['none', 'None'], ['stars', 'Stars', 'Lv 15'], ['fire', 'Fire', 'Lv 30'], ['bats', 'Bats', 'Halloween'], ['week', 'Weekly trail', 'Complete 7 weekly missions']]],
   ['ball', 'Poké Ball (live)', [['auto', 'Best unlocked'], ['normal', 'Normal'], ['pumpkin', 'Pumpkin Ball', 'Halloween']]]];
@@ -1099,7 +1119,7 @@ async function openWardrobe(){
     if (save) SKINCH[me.u.toLowerCase()] = save; else delete SKINCH[me.u.toLowerCase()];
     sh.innerHTML = `<div class="grab"></div><h3>👕 Wardrobe</h3><p class="sub">Choose how you look on the site and in the live. "Best unlocked" puts on new stuff by itself.</p>${pv}
       ${WARD.map(([k, lab, opts]) => `<div class="lgday">${lab}</div><div class="wopts">${opts.map(([v, n, req]) => { const ok = (un[k] || []).includes(v);
-        return `<button class="wopt ${st[k] === v ? 'on' : ''}" data-k="${k}" data-v="${v}" ${ok ? '' : 'disabled'}>${esc(n)}${ok || !req ? '' : `<small>🔒 ${esc(req)}</small>`}</button>`; }).join('')}</div>`).join('')}
+        return `<button class="wopt ${st[k] === v ? 'on' : ''}" data-k="${k}" data-v="${v}" ${ok ? '' : 'disabled'} ${k === 'frame' && RCOL[v.toUpperCase()] ? `style="box-shadow:inset 0 0 0 2px ${RCOL[v.toUpperCase()]}"` : ''}>${esc(n)}${ok || !req ? '' : `<small>🔒 ${esc(req)}</small>`}</button>`; }).join('')}</div>`).join('')}
       <div class="savebar"><button class="btn ghost" id="wc">Close</button><button class="btn" id="ws">Save</button></div>`;
     sh.querySelectorAll('.wopt:not([disabled])').forEach(b => b.onclick = () => { st[b.dataset.k] = b.dataset.v; draw(); });
     sh.querySelector('#wc').onclick = bg.close;
