@@ -1427,6 +1427,32 @@ async function homeEvents(){
   if (hs && S) hs.textContent = `Season ${sNum(S.id)} · ${S.name} · ${fmtLeft(S.ends)} left`;
 }
 
+/* ===== TRADES page (from the lobby): offers, special trades, start a new trade ===== */
+function specOffersHtml(){
+  if (!SPTR || !ME) return ''; const L = SPTR.filter(x => x.status === 'open'); if (!L.length) return '';
+  return `<h2>Special trades</h2><div class="card trades">${L.map(x => { const mine = x.a === ME.u, give = mine ? [x.a_id, x.a_sh] : [x.b_id, x.b_sh], get = mine ? [x.b_id, x.b_sh] : [x.a_id, x.a_sh], other = mine ? x.b : x.a;
+    return `<div class="trow st-open"><div class="trx">${trMon(...give)}<span class="arr">⇄</span>${trMon(...get)}</div><div class="trinfo"><b>${mine ? 'You → ' : ''}<a href="${link(other)}">@${esc(other)}</a></b><small>You give ${esc(name(give[0]))}${give[1] ? ' ✦' : ''} · you get ${esc(name(get[0]))}${get[1] ? ' ✦' : ''}</small><small class="sts">Special trade (tagged Pokémon)</small></div>
+    <div class="trb">${mine ? `<button class="mini ghost" data-spx="${x.id}">Cancel</button>` : `<button class="mini" data-spa="${x.id}">Accept</button><button class="mini ghost" data-spd="${x.id}">Decline</button>`}</div></div>`; }).join('')}</div>`;
+}
+function viewTrades(){
+  nav('');
+  const back = `<a class="back" href="#/">${ICON.left}Lobby</a>`;
+  if (!AUTH || !ME) return `<div class="rankg">${back}<h2>Trades</h2><div class="card"><p class="empty" style="text-align:left">${GUEST ? 'Link your TikTok name to trade: open your box and tap <b>This is me</b>.' : 'Sign in and link your TikTok name to trade with other trainers.'}</p>${GUEST ? '' : '<button class="btn" onclick="openAccount()">Sign in</button>'}</div></div>`;
+  return `<div class="rankg">${back}<h2>New trade</h2><div class="card"><p class="hint" style="text-align:left;margin:0 0 8px">Search a trainer and pick what to trade.</p>
+      <div class="search sm">${ICON.home}<input id="tq" type="search" placeholder="Trainer name" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="sugg" id="tsugg" hidden></div></div></div>
+    <div id="trbox">${tradesHtml()}${specOffersHtml()}</div></div>`;
+}
+function bindTradesView(){
+  const q = document.getElementById('tq'), sg = document.getElementById('tsugg');
+  if (q){ const run = () => { const v = q.value.trim().toLowerCase().replace(/^@/, ''); if (!v){ sg.hidden = true; return; }
+      const hit = T.filter(t => t.u.toLowerCase().includes(v) && !isMe(t.u)).sort((a, b) => (b.u.toLowerCase().startsWith(v) - a.u.toLowerCase().startsWith(v)) || b.n - a.n).slice(0, 6);
+      sg.innerHTML = hit.length ? hit.map(t => `<button data-u="${esc(t.u)}">${avatar(t)}<span>${esc(t.u)}</span><small>Trade</small></button>`).join('') : `<div class="none">No trainer found</div>`; sg.hidden = false; };
+    q.addEventListener('input', run); q.addEventListener('blur', () => setTimeout(() => sg.hidden = true, 250));
+    sg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const t = BY[b.dataset.u.toLowerCase()]; if (t){ sg.hidden = true; q.value = ''; openPropose(t); } }); }
+  bindTrades(); bindSpecOffers();
+  Promise.all([loadTrades(), loadSpecTrades()]).then(() => { const el = document.getElementById('trbox'); if (el && location.hash.startsWith('#/trades')){ el.innerHTML = tradesHtml() + specOffersHtml(); bindTrades(); bindSpecOffers(); } });
+}
+
 /* ===== SPECIAL BOX: Pokémon with a tag (season pass, mythicals, unique Arceus). Never recycled or evolved; traded only one for one ===== */
 const SPK = {S0: 'SEASON 0', S1: 'SEASON 1', MYTH: 'MYTHICAL', DEX: 'POKÉDEX'};
 const spLabel = x => SPK[x.k] || (/^S\d+$/.test(x.k || '') ? 'SEASON ' + sNum(x.k) : String(x.k || 'EVENT').toUpperCase());
@@ -1445,6 +1471,10 @@ function specHtml(t){
 function bindSpec(u){
   const t = BY[(u || '').toLowerCase()]; if (!t) return; const app = document.getElementById('app');
   app.querySelectorAll('[data-spu]').forEach(b => b.onclick = () => specSheet(t, b.dataset.spu));
+  bindSpecOffers();
+}
+function bindSpecOffers(){
+  const app = document.getElementById('app');
   const act = async (fn, body, msg) => { try { const r = await rpc(fn, Object.assign({p_token: AUTH.token}, body)); if (r === 'done' && !DEMO){ try { build(await load()); } catch(e){} }
     toast(r === 'done' ? 'Special trade done! Check your special box.' : r === 'failed' ? 'Not possible anymore' : msg); } catch(e){ toast(e.message); } await loadSpecTrades(); route(); };
   app.querySelectorAll('[data-spa]').forEach(b => b.onclick = () => { b.disabled = true; act('spec_trade_respond', {p_id: +b.dataset.spa, p_accept: true}, ''); });
@@ -1538,7 +1568,7 @@ function viewLobby(){
       <span class="lcur">${cur}</span></a>
     <div class="lst">${skyHtml()}
       <div class="lsd l">${lsi('mis', 'Missions', '#/missions', 'lbm')}${lsi('ev', 'Events', '#/events', 'lbe')}${lsi('my', 'Mythicals', link(me.u), 'lby')}</div>
-      <div class="lsd r">${lsi('tr', 'Trades', link(me.u), 'lbt')}${lsi('wa', 'Wardrobe', '', 'lbw', 'ward')}${lsi('bag', 'Shop', '', 'lbs', 'shop')}</div>
+      <div class="lsd r">${lsi('tr', 'Trades', '#/trades', 'lbt')}${lsi('wa', 'Wardrobe', '', 'lbw', 'ward')}${lsi('bag', 'Shop', '', 'lbs', 'shop')}</div>
       <div class="lpt" data-pid="${partner}">${img(partner, shN(me, partner) > 0)}<span>${esc(name(partner))}</span></div>
       <div class="ltm">${team.map(id => `<a data-pid="${id}">${img(id, shN(me, id) > 0)}</a>`).join('')}</div></div>${cta}</div>`;
 }
@@ -2236,7 +2266,7 @@ function route(){
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), [a, b] = [h.split('/')[0], h.split('/').slice(1).join('/')];
   document.querySelectorAll('.sheet-bg').forEach(x => x.remove());
   document.body.classList.toggle('lob', NX && !a); document.documentElement.classList.toggle('lobh', NX && !a);
-  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : a === 'help' ? viewHelp() : a === 'missions' ? viewMissions() : a === 'season' ? viewSeason() : a === 'events' ? viewEvents() : viewHome())
+  app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : a === 'help' ? viewHelp() : a === 'missions' ? viewMissions() : a === 'season' ? viewSeason() : a === 'trades' ? viewTrades() : a === 'events' ? viewEvents() : viewHome())
     + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br>${CONFIG.KOFI ? `<a class="kofi" href="${CONFIG.KOFI}" target="_blank" rel="noopener">☕ Support the project</a><br>` : ''}<a href="#/help">Commands</a> · <a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
   if (a === 'hof'){ recentHtml(); mythBoardHtml(); }
@@ -2245,6 +2275,7 @@ function route(){
   if (a === 'help') bindHelp();
   if (a === 'missions') loadMissions();
   if (a === 'season') loadSeason();
+  if (a === 'trades') bindTradesView();
   if (a === 'events') loadEvents();
   if (a === 't') bindSpec(b);
   if (!a) NX ? lobbyLoad() : homeEvents();
