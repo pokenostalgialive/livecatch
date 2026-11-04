@@ -67,6 +67,8 @@ const store = {
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ window.__saveFail = k; } }
 };
 const CFG = Object.assign({ws: 'ws://localhost:21213/', music: 0.3, sfx: 0.6, voice: true, cooldown: 4, encSec: 25, bigSec: 32, gap: 6}, store.get('plc_cfg', {}));
+// regole TikTok (04/11, LIVE limitata per 'richiesta regali non autentica'): a ogni avvio niente pannello UPGRADES a rotazione, niente card FAN CLUB / AUTO / NEWS automatiche. Si riaccendono solo coi tasti U / T, fino al prossimo avvio.
+CFG.upg = false; CFG.safe = true; CFG.news = false;
 // pausa tra un Pokemon e l'altro: il riepilogo di chi l'ha preso resta a schermo
 CFG.gap = 6;
 // secondi tra due lanci della stessa persona
@@ -499,6 +501,8 @@ function spawn(){
     // un id che non esiste piu' negli asset (vecchio plc_special): si va a caso
     if (id && !A.mons[id]){ id = null; kind = 'random'; donor = null; }
   }
+  // EVENTI (10f): Community Day / tipo della stagione
+  if (!id && kind === 'random'){ const ev = evSpawn(); if (ev){ id = ev.id; if (ev.sh) shiny = true; } }
   // HALLOWEEN: 40% tipi Spettro / Buio
   if (!id && HW() && HWPOOL.length && Math.random() < 0.4) id = +deal('hw', HWPOOL);
   // comune 84% · raro 15,5% · Mega 0,2% · leggendario 0,3%
@@ -521,7 +525,7 @@ function spawn(){
   // WHO'S THAT POKEMON
   else if (kind === 'random' && !shiny && rar !== 'legend' && Date.now() > mystNext && !LOUNGE){ mystNext = Date.now() + 12 * 60000; enc.mystery = true; enc.dur += 8;
     banner('WHO\'S THAT POKEMON?', 'write its name in chat: the first one wins a GREAT BALL!', '#4ac8ff'); jingle([392, 494, 587, 784], 110, 0.12); speak('Who\'s that Pokemon?'); }
-  if (kind === 'comm'){ enc.comm = true; enc.hard = false; banner('COMMUNITY GIFT!', 'thanks to all of you: SHINY ' + enc.m.name.toUpperCase() + ' - easy to catch for everyone!', '#ffd23f'); }
+  if (kind === 'comm'){ enc.comm = true; enc.hard = false; banner('COMMUNITY BONUS!', 'thanks to all of you: SHINY ' + enc.m.name.toUpperCase() + ' - easy to catch for everyone!', '#ffd23f'); }
   if (kind === 'raid'){ const hp = Math.max(800, Math.min(5000, activeTrainers() * 100)); enc.raid = {hp, max: hp, beaten: false, hitters: new Set(), dmgBy: {}}; enc.dur = 75; enc.hard = false;
     if (sp.dmax){ enc.raid.dmax = true; enc.cine = 3; enc.t = -(enc.intro + enc.cine); }
     if (raidSponsor){ enc.raid.sponsor = raidSponsor.u; banner('RAID PRESENTED BY ' + raidSponsor.u.toUpperCase(), 'thank you! his attacks hit x3 - everybody write c!', '#ff8fc8'); speak('This raid is presented by ' + raidSponsor.u + '! Thank you!'); raidSponsor = null; } }
@@ -726,7 +730,7 @@ const hasMegaTeam = u => { const d = DEX[u]; return !!(d && d.team && d.team.som
 function roulette(kind, donor){
   if (roulQ.length >= 5 || (!donor && (roul || roulQ.length))) return false; roulQ.push({kind, donor: donor || null});
   if (enc && phase === 'enc' && !enc.raid) enc.dur = Math.min(enc.dur, Math.max(0, enc.t) + 8);
-  hostMsg = {s: (kind === 'mega' ? 'MEGA' : kind === 'shinylegend' ? 'SHINY LEGENDARY' : kind === 'shiny' ? 'SHINY' : 'LEGENDARY') + ' ROULETTE after this Pokemon' + (donor ? ' (Master Ball for ' + donor + ')' : ''), t: 0};
+  hostMsg = {s: (kind === 'mega' ? 'MEGA' : kind === 'shinylegend' ? 'SHINY LEGENDARY' : kind === 'shiny' ? 'SHINY' : 'LEGENDARY') + ' ROULETTE after this Pokemon' , t: 0};
   return true;
 }
 function startRoulette(kind, donor){
@@ -740,7 +744,7 @@ function startRoulette(kind, donor){
     Hh[kind] = [list[22]].concat(h).slice(0, keep); store.set('plc_roul_hist', Hh); }
   if (forced) store.set('plc_force_sl', 0);
   list.forEach(id => MON(id));
-  roul = {kind, list, win: list[22], t: 0, idx: -1, donor}; summary = null; if (donor) speak('Thanks to ' + donor + ', here is the roulette!');
+  roul = {kind, list, win: list[22], t: 0, idx: -1, donor}; summary = null; 
   jingle(kind === 'shinylegend' ? [392, 523, 659, 784, 1046, 1319, 1568, 2093] : [392, 523, 659, 784, 1046], 110, 0.16); shake = kind === 'shinylegend' ? 1 : 0.5;
 }
 const R_IN = 1.8, R_SPIN = 7.5, R_END = R_IN + R_SPIN + 3.2;
@@ -784,7 +788,7 @@ function autoMasterCmd(u, rest){ const st = U(u), r = norm(rest), say = s => flo
 const boostOn = () => Date.now() < boostEnd;
 function giftBoost(u, total){ const add = total >= 100 ? 60 : total >= 30 ? 30 : total >= 5 ? 15 : 5, was = boostOn();
   boostEnd = Math.min(Math.max(boostEnd, Date.now()) + add * 1000, Date.now() + 120000); boostBy = u;
-  if (!was){ banner('THANKS TO ' + u.toUpperCase() + '!', 'everyone gets +10% catch - throw now!', '#ff8fc8'); jingle([784, 1046, 1319], 80, 0.1); } }
+}
 
 // ---------- SUPPORTER: del giorno (DAY.sup), di sempre (SUPALL), giorni diversi (cornici), scie ----------
 function supporter(u, coins){
@@ -803,7 +807,7 @@ function topSup(){ const now = performance.now(); if (now - topSupC.t < 1000) re
 const SUPTIERS = [[30, 'GOLD', '#ffd23f'], [10, 'SILVER', '#d8dee8'], [3, 'BRONZE', '#d0803a']];
 const supTier = u => { const d = DEX[u]; const n = d && d.supDays || 0; return SUPTIERS.find(([k]) => n >= k) || null; };
 function supDay(u){ const d = D(u); if (d.supLast === todayKey()) return; d.supLast = todayKey(); d.supDays = (d.supDays || 0) + 1; dexDirty = true;
-  const hit = SUPTIERS.find(([k]) => d.supDays === k); if (hit){ banner(hit[1] + ' SUPPORTER!', u + ' supported the live on ' + hit[0] + ' different days - thank you!', hit[2]); mile(u, hit[1] + ' SUPPORTER frame', hit[2]); jingle([659, 880, 1175, 1568], 90, 0.14); } }
+  const hit = SUPTIERS.find(([k]) => d.supDays === k); if (hit){ if (0) mile(u, hit[1] + ' SUPPORTER frame', hit[2]); jingle([659, 880, 1175, 1568], 90, 0.14); } }
 // per sempre: 1000 monete sakura · 5000 oro · 20000 galassia (scia + colore del nome), mai mostrato in numeri
 const supTrailTier = u => { const c = SUPALL[u] || 0; return c >= 20000 ? 3 : c >= 5000 ? 2 : c >= 1000 ? 1 : 0; };
 const supNameCol = u => { const k = supTrailTier(u); return k === 3 ? 'hsl(' + ((tick * 4) % 360) + ',100%,75%)' : k === 2 ? '#ffd23f' : k === 1 ? '#ffb0dc' : '#ffffff'; };
@@ -812,7 +816,7 @@ const arrived = new Set();
 function partnerOf(u){ const d = DEX[u]; if (!d) return null; let id = d.team && d.team.length ? d.team[0] : null;
   if (!id){ let bv = 0; for (const k in d.c) if (d.c[k] > bv && A.mons[k]){ bv = d.c[k]; id = +k; } } return id && A.mons[id] ? {id, sh: (d.sh || []).includes(id)} : null; }
 function arrival(u){ if (arrived.has(u)) return; arrived.add(u); if (!isSupAll(u)) return; const p = partnerOf(u); if (!p) return;
-  nudges.unshift({u, t: 0, back: p}); jingle([659, 880, 1175], 80, 0.1); speak(u + ' and ' + A.mons[p.id].name + ' are back!'); }
+  nudges.unshift({u, t: 0, back: p}); jingle([659, 880, 1175], 80, 0.1); }
 // grande grazie: nome enorme 3 s con fuochi (niente cifre, niente richieste)
 function bigThanks(u, coins){ const o = bigThx.find(b => b.u === u); if (o){ o.t = Math.min(o.t, 0.5); o.lvl = Math.max(o.lvl, coins); return; } if (bigThx.length < 4) bigThx.push({u, t: 0, lvl: coins}); jingle([784, 988, 1175, 1568, 2093], 90, 0.14); speak('Thank you so much ' + u + '!'); }
 
@@ -824,7 +828,7 @@ function gift(u, per, count, gname, pic, streakTot){
   let it = '';
   // 500 shiny · 700 mega · 1000 leggendaria · 5000 shiny leggendaria (roulette con Master per chi dona)
   if (per >= 500){ const kind = per >= 5000 ? 'shinylegend' : per >= 1000 ? 'legend' : per >= 700 ? 'mega' : 'shiny';
-    for (let i = 0; i < Math.min(count, 3); i++) roulette(kind, u); bigThanks(u, per * count); }
+    for (let i = 0; i < Math.min(count, 3); i++) setTimeout(() => roulette(kind, u), 15000); }
   else if (per >= 100){ U(u).master += count; it = 'MASTER'; }
   else if (per >= 30){ special.push({type: 'rare', by: u}); chooseStart(u, count); }
   else if (per >= 5){ U(u).ultra += count; it = 'ULTRA'; }
@@ -832,9 +836,8 @@ function gift(u, per, count, gname, pic, streakTot){
   // ogni moneta = 1 minuto di AUTO; una combo che supera 30 / 100 alza anche i minuti gia' dati
   const mins = per * count, tot = Math.max(mins, streakTot || 0), prev = tot - mins; autoAdd(u, mins, giftTier(tot)); if (prev > 0 && giftTier(prev) !== giftTier(tot)) autoMove(u, prev, giftTier(prev), giftTier(tot));
   // in Lounge la vetrina della collezione e' il grande grazie
-  if (mins >= 100 && per < 500 && !LOUNGE) bigThanks(u, mins);
-  const old = thanks.find(t => t.u === u && t.it === it);
-  if (old){ old.n += count; old.m += mins; old.t = Math.min(old.t, 0.3); } else { thanks.unshift({u, c: 0, it, n: count, m: mins, t: 0}); thanks = thanks.slice(0, 3); }
+
+  // 04/11 regole TikTok: niente card di ringraziamento a schermo (i premi vanno in borsa in silenzio)
 }
 
 // ---------- SUB (abbonati / Super Fan): tag SUB, 1 Ultra al giorno, grazie quando entrano ----------
@@ -847,7 +850,7 @@ function subThanks(u){ U(u).ultra += 3; bigThanks(u, 1000); banner('NEW SUBSCRIB
 // ---------- FAN CLUB: Heart Me = FAN per sempre, tag FAN + 1 Great al primo commento del giorno ----------
 const isFan = u => !!(DEX[u] && DEX[u].fan);
 function fanJoin(u){ const d = D(u); if (d.fan) return; d.fan = todayKey(); d.fanDay = todayKey(); U(u).great += 1; dexDirty = true;
-  banner('NEW FAN: ' + u.slice(0, 16) + '!', 'welcome to the FAN CLUB  ·  +1 GREAT BALL every day', '#ff5aa8'); jingle([784, 988, 1175, 1568], 90, 0.14); shake = 0.3; mile(u, 'joined the FAN CLUB', '#ff5aa8'); }
+  jingle([784, 988, 1175, 1568], 90, 0.14); shake = 0.3; mile(u, 'joined the FAN CLUB', '#ff5aa8'); }
 function fanDaily(u){ const d = DEX[u]; if (!d || !d.fan || d.fanDay === todayKey()) return; d.fanDay = todayKey(); U(u).great += 1; dexDirty = true; floats.push({x: 540, y: 1460, s: 'FAN BONUS: +1 GREAT BALL', u, life: 2.4, big: true}); }
 let fanCountC = {t: 0, v: 0};
 function fanCount(){ const now = performance.now(); if (now - fanCountC.t < 2000) return fanCountC.v; fanCountC = {t: now, v: Object.keys(DEX).filter(isFan).length}; return fanCountC.v; }
@@ -1095,8 +1098,8 @@ function evolve(u, raw){
   const words = norm(raw).split(' ').filter(Boolean); let base = null, target = null;
   for (let i = words.length; i >= 1 && !base; i--){ const b = findMon(words.slice(0, i).join(' ')); if (b && EVO[b]){ base = +b; if (i < words.length) target = findMon(words.slice(i).join(' ')); } }
   if (!base && words.length){ const b = findMon(words.join(' ')); card({evo: true, msg: b ? nm(b) + ' does not evolve' : 'not found: ' + raw.slice(0, 14)}); return; }
-  if (!base){ const can = Object.keys(d.c).filter(k => EVO[k] && d.c[k] >= 3).map(Number); if (!can.length){ card({evo: true, msg: 'you need 3 of the same Pokemon'}); return; } base = can.sort((a, b) => d.c[b] - d.c[a])[0]; }
-  if ((d.c[base] || 0) < 3){ card({evo: true, msg: 'you need 3 ' + nm(base) + ' (you have ' + (d.c[base] || 0) + ')'}); return; }
+  if (!base){ const can = Object.keys(d.c).filter(k => EVO[k] && freeC(d, k) >= 3).map(Number); if (!can.length){ card({evo: true, msg: 'you need 3 of the same Pokemon'}); return; } base = can.sort((a, b) => d.c[b] - d.c[a])[0]; }
+  if (freeC(d, base) < 3){ card({evo: true, msg: 'you need 3 ' + nm(base) + ' (you have ' + freeC(d, base) + ')'}); return; }
   const opts = EVO[base]; const to = target && opts.includes(+target) ? +target : pick(opts);
   dexTake(d, base, 2); const isNew = !d.c[to]; d.c[to] = (d.c[to] || 0) + 1; dexDirty = true;
   if (isNew && rarityOf(to) !== 'common') mile(u, 'evolved ' + nm(base) + ' into ' + nm(to), '#7dff9a', to);
@@ -1134,9 +1137,9 @@ function wonder(u, q){
   const wcd = autoOn(u) || (users[u] && users[u].auto > Date.now()) ? 60000 : 300000;
   if (wtLast[u] && now - wtLast[u] < wcd){ const left = wcd - (now - wtLast[u]); card({msg: 'next trade in ' + (left < 60000 ? Math.ceil(left / 1000) + ' s' : Math.ceil(left / 60000) + ' min')}); return; }
   // un WT normale non sceglie mai un leggendario
-  const dups = Object.entries(d.c).filter(([k, n]) => n >= 2).sort((a, b) => (LEG.has(+a[0]) - LEG.has(+b[0])) || b[1] - a[1]);
+  const dups = Object.entries(d.c).filter(([k, n]) => freeC(d, k) >= 2).sort((a, b) => (LEG.has(+a[0]) - LEG.has(+b[0])) || b[1] - a[1]);
   if (!dups.length){ card({msg: 'no duplicates yet!'}); return; }
-  let give = dups[0][0]; if (q){ const f = findMon(q); if (f && d.c[f] >= 2) give = f; }
+  let give = dups[0][0]; if (q){ const f = findMon(q); if (f && freeC(d, f) >= 2) give = f; }
   give = +give; wtLast[u] = now; dexTake(d, give, 1);
   // leggendario per leggendario: gli scambi normali non danno mai un leggendario
   const legGive = LEG.has(give);
@@ -1201,7 +1204,7 @@ const SHOPL = [['great', 'GREAT BALL', 5], ['ultra', 'ULTRA BALL', 15], ['quick'
 const canRecycle = id => !LEG.has(+id) && !isMega(+id) && !FORMBASE[id];
 // lim = massimo copie da riciclare; le copie ALPHA non si toccano mai
 function recycle(d, id, shiny, lim){ if (shiny || !canRecycle(id)) return [0, 0]; const sc = shinyN(d, id), tot = d.c[id] || 0, nor = tot - sc, al = (d.ac && d.ac[id]) || 0; let n = 0, got = 0; lim = lim === undefined ? Infinity : Math.max(0, lim);
-  n = Math.min(lim, Math.max(0, nor - Math.max(1, al))); if (n){ d.c[id] = tot - n; got = n * candyVal(id, false); }
+  n = Math.min(lim, Math.max(0, nor - Math.max(1, al + specN(d, id, false)))); if (n){ d.c[id] = tot - n; got = n * candyVal(id, false); }
   return [n, got]; }
 function candyCmd(u, rest){ const d = DEX[u], sayC = s => floats.push({x: 540, y: 1460, s, u, life: 3, big: true}); if (!d){ sayC('catch something first!'); return; }
   const r = norm(rest), shiny = / shiny$/.test(r), q = r.replace(/ shiny$/, '').trim();
@@ -1584,7 +1587,7 @@ function arceusSet(u, t, quiet){
   const from = arcOf(d); if (!from){ if (!quiet) say(u, 'only the ARCEUS of the completed Pokedex can change type'); return false; }
   const to = ARC0 + i; if (from === to){ if (!quiet) say(u, 'your Arceus is already ' + ARC_T[i].toUpperCase()); return false; }
   const sh = shinyN(d, from) > 0; dexTake(d, from, 1); dexAddCopy(d, to, sh); if (sh) d.s = Math.max(0, (d.s || 0) - 1);
-  if (d.team) d.team = d.team.map(x => +x === from ? to : x); dexDirty = true; MON(to);
+  if (d.team) d.team = d.team.map(x => +x === from ? to : x); { const sp = (d.spec || []).find(x => +x.id === from); if (sp) sp.id = to; } dexDirty = true; MON(to);
   if (!WEB){ megaShow.push({u, base: from, mid: to, sh, form: true, t: 0}); jingle([392, 523, 659, 784, 1046, 1319], 90, 0.16); }
   mile(u, "'s Arceus is now " + ARC_T[i].toUpperCase() + ' type', '#ffd23f', to); return true;
 }
@@ -1603,6 +1606,44 @@ function shinyTitle(d){ const X = d.srx || {}; let m = null, h = null; for (cons
   return m ? m + ' SHINY MASTER' : h ? h + ' SHINY HUNTER' : null; }
 // una volta sola: Pokedex shiny gia' fatto -> premi in silenzio (la MASTER del 100% si da' lo stesso)
 if (!store.get('plc_srx_v1', false)){ for (const u in DEX){ const d = DEX[u]; if (!d || !d.c) continue; const X = d.srx || (d.srx = {}); for (const r of REGIONS){ const t = shinyTier(d, r); if (t > (X[r.n] || 0)){ if (t === 3) U(u).master++; X[r.n] = t; } } } store.set('plc_srx_v1', true); dexDirty = true; }
+
+// ===================================================================
+// 10f STAGIONI + EVENTI (04/11) - SUPABASE_SEASON.sql
+// - Pokemon con TARGHETTA (d.spec: stagione, misteriosi, Arceus...): {uid, id, sh, k, ev, why, d, ot}. Restano per sempre: mai candy, evoluzione, Wonder Trade.
+// - Eventi letti da events_now() ogni 5 min: COMMUNITY DAY (meta' dei Pokemon = quello del giorno, shiny 1 su 50), TIPO della stagione (es. Ghiaccio).
+// - Striscia in alto: evento in corso / stagione.
+// ===================================================================
+const specN = (d, id, sh) => (d && d.spec || []).filter(x => +x.id === +id && (sh === undefined || !!x.sh === sh)).length;
+// copie "libere" (non targhettate): quelle che si possono usare per evoluzioni / scambi
+const freeC = (d, id) => Math.max(0, ((d && d.c[id]) || 0) - specN(d, id));
+function specAdd(u, sp){ const d = D(u); const L = d.spec || (d.spec = []); if (sp.uid && L.some(x => x.uid === sp.uid)) return; L.push(sp); dexDirty = true; }
+// una volta sola: i misteriosi / Arceus unici che la gente ha gia' finiscono nel box speciale con la targhetta
+if (!store.get('plc_spec_v1', false)){ for (const u in DEX){ const d = DEX[u]; if (!d || !d.c) continue;
+  for (const id of MYTHSET){ const n = Math.min(5, (d.c[id] || 0) - specN(d, id)); for (let i = 0; i < n; i++){ (d.spec || (d.spec = [])).push({uid: 'old' + id + '_' + i, id, sh: i < shinyN(d, id) ? 1 : 0, k: isArc(id) ? 'DEX' : 'MYTH', ev: isArc(id) ? 'Pokedex complete' : 'Live Catch event', why: 'caught before the event box', d: '', ot: u}); } } }
+  store.set('plc_spec_v1', true); dexDirty = true; }
+
+let EV = {season: null, events: []}, evAt = 0;
+async function homeEventsLoad(){ if (!HOME_CFG.url || WEB) return;
+  try { const r = await fetch(HOME_CFG.url + '/rest/v1/rpc/events_now', {method: 'POST', headers: {'Content-Type': 'application/json', apikey: HOME_CFG.key, Authorization: 'Bearer ' + HOME_CFG.key}, body: '{}'});
+    if (r.ok){ const j = await r.json(); if (j){ EV = {season: j.season, events: (j.events || []).map(e => Object.assign({}, e, {s: Date.parse(e.starts), e: Date.parse(e.ends)}))}; evAt = Date.now(); } } } catch(e){} }
+setTimeout(homeEventsLoad, 8000); setInterval(homeEventsLoad, 5 * 60000);
+const evOn = kind => EV.events.find(e => e.kind === kind && Date.now() >= e.s && Date.now() < e.e) || null;
+// chiamata da spawn() per i Pokemon a caso
+function evSpawn(){
+  const cd = evOn('cd'); if (cd && cd.params && A.mons[cd.params.mon] && Math.random() < 0.5) return {id: +cd.params.mon, sh: Math.random() < 1 / (cd.params.shiny || 50)};
+  const ty = evOn('type'); if (ty && ty.params && Math.random() < (ty.params.share || 25) / 100){ const L = evTypePool(ty.params.type); if (L.length) return {id: pick(L), sh: false}; }
+  return null; }
+const evTP = {};
+function evTypePool(t){ return evTP[t] || (evTP[t] = COMMON.concat(RARE).filter(id => (PTYPE[id] || '').split('/').includes(t))); }
+// striscia in alto: Community Day / tipo / stagione (a turno ogni 8 s)
+function drawEventStrip(){
+  if (LOUNGE || WEB) return; const L = []; const cd = evOn('cd'), ty = evOn('type'), now = Date.now();
+  const left = ms => { const m = Math.max(0, Math.round(ms / 60000)); return m >= 1440 ? Math.floor(m / 1440) + 'd left' : m >= 60 ? Math.floor(m / 60) + 'h ' + (m % 60) + 'm left' : m + ' min left'; };
+  if (cd) L.push(['COMMUNITY DAY · ' + (A.mons[cd.params.mon] ? A.mons[cd.params.mon].name.toUpperCase() : '') + ' · SHINY 1/' + (cd.params.shiny || 50) + ' · ' + left(cd.e - now), '#ffd23f', '#1a1400']);
+  if (ty) L.push([String(ty.name || '').toUpperCase() + ' · ' + left(ty.e - now), '#9fe7ff', '#062030']);
+  if (EV.season){ const se = EV.season; L.push(['SEASON ' + String(se.id).slice(1) + ' · ' + String(se.name).toUpperCase() + ' · ' + left(Date.parse(se.ends) - now) + ' · season pass on Live Catch Dex', '#c08cff', '#14062a']); }
+  if (!L.length) return; const [s, bg, fg] = L[Math.floor(now / 8000) % L.length], fs = fitSize(s, 24, W - 120), w = Math.min(W - 60, measure(s, fs) + 50), x = (W - w) / 2, y = 112;
+  g.fillStyle = bg; g.fillRect(x, y, w, 40); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x, y + 36, w, 4); text(s, W / 2, y + 21, fs, fg, 'center', 0); }
 
 // ===================================================================
 // 11 LIVE CATCH HOME (Supabase): snapshot pubblico, scambi, azioni, premi, merge, verifica account
@@ -1627,6 +1668,7 @@ function homeMerge(oldU, newU){
   b.n = (b.n || 0) + (a.n || 0); b.s = (b.s || 0) + (a.s || 0);
   b.st = Math.max(b.st || 0, a.st || 0); if ((a.last || '') > (b.last || '')) b.last = a.last;
   b.badges = [...new Set((b.badges || []).concat(a.badges || []))];
+  if (a.spec){ b.spec = (b.spec || []).concat(a.spec.filter(x => !(b.spec || []).some(y => y.uid === x.uid))); }
   if (a.srx){ b.srx = b.srx || {}; for (const k in a.srx) b.srx[k] = Math.max(b.srx[k] || 0, a.srx[k]); }
   if (a.rx){ b.rx = b.rx || {}; for (const k in a.rx) b.rx[k] = Math.max(b.rx[k] || 0, a.rx[k]); }
   if (!(b.team || []).length) b.team = a.team || [];
@@ -1679,7 +1721,7 @@ function homeBag(u, d){ const b = {}, st = users[u] || {};
 function homeSnapshot(){
   const dex = store.get('plc_dex_v1', {}), out = {};
   for (const [u, d] of Object.entries(dex)){
-    out[u] = {n: d.n || 0, s: d.s || 0, c: d.c || {}, sh: d.sh || [], sc: d.sc || {}, team: d.team || [], st: d.st || 0, last: d.last || '', lv: lvOfXP(trainerXP(d)), og: d.og ? 1 : 0, title: d.title || null, badges: d.badges || [], skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, wish: d.wish || [], soup: d.soup || 0, bag: homeBag(u, d), candy: d.candy || 0, ac: d.ac || {}, rx: d.rx || {}, srx: d.srx || {}};
+    out[u] = {n: d.n || 0, s: d.s || 0, c: d.c || {}, sh: d.sh || [], sc: d.sc || {}, team: d.team || [], st: d.st || 0, last: d.last || '', lv: lvOfXP(trainerXP(d)), og: d.og ? 1 : 0, title: d.title || null, badges: d.badges || [], skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, wish: d.wish || [], soup: d.soup || 0, bag: homeBag(u, d), candy: d.candy || 0, ac: d.ac || {}, rx: d.rx || {}, srx: d.srx || {}, spec: d.spec || []};
   }
   const wk = store.get('plc_week', {}), wp = store.get('plc_week_prev', {}), day = store.get('plc_day', {});
   return {v: 1, t: Date.now(), dex: out, hof: store.get('plc_hof', {}),
@@ -1782,7 +1824,7 @@ async function homeActions(){
       const d = DEX[x.u], P = x.payload || {};
       if (d && x.kind === 'team'){ d.team = (P.team || []).map(Number).filter(id => d.c[id] > 0).slice(0, 6); ok = true; }
       else if (d && x.kind === 'evo'){ const b = +P.base, to = +P.to;
-        if ((d.c[b] || 0) >= 3 && EVO[b] && EVO[b].map(Number).includes(to)){
+        if (freeC(d, b) >= 3 && EVO[b] && EVO[b].map(Number).includes(to)){
           dexTake(d, b, 2); const isNew = !d.c[to]; d.c[to] = (d.c[to] || 0) + 1;
           if (isNew) afterNew(x.u);
           wtCard(x.u, {evo: true, from: b, to, isNew});
@@ -1791,7 +1833,7 @@ async function homeActions(){
       else if (d && x.kind === 'candy'){ const id = +P.id; if (d.c[id] > 0){ const [n, got] = recycle(d, id, !!P.sh, +P.n || 0); if (n){ d.candy = (d.candy || 0) + got; mile(x.u, 'recycled ' + n + ' ' + A.mons[id].name + ' on the site: +' + got + ' CANDY', '#ffd23f'); ok = true; } } }
       // PLAY sul sito (SUPABASE_PLAY): una cattura fatta sul sito conta come una cattura vera
       else if (x.kind === 'catch' && A.mons[+P.id]){ const id = +P.id, sh = !!P.sh, dd = D(x.u), isNew = !(dd.c[id] > 0);
-        dexAddCopy(dd, id, sh); dd.n = (dd.n || 0) + 1; MON(id);
+        dexAddCopy(dd, id, sh); if (!P.nocount) dd.n = (dd.n || 0) + 1; if (P.spec && P.spec.uid) specAdd(x.u, Object.assign({}, P.spec, {id, sh: sh ? 1 : 0})); MON(id);
         if (P.last && P.st && (!dd.last || dateOfKey(P.last) > dateOfKey(dd.last))){ dd.last = P.last; dd.st = +P.st; } if (isNew) afterNew(x.u); if (sh) mile(x.u, 'caught a SHINY ' + A.mons[id].name + ' on the site', '#ffd23f', id); if (sh) checkShinyDex(x.u); if (MYTHSET.has(id)){ mythCaught(x.u, id, sh); mile(x.u, 'caught the mythical ' + A.mons[id].name + '!', '#d08cff', id); } ok = true; }
       else if (d && x.kind === 'arceus'){ if (arceusSet(x.u, P.type, true)) ok = true; else note = 'not possible'; }
       else if (d && x.kind === 'buy'){ const it = SHOPL.find(s => s[0] === P.item && s[0] !== 'lure'), qty = Math.max(1, Math.min(99, +P.qty || 1));
@@ -2424,12 +2466,12 @@ function drawRoulette(){
   if (SL || MG){ const hue = (tick * 4) % 360; text(title, 0, 0, fitSize(title, 44, W - 80), 'hsl(' + hue + ',100%,70%)', 'center', 6); } else text(title, 0, 0, fitSize(title, 52, W - 80), col, 'center', 6);
   g.restore();
   if (T < 0.25){ g.fillStyle = 'rgba(255,255,255,' + (1 - T / 0.25) * 0.8 + ')'; g.fillRect(0, 330, W, 900); }
-  const sub = r.donor ? 'THANKS TO ' + r.donor.slice(0, 16).toUpperCase() + '!' : 'BONUS FOR EVERYONE!';
-  if (r.donor){ const intro = T < R_IN, ax = intro ? W/2 : 96, ay = intro ? cy + 150 : 600, rr = intro ? 52 : 40;
-    g.fillStyle = col; g.beginPath(); g.arc(ax, ay, rr + 6, 0, 7); g.fill(); if (!avatar(r.donor, ax, ay, rr)){ g.fillStyle = '#20264a'; g.beginPath(); g.arc(ax, ay, rr, 0, 7); g.fill(); text(r.donor.slice(0, 1).toUpperCase(), ax, ay + 3, rr * 0.85, '#ffffff', 'center', 3); }
+  const sub = r.hideDonor ? 'THANKS TO ' + r.hideDonor.slice(0, 16).toUpperCase() + '!' : 'BONUS FOR EVERYONE!';
+  if (r.hideDonor){ const intro = T < R_IN, ax = intro ? W/2 : 96, ay = intro ? cy + 150 : 600, rr = intro ? 52 : 40;
+    g.fillStyle = col; g.beginPath(); g.arc(ax, ay, rr + 6, 0, 7); g.fill(); if (!avatar(r.hideDonor, ax, ay, rr)){ g.fillStyle = '#20264a'; g.beginPath(); g.arc(ax, ay, rr, 0, 7); g.fill(); text(r.hideDonor.slice(0, 1).toUpperCase(), ax, ay + 3, rr * 0.85, '#ffffff', 'center', 3); }
     g.save(); g.translate(ax, ay - rr - 14); g.scale(intro ? 2 : 1.5, intro ? 2 : 1.5); crownMini(0, 0, col); g.restore(); }
-  if (T < R_IN){ text(sub, W/2, cy + 60, fitSize(sub, 34, W - 80), r.donor ? col : '#ffffff', 'center', 5); g.globalAlpha = 1; return; }
-  text(sub, W/2, 520, fitSize(sub, r.donor ? 30 : 26, W - 80), r.donor ? col : '#ffffff', 'center', 4);
+  if (T < R_IN){ text(sub, W/2, cy + 60, fitSize(sub, 34, W - 80), r.hideDonor ? col : '#ffffff', 'center', 5); g.globalAlpha = 1; return; }
+  text(sub, W/2, 520, fitSize(sub, r.hideDonor ? 30 : 26, W - 80), r.hideDonor ? col : '#ffffff', 'center', 4);
   // il rullo: parte piano, si ferma piano
   const k = Math.min(1, (T - R_IN) / R_SPIN), pos = (r.list.length - 4) * (1 - Math.pow(1 - k, 4)), ci = Math.round(pos);
   if (ci !== r.idx && !r.done){ r.idx = ci; beep(k > 0.8 ? 700 : 900, 0.05, 'triangle', 0.05); }
@@ -2446,7 +2488,7 @@ function drawRoulette(){
   if (r.done){ const pz = 1 + 0.07 * Math.sin(tick * 0.3), t1 = (sh ? 'SHINY ' : '') + A.mons[r.win].name.toUpperCase() + '!';
     rays(W/2, cy, 20, 500, tick * 0.02, '#ffffff', 0.12);
     g.save(); g.translate(W/2, cy + 200); g.scale(pz, pz); text(t1, 0, 0, fitSize(t1, 50, W - 80), col, 'center', 6); g.restore();
-    text(r.donor ? 'MASTER BALL 100% for ' + r.donor.slice(0, 14) + '  ·  everyone can try!' : 'coming now  ·  write C to catch it!', W/2, cy + 270, fitSize('MASTER BALL 100% for ' + (r.donor || '').slice(0, 14) + '  ·  everyone can try!', 26, W - 60), r.donor ? '#e0b0ff' : '#ffffff', 'center', 4);
+    text(r.hideDonor ? 'MASTER BALL 100% for ' + r.hideDonor.slice(0, 14) + '  ·  everyone can try!' : 'coming now  ·  write C to catch it!', W/2, cy + 270, fitSize('MASTER BALL 100% for ' + (r.hideDonor || '').slice(0, 14) + '  ·  everyone can try!', 26, W - 60), r.hideDonor ? '#e0b0ff' : '#ffffff', 'center', 4);
     if (tick % 3 === 0){ const fx = 120 + Math.random() * 840, fy = 400 + Math.random() * 700; for (let i = 0; i < 20; i++){ const an = i / 20 * 6.283, s2 = 150 + Math.random() * 160; parts.push({x: fx, y: fy, vx: Math.cos(an) * s2, vy: Math.sin(an) * s2 - 50, life: .9, c: Math.random() < .5 ? col : '#ffffff'}); } } }
   else text('spinning...', W/2, cy + 200, 26, '#c8c8d0', 'center', 3);
   g.globalAlpha = 1;
@@ -3091,7 +3133,7 @@ function draw(){
   drawRaidBar();
   if (!DMX){ drawAuto(); drawBags(); drawWT(); drawQuests(); drawSkinCards(); }
   drawOverlays();
-  drawBoost(); drawHelp(); drawGold(); drawBanners(); drawReveal(); drawRoulette(); drawLegTrade(); drawSpot(); drawMega(); drawMegaShow(); drawLevelUp(); drawMyth();
+  drawBoost(); drawHelp(); drawGold(); drawBanners(); drawReveal(); drawRoulette(); drawLegTrade(); drawSpot(); drawMega(); drawMegaShow(); drawLevelUp(); drawMyth(); drawEventStrip();
   drawTransition();
   drawCine();
   drawSlShow();
@@ -3420,12 +3462,13 @@ if (WEB){
     .zdex canvas{position:static;width:auto;height:auto;max-width:86%;max-height:86%;image-rendering:pixelated}.zdex div.no canvas{filter:brightness(0) invert(1) opacity(.16)}
     .zgo{display:block;width:100%;border:0;border-radius:16px;padding:16px;font:900 16px system-ui;letter-spacing:1px;color:#1a1400;background:linear-gradient(180deg,#ffe066,#ffb800);box-shadow:0 5px 0 #a77800;cursor:pointer}
     .zgo:active{transform:translateY(3px);box-shadow:0 2px 0 #a77800}.zgo.off{background:#3a3f5c;color:#c8cbe0;box-shadow:0 5px 0 #23263a;cursor:default}
+    #wev div{border-radius:12px;padding:8px 12px;margin-bottom:8px;font:900 13px system-ui;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.4)}
     .wr small.z{color:#7d84a6;font-weight:700;margin-left:4px}`;
   document.head.appendChild(css);
   const hl = document.getElementById('help'); if (hl) hl.remove();
   const scn = document.createElement('div'); scn.id = 'scn'; document.body.insertBefore(scn, cv); scn.appendChild(cv);
   const ui = document.createElement('div'); ui.id = 'ui'; document.body.appendChild(ui);
-  ui.innerHTML = `<div id="zbar"><div id="zic">🌿</div><div><b id="zn">MEADOW</b><small id="zr">KANTO</small></div><span id="zp"></span><button id="zmapb">MAP</button></div><div class="wtop"><span id="wonl">-</span><span id="wtime"></span></div>
+  ui.innerHTML = `<div id="wev"></div><div id="zbar"><div id="zic">🌿</div><div><b id="zn">MEADOW</b><small id="zr">KANTO</small></div><span id="zp"></span><button id="zmapb">MAP</button></div><div class="wtop"><span id="wonl">-</span><span id="wtime"></span></div>
     <div id="wact"></div><div id="wmsg"></div>
     <a id="live" href="https://www.tiktok.com/@.pokemon.nostalgia/live" target="_blank" rel="noopener">● LIVE NOW · join the live on TikTok</a>
     <div class="wc"><h3>HAPPENING NOW</h3><div id="wfeed"><div class="wr">Nobody has thrown yet. Be the first!</div></div></div>
@@ -3583,8 +3626,15 @@ if (WEB){
   setInterval(() => { if (!S) return; const left = Math.max(0, S.ends - (Date.now() + off)); $('wtime').textContent = left > 0 ? 'next Pokémon in ' + Math.ceil(left / 1000) + 's' : 'next Pokémon…'; if (left <= 0) poll(); }, 250);
   async function board(){ try {  const b = await rpc('play_board', {}); $('wboard').innerHTML = b.length ? b.slice(0, 10).map((x, i) => `<div class="wr"><b style="width:24px">${i + 1}.</b><a href="index.html#/t/${encodeURIComponent(x.u)}" style="color:#fff;text-decoration:none;font-weight:900">${esc(x.u)}</a><span class="r">${x.catches} caught${x.shinies ? ' · ' + x.shinies + '★' : ''}</span></div>`).join('') : '<div class="wr">No catches yet. Be the first!</div>'; } catch(e){} }
   async function live(){ if (DEMO) return; try { const r = await fetch(HOME_CFG.url + '/rest/v1/snapshot?select=live:data->live&id=eq.1', {headers: {apikey: HOME_CFG.key, Authorization: 'Bearer ' + HOME_CFG.key}}); const j = await r.json(); if (S) S.live = !!(j && j[0] && j[0].live); ui_(); } catch(e){} }
+  // eventi (SUPABASE_SEASON): Community Day / tipo / stagione, con l'ora di chi guarda
+  async function wEvents(){ if (DEMO) return; try { const j = await rpc('events_now', {}); if (!j) return; const now = Date.now(), H = [], tf = t => new Date(t).toLocaleString([], {weekday: 'short', hour: '2-digit', minute: '2-digit'});
+    for (const e of j.events || []){ const s = Date.parse(e.starts), en = Date.parse(e.ends), on = now >= s && now < en;
+      if (e.kind === 'cd' && (on || s - now < 36 * 3600e3)) H.push(`<div style="background:${on ? '#ffd23f' : '#2a2c3e'};color:${on ? '#1a1400' : '#ffd23f'}">${on ? '🎉 NOW: ' : '📅 '}${esc(e.name)}${on ? ' · shiny 1/' + (e.params.shiny || 50) + ' · until ' + tf(en) : ' · ' + tf(s) + ' - ' + tf(en) + ' (your time)'}</div>`);
+      else if (e.kind === 'type' && on) H.push(`<div style="background:#9fe7ff;color:#062030">${esc(e.name)}</div>`); }
+    if (j.season) H.push(`<div style="background:#2a1f4a;color:#c08cff">SEASON ${esc(String(j.season.id).slice(1))} · ${esc(j.season.name)} · ends ${tf(Date.parse(j.season.ends))} · <a href="index.html" style="color:#fff">season pass</a></div>`);
+    $('wev').innerHTML = H.join(''); } catch(e){} }
   $('zmapb').onclick = zOpen; $('zxm').onclick = zClose; zBar();
-  myDex().then(() => { zBar(); }); zinfo(); poll(); board(); live(); setInterval(poll, 2000); setInterval(zinfo, 60000); setInterval(board, 60000); setInterval(live, 60000);
+  myDex().then(() => { zBar(); }); zinfo(); poll(); board(); live(); setInterval(poll, 2000); setInterval(zinfo, 60000); wEvents(); setInterval(wEvents, 5 * 60000); setInterval(board, 60000); setInterval(live, 60000);
 
   function demo(fn, b){
     const sl = Math.floor(Date.now() / 30000), h = n => { let x = (sl * 2654435761 + n * 40503) >>> 0; x ^= x >>> 13; x = Math.imul(x, 1274126177) >>> 0; return x; };
