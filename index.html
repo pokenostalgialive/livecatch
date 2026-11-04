@@ -117,6 +117,28 @@ img.sil{filter:brightness(0) opacity(.75)}.myr .who{min-width:0}.myr .who b{disp
 .mygrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}@media(min-width:700px){.mygrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .myc{background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:10px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}.myc b{font-weight:900}.myc small{font-size:11px;color:var(--mute);font-weight:700}.myc small a{color:var(--ink);font-weight:900;text-decoration:none}
 .myc.own .mysp{background:radial-gradient(circle,rgba(255,210,63,.35),rgba(127,127,127,.06) 70%)}
+.sheet.wardrobe{background:linear-gradient(180deg,#1a1440,#121a3a 45%,#0f1530);color:#eef1ff}.sheet.wardrobe h3{color:#fff}.sheet.wardrobe .grab{background:rgba(255,255,255,.3)}
+.wstage{position:relative;height:190px;border-radius:20px;margin:8px 0 12px;overflow:hidden;background:radial-gradient(70% 60% at 50% 105%,rgba(255,210,63,.35),transparent 70%),linear-gradient(180deg,#2c2170,#1d2a6b);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.wspot{position:absolute;left:50%;top:-40px;width:220px;height:260px;margin-left:-110px;background:conic-gradient(from 160deg at 50% 0,transparent 0 10deg,rgba(255,255,255,.18) 20deg 40deg,transparent 50deg);filter:blur(4px)}
+.wpart{position:absolute;right:14px;bottom:14px;width:84px;height:84px}.wpart img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4))}
+.wme{position:absolute;left:0;right:0;top:26px;display:flex;flex-direction:column;align-items:center;gap:4px}.wme .av{width:70px;height:70px;font-size:26px}.wme b{font-size:20px;font-weight:900}.wme b:not([class*=nm-]),.wme .nm-wh{color:#fff}.wme small{font-size:11px;font-weight:800;color:#b9c0ea}
+.wball{position:absolute;left:18px;bottom:18px;display:flex;align-items:center;gap:6px}.wpk{font-size:28px}
+.pball{display:inline-block;width:18px;height:18px;border-radius:50%;background:linear-gradient(#ee4035 0 45%,#222 45% 55%,#fff 55%);box-shadow:inset 0 0 0 2px #222;position:relative}.pball:after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #222}
+.pball.pbig{width:30px;height:30px;animation:wbob 1.6s ease-in-out infinite}.pball.pbig:after{width:9px;height:9px;margin:-4.5px}
+@keyframes wbob{50%{transform:translateY(-5px) rotate(-12deg)}}
+.wtrail{font-size:15px;letter-spacing:2px;animation:wtr 1.4s linear infinite;color:#ffd23f}.wtrail.tr-week{background:linear-gradient(90deg,#ff4d4d,#ffd23f,#3ddc84,#2f9bff,#a46bff);-webkit-background-clip:text;color:transparent}
+@keyframes wtr{0%{opacity:1;transform:translateX(0)}100%{opacity:.2;transform:translateX(-10px)}}
+.wtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}.wtab{flex:none;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);color:#cfd5ff;font-weight:800;font-size:13px}
+.wtab span{font-weight:900}.wtab.on{background:linear-gradient(90deg,#ffd23f,#ff9f1a);color:#2a1a00}
+.wnote{font-size:11.5px;font-weight:700;color:#9aa3d6;margin:8px 2px}
+.wgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:6px}
+.wtile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:16px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);color:#eef1ff}
+.wtile b{font-size:12.5px;font-weight:900}.wtile small{font-size:10px;font-weight:700;color:#9aa3d6;line-height:1.2;text-align:center}
+.wtile.on{background:rgba(255,210,63,.16);box-shadow:inset 0 0 0 2px #ffd23f}.wtile.lock{opacity:.55}.wtile.lock .wsw{filter:grayscale(1)}
+.wsw{height:36px;min-width:36px;display:grid;place-items:center}.wsn{font-size:22px;font-weight:900}.nm-wh{color:#fff}
+.wsf i{display:block;width:30px;height:30px;border-radius:50%;background:#3b4a8a;box-shadow:0 0 0 2px #fff;outline:3px solid transparent;position:relative}.wsf i:after{content:'';position:absolute;inset:-6px;border-radius:50%;background:var(--fc);-webkit-mask:radial-gradient(circle,transparent 17px,#000 18px);mask:radial-gradient(circle,transparent 17px,#000 18px)}
+.wsa i{display:block;width:28px;height:28px;border-radius:50%;background:#3b4a8a}.wst{font-size:14px;color:#ffd23f}.wst.tr-week{font-size:20px}.wsb .pball{width:24px;height:24px}.wsb{font-size:24px}
+.sheet.wardrobe .btn.ghost{background:rgba(255,255,255,.1);color:#fff}.sheet.wardrobe .savebar{background:transparent;border-color:rgba(255,255,255,.1)}
 .bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
 .bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
 .bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
@@ -1172,21 +1194,40 @@ const WARD = [['name', 'Name colour', [['auto', 'Best unlocked'], ['white', 'Whi
   ['trail', 'Ball trail (live)', [['auto', 'Best unlocked'], ['none', 'None'], ['stars', 'Stars', 'Lv 15'], ['fire', 'Fire', 'Lv 30'], ['bats', 'Bats', 'Halloween'], ['week', 'Weekly trail', 'Complete 7 weekly missions']]],
   ['ball', 'Poké Ball (live)', [['auto', 'Best unlocked'], ['normal', 'Normal'], ['pumpkin', 'Pumpkin Ball', 'Halloween']]]];
 async function loadSkinChoices(){ try { const L = await rpc('skin_choices', {}) || []; SKINCH = {}; for (const x of L) SKINCH[x.u.toLowerCase()] = x; } catch(e){} }
+const WICON = {name: 'Aa', frame: '◯', aura: '✧', trail: '☄', ball: '◓'};
+const TRAILFX = {auto: '★', none: '', stars: '✦ ✧ ✦', fire: '🔥🔥', bats: '🦇 🦇', week: '🌈'};
+function wSwatch(k, v, me){
+  const best = {name: nameCls(Object.assign({}, me, {u: '_'})), frame: '', aura: ''};
+  if (k === 'name'){ const c = v === 'auto' ? best.name : ({white: 'nm-wh', blue: 'nm-bl', gold: 'nm-au', rainbow: 'nm-rb'}[v] || ''); return `<span class="wsw wsn ${c || 'nm-wh'}">Aa</span>`; }
+  if (k === 'frame'){ const col = v === 'silver' ? '#c9d1dc' : v === 'gold' ? '#ffc21a' : RCOL[v.toUpperCase()] || (v === 'auto' ? 'conic-gradient(#ffc21a,#4ac8ff,#ff5a4a,#ffc21a)' : 'transparent');
+    return `<span class="wsw wsf" style="--fc:${col}"><i></i></span>`; }
+  if (k === 'aura') return `<span class="wsw wsa ${v === 'gold' ? 'fr-aura' : v === 'ghost' ? 'fr-ghost' : v === 'auto' ? 'fr-aura' : ''}"><i></i></span>`;
+  if (k === 'trail') return `<span class="wsw wst tr-${v}">${TRAILFX[v] || ''}</span>`;
+  if (k === 'ball') return `<span class="wsw wsb">${v === 'pumpkin' ? '🎃' : '<i class="pball"></i>'}</span>`;
+  return '';
+}
 async function openWardrobe(){
   const me = BY[ME.u.toLowerCase()]; if (!me) return;
-  const bg = openSheet('<h3>Wardrobe</h3><p class="sub">Loading...</p>', 'edit'), sh = bg.querySelector('.sheet');
+  const bg = openSheet('<h3>Wardrobe</h3><p class="sub">Loading...</p>', 'edit wardrobe'), sh = bg.querySelector('.sheet');
   let W; try { W = await rpc('my_skins', {p_token: AUTH.token}); } catch(e){ sh.querySelector('.sub').textContent = e.message; return; }
   if (!W){ sh.querySelector('.sub').textContent = 'Link your TikTok name first.'; return; }
-  const st = Object.assign({}, W.choice), un = W.unlocked || {};
+  const st = Object.assign({}, W.choice), un = W.unlocked || {}; let tab = 'name';
+  const partner = (PROF[me.u.toLowerCase()] || {}).partner || me.team[0];
   const draw = () => {
     const prev = Object.assign({}, me), save = SKINCH[me.u.toLowerCase()]; SKINCH[me.u.toLowerCase()] = Object.assign({u: me.u}, st);
-    const pv = `<div class="wprev">${avatar(prev)}<b class="${nameCls(prev)}">${esc(me.u)}</b></div>`;
+    const stage = `<div class="wstage"><div class="wspot"></div>${partner ? `<span class="wpart">${img(partner, shN(me, partner) > 0)}</span>` : ''}
+      <div class="wme">${avatar(prev)}<b class="${nameCls(prev)}">${esc(me.u)}</b><small>Lv ${me.lv}${me.title ? ' · ' + esc(me.title) : ''}</small></div>
+      <div class="wball">${st.ball === 'pumpkin' ? '<span class="wpk">🎃</span>' : '<i class="pball pbig"></i>'}<span class="wtrail tr-${st.trail}">${TRAILFX[st.trail] || ''}</span></div></div>`;
     if (save) SKINCH[me.u.toLowerCase()] = save; else delete SKINCH[me.u.toLowerCase()];
-    sh.innerHTML = `<div class="grab"></div><h3>👕 Wardrobe</h3><p class="sub">Choose how you look on the site and in the live. "Best unlocked" puts on new stuff by itself.</p>${pv}
-      ${WARD.map(([k, lab, opts]) => `<div class="lgday">${lab}</div><div class="wopts">${opts.map(([v, n, req]) => { const ok = (un[k] || []).includes(v);
-        return `<button class="wopt ${st[k] === v ? 'on' : ''}" data-k="${k}" data-v="${v}" ${ok ? '' : 'disabled'} ${k === 'frame' && RCOL[v.toUpperCase()] ? `style="box-shadow:inset 0 0 0 2px ${RCOL[v.toUpperCase()]}"` : ''}>${esc(n)}${ok || !req ? '' : `<small>🔒 ${esc(req)}</small>`}</button>`; }).join('')}</div>`).join('')}
-      <div class="savebar"><button class="btn ghost" id="wc">Close</button><button class="btn" id="ws">Save</button></div>`;
-    sh.querySelectorAll('.wopt:not([disabled])').forEach(b => b.onclick = () => { st[b.dataset.k] = b.dataset.v; draw(); });
+    const [k, lab, opts] = WARD.find(w => w[0] === tab);
+    sh.innerHTML = `<div class="grab"></div><h3>👕 Wardrobe</h3>${stage}
+      <div class="wtabs">${WARD.map(([kk, l]) => `<button class="wtab ${kk === tab ? 'on' : ''}" data-tab="${kk}"><span>${WICON[kk]}</span>${esc(l.replace(' (live)', ''))}</button>`).join('')}</div>
+      <p class="wnote">${lab}${/live/.test(lab) ? ' · shown in the live' : ' · shown on the site and in the live'} · "Best" puts on new stuff by itself</p>
+      <div class="wgrid">${opts.map(([v, n, req]) => { const ok = (un[k] || []).includes(v);
+        return `<button class="wtile ${st[k] === v ? 'on' : ''} ${ok ? '' : 'lock'}" data-k="${k}" data-v="${v}" ${ok ? '' : 'disabled'}>${wSwatch(k, v, me)}<b>${esc(v === 'auto' ? 'Best' : n)}</b>${ok || !req ? '' : `<small>🔒 ${esc(req)}</small>`}</button>`; }).join('')}</div>
+      <div class="savebar"><button class="btn ghost" id="wc">Close</button><button class="btn" id="ws">Save look</button></div>`;
+    sh.querySelectorAll('.wtab').forEach(b => b.onclick = () => { tab = b.dataset.tab; draw(); });
+    sh.querySelectorAll('.wtile:not([disabled])').forEach(b => b.onclick = () => { st[b.dataset.k] = b.dataset.v; draw(); });
     sh.querySelector('#wc').onclick = bg.close;
     sh.querySelector('#ws').onclick = async e => { e.target.disabled = true;
       try { if (!DEMO) await rpc('set_skins', {p_token: AUTH.token, p_ball: st.ball, p_trail: st.trail, p_name: st.name, p_frame: st.frame, p_aura: st.aura});
