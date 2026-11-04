@@ -106,6 +106,12 @@ img{display:block}
 .fr-rg{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--rc)!important}.prof .fr-rg{box-shadow:0 0 0 4px #fff,0 0 0 7px var(--rc)!important}
 .fr-kanto{--rc:#ff5a4a}.fr-johto{--rc:#ffd23f}.fr-hoenn{--rc:#3ad08a}.fr-sinnoh{--rc:#4ac8ff}.fr-unova{--rc:#c9c9d6}.fr-kalos{--rc:#4a7dff}.fr-alola{--rc:#ff9a3a}.fr-galar{--rc:#c08cff}.fr-paldea{--rc:#ff5ab4}
 .reg{grid-template-columns:76px 1fr 92px!important}.rbar{position:relative;overflow:visible!important}.rbar i{background:var(--rc)!important;opacity:.9}.rbar b{position:absolute;top:-2px;width:2px;height:14px;background:rgba(0,0,0,.25);border-radius:2px}
+.fr-shiny{box-shadow:0 0 0 2px #fff,0 0 0 4px #f2c230,0 0 12px 3px rgba(255,226,130,.85)!important;animation:shin 1.8s ease-in-out infinite}.prof .fr-shiny{box-shadow:0 0 0 4px #fff,0 0 0 7px #f2c230,0 0 16px 5px rgba(255,226,130,.9)!important}
+@keyframes shin{0%,100%{filter:drop-shadow(0 0 2px #fff8d0) brightness(1)}50%{filter:drop-shadow(0 0 8px #fff) brightness(1.12)}}
+.sbar{height:6px!important;margin-top:-2px}.sbar i{background:linear-gradient(90deg,#f2c230,#fff3b0,#f2c230)!important}.reg .ss{font-size:10px;font-weight:900;color:#c99a00}.reg em.ss{font-style:normal}
+.rrw.srw span.ok{background:rgba(242,194,48,.25)}.ttl.lcm{background:linear-gradient(90deg,#ff4d4d,#ff9f1a,#ffd23f,#3ddc84,#2f9bff,#a46bff);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.atypes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}.atypes button{padding:9px 4px;border-radius:12px;color:#fff;font-weight:900;font-size:12.5px;text-transform:capitalize;text-shadow:0 1px 2px rgba(0,0,0,.3)}.atypes button.on{outline:3px solid var(--ink);outline-offset:1px}
+.lcmc{display:flex;align-items:center;gap:12px;padding:14px;margin-bottom:12px;background:linear-gradient(120deg,rgba(255,77,77,.14),rgba(255,210,63,.16),rgba(61,220,132,.14),rgba(47,155,255,.14),rgba(164,107,255,.16))}.lcmc b{display:block;font-size:17px;font-weight:900}.lcmc small{font-size:12px;font-weight:700;color:var(--mute)}
 .reg.done .rbar i{background:linear-gradient(90deg,#f2c230,#e8a917)!important}
 .rrw{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;margin:-2px 0 4px}.rrw span{font-size:10px;font-weight:800;color:var(--mute);background:rgba(127,127,127,.1);border-radius:7px;padding:2px 6px}.rrw span.ok{background:color-mix(in srgb,var(--rc) 22%,transparent);color:var(--ink)}
 .pmap small{display:block;font-size:12px;font-weight:800;color:var(--mute);margin:2px 0 6px}.pmrow{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
@@ -558,7 +564,7 @@ function build(data){
     const _lvd = +d.lv || 0;
     return {lv: _lvd || lvFrom(d.n || 0, d.s || 0, own.length), u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, forms, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length + forms.filter(isLegForm).length,
       team: (d.team || []).filter(id => M.n[id] || ALT[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, soup: d.soup || 0, bag: (d.bag && typeof d.bag === 'object') ? d.bag : {}, candy: +d.candy || 0, og: +d.og === 1 || d.og === true, ac: (d.ac && typeof d.ac === 'object') ? d.ac : {}, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
-    })(); _t.rx = d.rx || {}; _t.title = finalTitle(_t); return _t;
+    })(); _t.rx = d.rx || {}; _t.srx = d.srx || {}; _t.title = finalTitle(_t); return _t;
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -603,17 +609,28 @@ const regLv = t => { if (t._rl) return t._rl; const rx = t.rx || {}, o = {};
   for (const r of REGIONS){ const have = r.ids.filter(id => t.c[id] > 0).length, tot = r.ids.length;
     o[r.n] = {have, tot, lv: Math.max(t.badges.includes(r.n) || have >= tot ? 3 : have * 2 >= tot ? 2 : have * 4 >= tot ? 1 : 0, +rx[r.n] || 0)}; }
   return (t._rl = o); };
+const srLv = t => { if (t._sl) return t._sl; const sx = t.srx || {}, o = {};
+  for (const r of REGIONS){ const have = r.ids.filter(id => shN(t, id) > 0).length, tot = r.ids.length;
+    o[r.n] = {have, tot, lv: Math.max(have >= tot ? 3 : have * 2 >= tot ? 2 : have * 4 >= tot ? 1 : 0, +sx[r.n] || 0)}; }
+  return (t._sl = o); };
+const lcMaster = t => { const rl = regLv(t); return REGIONS.every(r => rl[r.n].lv >= 3); };
+const RGX = '(' + REGIONS.map(r => r.n).join('|') + ')';
+const tPr = ti => !ti ? 0 : ti === 'LIVE CATCH MASTER' ? 90 : new RegExp('^' + RGX + ' SHINY MASTER$').test(ti) ? 80 : ti === 'POKEDEX MASTER' ? 70 : new RegExp('^' + RGX + ' MASTER$').test(ti) ? 60
+  : new RegExp('^' + RGX + ' SHINY HUNTER$').test(ti) ? 50 : / EXPLORER$/.test(ti) ? 40 : ti === 'SHINY HUNTER' ? 30 : ti === 'LEGEND COLLECTOR' ? 20 : ti === 'GHOST MASTER' ? 100 : TYPEM.test(ti) ? 10 : 100;      // unknown titles (CHAMPION...) stay on top
 const TYPEM = /^(NORMAL|FIRE|WATER|GRASS|ELECTRIC|ICE|FIGHTING|POISON|GROUND|FLYING|PSYCHIC|BUG|ROCK|GHOST|DRAGON|DARK|STEEL|FAIRY) MASTER$/;
 function finalTitle(t){
-  let ti = t.title; const rl = regLv(t), exp = REGIONS.map(r => r.n).filter(n => rl[n].lv === 2).pop();
-  if (exp && (!ti || ti === 'SHINY HUNTER' || ti === 'LEGEND COLLECTOR' || (TYPEM.test(ti) && ti !== 'GHOST MASTER'))) ti = exp + ' EXPLORER';
+  const rl = regLv(t), sl = srLv(t);
+  const pick = REGIONS.map(r => r.n), lastAt = (o, v) => pick.filter(n => o[n].lv >= v).pop();
+  const cand = [t.title, lcMaster(t) ? 'LIVE CATCH MASTER' : null, lastAt(sl, 3) && lastAt(sl, 3) + ' SHINY MASTER', lastAt(rl, 3) && lastAt(rl, 3) + ' MASTER',
+    lastAt(sl, 2) && lastAt(sl, 2) + ' SHINY HUNTER', pick.filter(n => rl[n].lv === 2).pop() && pick.filter(n => rl[n].lv === 2).pop() + ' EXPLORER'].filter(Boolean);
+  let ti = null; for (const c of cand) if (tPr(c) > tPr(ti)) ti = c;
   return ti || lvTitle(t.lv);
 }
 let SKINCH = {};
 const skc = t => SKINCH[t.u.toLowerCase()] || {};
-const nameCls = t => { const c = skc(t).name; if (c && c !== 'auto') return {white: '', blue: 'nm-bl', gold: 'nm-au', rainbow: 'nm-rb'}[c] || ''; return t.lv >= 50 ? 'nm-rb' : t.lv >= 20 ? 'nm-au' : t.lv >= 5 ? 'nm-bl' : ''; };
+const nameCls = t => { const c = skc(t).name; if (c && c !== 'auto') return {white: '', blue: 'nm-bl', gold: 'nm-au', rainbow: 'nm-rb'}[c] || ''; return t.lv >= 50 || lcMaster(t) ? 'nm-rb' : t.lv >= 20 ? 'nm-au' : t.lv >= 5 ? 'nm-bl' : ''; };
 const frameCls = t => { const c = skc(t), rl = regLv(t), rg = REGIONS.map(r => r.n).filter(n => rl[n].lv >= 1).pop();
-  const f = c.frame && c.frame !== 'auto' ? ({none: '', silver: ' fr-ag', gold: ' fr-au'}[c.frame] ?? (RCOL[c.frame.toUpperCase()] ? ' fr-rg fr-' + c.frame : '')) : (t.lv >= 25 ? ' fr-au' : rg ? ' fr-rg fr-' + rg.toLowerCase() : t.lv >= 10 ? ' fr-ag' : '');
+  const f = c.frame && c.frame !== 'auto' ? ({none: '', silver: ' fr-ag', gold: ' fr-au', shiny: ' fr-shiny'}[c.frame] ?? (RCOL[c.frame.toUpperCase()] ? ' fr-rg fr-' + c.frame : '')) : (REGIONS.some(r => srLv(t)[r.n].lv >= 1) ? ' fr-shiny' : t.lv >= 25 ? ' fr-au' : rg ? ' fr-rg fr-' + rg.toLowerCase() : t.lv >= 10 ? ' fr-ag' : '');
   const a = c.aura && c.aura !== 'auto' ? ({none: '', gold: ' fr-aura', ghost: ' fr-ghost'}[c.aura] || '') : (t.lv >= 75 ? ' fr-aura' : ''); return f + a; };
 const lvTitle = lv => lv >= 100 ? 'LEGEND TRAINER' : lv >= 50 ? 'ELITE' : lv >= 25 ? 'VETERAN' : null;
 const boxWall = t => t.lv >= 40 ? 'bw-light' : t.lv >= 30 ? 'bw-ember' : t.lv >= 15 ? 'bw-stars' : '';
@@ -745,16 +762,18 @@ function viewTrainer(u){
   const P = (isMe(t.u) ? ME : PROF[t.u.toLowerCase()]) || {}, fav = (P.fav || []).filter(id => M.n[id] || ALT[id]), wish = [...new Set((P.wish || []).concat(t.lwish))].filter(id => M.n[id] || ALT[id]), partner = (M.n[P.partner] || ALT[P.partner]) ? P.partner : 0;
   const F = [['caught', 'Caught ' + t.dex], ['shiny', 'Shiny ' + t.s], ['legend', 'Legendary ' + t.leg], ['mega', 'Mega ' + t.mg + '/' + MEGAIDS.length], ['rare', 'Rare']].concat(Object.keys(t.ac).some(k => t.ac[k] > 0) ? [['alpha', 'Alpha']] : [], [['dex', 'Full Pokédex']]);
   const six = (arr, cls) => Array.from({length: 6}, (_, i) => arr[i] ? `<button class="tm ${cls}" data-id="${arr[i]}">${img(arr[i], shN(t, arr[i]) > 0)}</button>` : '<div class="tm e"></div>').join('');
-  const RL = regLv(t), Rn = n => n[0] + n.slice(1).toLowerCase();
-  const regs = REGIONS.map(r => { const x = RL[r.n], done = x.lv >= 3, pc = Math.min(100, Math.round(x.have / x.tot * 100));
+  const RL = regLv(t), SL = srLv(t), Rn = n => n[0] + n.slice(1).toLowerCase();
+  const regs = REGIONS.map(r => { const x = RL[r.n], done = x.lv >= 3, pc = Math.min(100, Math.round(x.have / x.tot * 100)), y = SL[r.n], sp = Math.min(100, Math.round(y.have / y.tot * 100));
     return `<div class="reg ${done ? 'done' : ''}" style="--rc:${RCOL[r.n]}"><span>${r.n}</span><div class="bar rbar"><i style="width:${pc}%"></i><b style="left:25%"></b><b style="left:50%"></b></div><em>${done ? 'BADGE' : x.have + '/' + x.tot + ' · ' + pc + '%'}</em>
-      <div class="rrw"><span class="${x.lv >= 1 ? 'ok' : ''}">25% ${Rn(r.n)} frame</span><span class="${x.lv >= 2 ? 'ok' : ''}">50% ${r.n} EXPLORER</span><span class="${x.lv >= 3 ? 'ok' : ''}">100% ${r.n} MASTER + Master Ball</span></div></div>`; }).join('');
+      <div class="rrw"><span class="${x.lv >= 1 ? 'ok' : ''}">25% ${Rn(r.n)} frame</span><span class="${x.lv >= 2 ? 'ok' : ''}">50% ${r.n} EXPLORER</span><span class="${x.lv >= 3 ? 'ok' : ''}">100% ${r.n} MASTER + Master Ball</span></div>
+      <span class="ss">✦ SHINY</span><div class="bar rbar sbar"><i style="width:${sp}%"></i><b style="left:25%"></b><b style="left:50%"></b></div><em class="ss">${y.lv >= 3 ? 'SHINY MASTER' : y.have + '/' + y.tot}</em>
+      <div class="rrw srw"><span class="${y.lv >= 1 ? 'ok' : ''}">25% Shiny frame</span><span class="${y.lv >= 2 ? 'ok' : ''}">50% ${r.n} SHINY HUNTER</span><span class="${y.lv >= 3 ? 'ok' : ''}">100% ${r.n} SHINY MASTER + Master Ball</span></div></div>`; }).join('');
   const pc = (PBOARD || []).find(x => x.u.toLowerCase() === t.u.toLowerCase());
   const meta = [`#${t.rank} all time`, pc ? pc.catches + ' site catches' : '', t.st > 1 ? t.st + '-day streak' : '', t.last ? 'last catch ' + t.last.split('-').reverse().slice(0, 2).join('/') : ''].filter(Boolean);
   const wm = !isMe(t.u) && ME ? wishMatch(t) : [];
   const act = (isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : ME ? `<button class="btn" id="propose">Propose trade</button>` : `<button class="btn ghost" id="claim">This is me</button>`) + `<button class="btn ghost" id="sharec">Share card</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
-    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1><span class="${nameCls(t)}">${esc(t.u)}</span>${crown(t.u)}${skinBadge(t)}</h1><div class="lvline">${lvTag(t)}<span class="lvbar"><i style="width:${lvPct(t)}%"></i></span></div>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
+    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1><span class="${nameCls(t)}">${esc(t.u)}</span>${crown(t.u)}${skinBadge(t)}</h1><div class="lvline">${lvTag(t)}<span class="lvbar"><i style="width:${lvPct(t)}%"></i></span></div>${t.title ? `<span class="ttl${t.title === 'LIVE CATCH MASTER' ? ' lcm' : ''}">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
       <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div>
       <div class="acts">${act}</div>${wm.length ? `<div class="wmatch">Has ${wm.length} Pokémon from your wishlist: ${wm.slice(0, 6).map(id => `<span class="gm2">${img(id, false)}</span>`).join('')}</div>` : ''}</div>
     ${(() => { const b = (BBOARD || []).find(x => x.u.toLowerCase() === t.u.toLowerCase()); const ct = champTitle(t.u); return (b && b.badges) || ct ? `<div class="card tbadges"><div>${ct ? `<b class="ctl">♛ ${esc(ct)}</b>` : ''}<b>Gym badges ${b ? b.badges : 0}/32</b></div>${badgesRow(b ? b.badges : 0)}</div>` : ''; })()}
@@ -802,9 +821,11 @@ function sheet(t, id, sh){
     <div class="types">${types.map(x => `<span class="type" style="background:${TYPEC[x] || '#999'}">${x}</span>`).join('')}</div>
     <div class="sgrid"><div class="stat"><b>${c}</b><span>Normal</span></div><div class="stat s"><b>${s}</b><span>Shiny</span></div></div>
     ${s ? `<button class="tog" id="tog">${sh ? 'Show normal' : 'Show shiny'}</button>` : ''}
+    ${isMe(t.u) && isArc(id) ? `<div class="evs"><button class="btn" data-arct="1">Change type</button><p class="hint">Your unique Arceus can take any of the 18 types</p></div>` : ''}
     ${isMe(t.u) && canEvo(t, id) ? `<div class="evs">${EVO[id].filter(x => M.n[x]).map(x => `<button class="btn" data-evs="${x}">Evolve into ${esc(name(x))}</button>`).join('')}<p class="hint">Uses 2 of your ${t.c[id]} ${esc(name(id))}</p></div>` : ''}</div>`;
     const tg = bg.querySelector('#tog'); if (tg) tg.onclick = e => { e.stopPropagation(); sh = !sh; draw(); };
-    bg.querySelectorAll('[data-evs]').forEach(b => b.onclick = () => { bg.remove(); doEvolve(id, +b.dataset.evs, null); }); };
+    bg.querySelectorAll('[data-evs]').forEach(b => b.onclick = () => { bg.remove(); doEvolve(id, +b.dataset.evs, null); });
+    const at = bg.querySelector('[data-arct]'); if (at) at.onclick = () => { bg.remove(); arceusType(id); }; };
   draw(); bg.onclick = e => { if (e.target === bg) bg.remove(); };
   document.body.appendChild(bg);
 }
@@ -830,6 +851,7 @@ function demoRpc(fn, b){      // ?demo only: fakes the server (verification comp
   if (fn === 'my_skins'){ const t = BY[ME.u.toLowerCase()]; return {choice: Object.assign({ball: 'auto', trail: 'auto', name: 'auto', frame: 'auto', aura: 'auto'}, SKINCH[ME.u.toLowerCase()] || {}), unlocked: {lv: t.lv, ball: ['auto', 'normal', 'pumpkin'], trail: ['auto', 'none', 'stars', 'fire'], name: ['auto', 'white', 'blue', 'gold'], frame: ['auto', 'none', 'silver', 'gold'].concat(REGIONS.filter(r => regLv(t)[r.n].lv >= 1).map(r => r.n.toLowerCase())), aura: ['auto', 'none']}}; }
   if (fn === 'skin_choices') return [];
   if (/^myth_/.test(fn)) return demoMyth(fn, b);
+  if (fn === 'arceus_type') return {id: 1251 + ATYPES.indexOf(b.p_type)};
   if (/mission|weekly_champs/.test(fn)) return demoMissions(fn, b);
   if (fn === 'live_log_list') return demoLog(b);
   if (fn === 'shop_recycle') return b.p_items.reduce((g, x) => g + x.n * candyVal(x.id, x.sh), 0);
@@ -1141,14 +1163,30 @@ async function loadMyths(){
   const el = document.getElementById('mythbox'); if (!el || !AUTH) return;
   let L; try { L = await rpc('myth_state', {p_token: AUTH.token}); } catch(e){ return; }
   if (!L || !L.length) return;
-  el.innerHTML = `<h2>Mythicals</h2><div class="card myths">${L.map(m => `<div class="myr ${m.owned ? 'own' : ''}"><span class="mysp">${img(m.id, false, m.owned ? '' : 'sil')}</span>
-      <span class="who"><b>${m.owned ? esc(name(m.id)) : esc(name(m.id).toUpperCase()) + ' awaits you'}</b><small>${m.region} completed · ${m.owned ? 'caught ✓' : 'win the battle to catch it · shiny 1 in 20'}</small></span>
-      ${m.owned ? '<span class="msd">✓</span>' : m.tried ? '<span class="msrw">Next try tomorrow</span>' : `<button class="btn mybtn" data-myth="${m.id}">Battle</button>`}</div>`).join('')}</div>`;
+  const me = BY[AUTH.u.toLowerCase()];
+  el.innerHTML = `<h2>Mythicals</h2><div class="card myths">${L.map(m => { const A = m.id === 1251, sid = A && m.form ? m.form : m.id, nm = A ? 'Arceus' : name(m.id), sh = !!(me && m.owned && shN(me, sid) > 0);
+      return `<div class="myr ${m.owned ? 'own' : ''}"><span class="mysp">${img(sid, sh, m.owned ? '' : 'sil')}</span>
+      <span class="who"><b>${m.owned ? (sh ? '✦ ' : '') + esc(A ? name(sid) : nm) : esc(nm.toUpperCase()) + (A ? ', the unique one,' : '') + ' awaits you'}</b><small>${A ? 'All 9 regions completed · LIVE CATCH MASTER' : m.region + ' completed'} · ${m.owned ? (A ? 'caught ✓ · change its type when you want' : 'caught ✓') : (A ? 'the hardest battle · ' : 'win the battle to catch it · ') + 'shiny 1 in 20'}</small></span>
+      ${m.owned ? (A ? `<button class="btn mybtn" data-arc="${sid}">Type</button>` : '<span class="msd">✓</span>') : m.tried ? '<span class="msrw">Next try tomorrow</span>' : `<button class="btn mybtn" data-myth="${m.id}">Battle</button>`}</div>`; }).join('')}</div>`;
   el.querySelectorAll('[data-myth]').forEach(b => b.onclick = () => mythBattle(+b.dataset.myth));
+  el.querySelectorAll('[data-arc]').forEach(b => b.onclick = () => arceusType(+b.dataset.arc));
+}
+function arceusType(cur, after){
+  const bg = openSheet(`<h3>Arceus type</h3><p class="sub">Pick the type of your unique Arceus. It changes in the live too.</p>
+    <div class="atypes">${ATYPES.map((ty, i) => `<button data-ty="${ty}" class="${1251 + i === cur ? 'on' : ''}" style="background:${TYPEC[ty] || '#999'}">${ty}</button>`).join('')}</div>
+    <div class="savebar"><button class="btn ghost" id="ac">Close</button></div>`, 'edit'), sh = bg.querySelector('.sheet');
+  sh.querySelector('#ac').onclick = bg.close;
+  sh.querySelectorAll('[data-ty]').forEach(b => b.onclick = async () => { if (b.classList.contains('on')) return bg.close();
+    sh.querySelectorAll('[data-ty]').forEach(x => x.disabled = true);
+    try { const r = await rpc('arceus_type', {p_token: AUTH.token, p_type: b.dataset.ty}); const me = BY[AUTH.u.toLowerCase()];
+      if (DEMO && me && r && r.id !== cur){ me.c[r.id] = me.c[cur]; delete me.c[cur]; if (me.sc[cur] !== undefined){ me.sc[r.id] = me.sc[cur]; delete me.sc[cur]; } me.sh = me.sh.map(x => x === cur ? r.id : x); me.team = me.team.map(x => x === cur ? r.id : x); me.forms = me.forms.map(x => x === cur ? r.id : x); }
+      bg.close(); toast('Arceus is now ' + b.dataset.ty + ' type!'); if (!DEMO) build(await load()); route(); if (after) after(); }
+    catch(e){ toast(e.message); sh.querySelectorAll('[data-ty]').forEach(x => x.disabled = false); } });
 }
 function mythBattle(id){
-  const foe = mkMon(id, 100, defMoves(id), false); foe.maxhp = foe.hp = Math.round(foe.maxhp * 1.4); foe.atk = Math.round(foe.atk * 1.1); foe.spa = Math.round(foe.spa * 1.1);
-  const opp = {n: 'Mythical ' + name(id), kind: 'myth', myth: id, team: [id], mons: [foe], rnd: 0.08, color: '#c08cff'};
+  const A = id === 1251, k = A ? 1.25 : 1.1, foe = mkMon(id, 100, defMoves(id), false); foe.maxhp = foe.hp = Math.round(foe.maxhp * (A ? 2 : 1.4)); foe.atk = Math.round(foe.atk * k); foe.spa = Math.round(foe.spa * k);
+  if (A){ foe.def = Math.round(foe.def * 1.1); foe.spd = Math.round(foe.spd * 1.1); }
+  const opp = {n: A ? 'The unique Arceus' : 'Mythical ' + name(id), kind: 'myth', myth: id, team: [id], mons: [foe], rnd: 0.08, color: '#c08cff'};
   pickTeam(opp, async mons => {
     try { await rpc('myth_start', {p_token: AUTH.token, p_id: id}); } catch(e){ toast(e.message); loadMyths(); return; }
     runBattle(opp, mons, async () => { if (!DEMO) build(await load()); route(); });
@@ -1158,23 +1196,27 @@ async function mythBoardHtml(){
   const el = document.getElementById('mythboard'); if (!el) return;
   let B; try { B = await rpc('myth_board', {}); } catch(e){ return; }
   if (!B) return;
-  const all = Object.entries(MYTHS).flatMap(([r, ids]) => ids.map(id => [r, id]));
+  const all = Object.entries(MYTHS).flatMap(([r, ids]) => ids.map(id => [r, id])).concat([['ALL 9 REGIONS', 1251]]);
   const firstOf = id => (B.myths || []).find(x => x.id === id), cnt = id => (B.myths || []).filter(x => x.id === id).length;
   const fr = r => (B.firsts || []).find(x => x.region === r), d = t => new Date(t).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
-  el.innerHTML = `<h2>Mythicals</h2><p class="hint" style="text-align:left;margin:-4px 4px 8px">Complete a region (100% of its Pokédex) to battle its mythical on your page. Only one try a day.</p>
+  el.innerHTML = `<h2>Mythicals</h2><p class="hint" style="text-align:left;margin:-4px 4px 8px">Complete a region (100% of its Pokédex) to battle its mythical on your page. Complete all 9 for the unique Arceus. Only one try a day.</p>
     <div class="mygrid">${all.map(([r, id]) => { const f = firstOf(id), n = cnt(id);
-      return `<div class="myc ${f ? 'own' : ''}"><span class="mysp">${img(id, !!(f && f.sh), f ? '' : 'sil')}</span><b>${f ? esc(name(id)) : '???'}</b><small>${r}</small>
+      return `<div class="myc ${f ? 'own' : ''}"><span class="mysp">${img(id, !!(f && f.sh), f ? '' : 'sil')}</span><b>${f ? esc(id === 1251 ? 'Arceus' : name(id)) : '???'}</b><small>${r}</small>
         <small>${f ? `first: <a href="${link(f.u)}">@${esc(f.u)}</a>${f.sh ? ' ✦' : ''}${n > 1 ? ` · ${n} trainers` : ''}` : 'not caught yet'}</small></div>`; }).join('')}</div>
+    <h2>LIVE CATCH MASTER</h2><div class="card lcmc"><span style="font-size:34px">🌈</span><div><b>${B.master ? `First: <a href="${link(B.master.u)}" class="nm-rb" style="text-decoration:none">@${esc(B.master.u)}</a>` : 'Nobody yet'}</b>
+      <small>${B.master ? 'completed all 9 regions on ' + d(B.master.t) + (B.masters > 1 ? ` · ${B.masters} masters` : '') : 'Complete all 9 regions to become LIVE CATCH MASTER and meet the unique Arceus'}</small></div></div>
     <h2>First to complete</h2><div class="list">${REGIONS.map(r => { const f = fr(r.n), n = (B.done || {})[r.n] || 0;
       return `<div class="row"><span class="pmr ok" style="--rc:${RCOL[r.n]};min-width:76px;text-align:center">${r.n}</span><span class="who"><b>${f ? `<a href="${link(f.u)}" style="color:inherit;text-decoration:none">@${esc(f.u)}</a>` : '—'}</b><small>${f ? 'completed ' + d(f.t) + (n > 1 ? ` · ${n} trainers completed it` : '') : r.ids.length + ' Pokémon · nobody yet'}</small></span></div>`; }).join('')}</div>`;
 }
 let DEMOMY = null;
 function demoMyth(fn, b){
   if (!DEMOMY) DEMOMY = {tried: {}, owned: {}};
-  if (fn === 'myth_state') return [{id: 151, region: 'KANTO', owned: !!DEMOMY.owned[151], tried: !!DEMOMY.tried[151]}, {id: 251, region: 'JOHTO', owned: true, tried: false}];
+  if (fn === 'myth_state'){ const me = BY[ME.u.toLowerCase()], f = me && Object.keys(me.c).map(Number).find(x => isArc(x) && me.c[x] > 0);
+    return [{id: 151, region: 'KANTO', owned: !!DEMOMY.owned[151], tried: !!DEMOMY.tried[151]}, {id: 251, region: 'JOHTO', owned: true, tried: false}, {id: 1251, region: 'POKEDEX', owned: !!f, form: f || null, tried: !!DEMOMY.tried[1251]}]; }
+  if (fn === 'myth_win' && b.p_id === 1251){ const me = BY[ME.u.toLowerCase()]; if (me){ me.c[1251] = 1; me.forms.push(1251); } return {id: 1251, sh: false}; }
   if (fn === 'myth_start'){ if (DEMOMY.tried[b.p_id]) throw new Error('one try per day: come back tomorrow'); DEMOMY.tried[b.p_id] = 1; return {ok: true}; }
   if (fn === 'myth_win'){ DEMOMY.owned[b.p_id] = 1; return {id: b.p_id, sh: Math.random() < 0.05}; }
-  if (fn === 'myth_board') return {myths: [{u: 'pkmn.luca', id: 251, sh: false, t: new Date().toISOString()}], firsts: [{region: 'KANTO', u: 'giulia_shinyhunt', t: '2026-11-01T10:00:00Z'}, {region: 'JOHTO', u: 'pkmn.luca', t: '2026-11-03T10:00:00Z'}], done: {KANTO: 2, JOHTO: 1}};
+  if (fn === 'myth_board') return {myths: [{u: 'pkmn.luca', id: 251, sh: false, t: new Date().toISOString()}], firsts: [{region: 'KANTO', u: 'giulia_shinyhunt', t: '2026-11-01T10:00:00Z'}, {region: 'JOHTO', u: 'pkmn.luca', t: '2026-11-03T10:00:00Z'}], done: {KANTO: 2, JOHTO: 1}, master: {u: 'giulia_shinyhunt', t: '2026-11-04T10:00:00Z'}, masters: 1};
 }
 
 /* ===== PLAY MAP: regions open on Play (Kanto open, the next one at 50% of the previous) + zones by level ===== */
@@ -1188,8 +1230,8 @@ function playMapHtml(t){
 }
 
 /* ===== WARDROBE: choose ball, trail, name colour, avatar frame and aura (the live reads skin_choices() every 5 min) ===== */
-const WARD = [['name', 'Name colour', [['auto', 'Best unlocked'], ['white', 'White'], ['blue', 'Blue', 'Lv 5'], ['gold', 'Gold', 'Lv 20'], ['rainbow', 'Rainbow', 'Lv 50']]],
-  ['frame', 'Avatar frame', [['auto', 'Best unlocked'], ['none', 'None'], ['silver', 'Silver', 'Lv 10'], ['gold', 'Gold', 'Lv 25']].concat(M.reg.map(([n]) => [n.toLowerCase(), n[0] + n.slice(1).toLowerCase(), 'Catch 25% of ' + n[0] + n.slice(1).toLowerCase()]))],
+const WARD = [['name', 'Name colour', [['auto', 'Best unlocked'], ['white', 'White'], ['blue', 'Blue', 'Lv 5'], ['gold', 'Gold', 'Lv 20'], ['rainbow', 'Rainbow', 'Lv 50 or LIVE CATCH MASTER']]],
+  ['frame', 'Avatar frame', [['auto', 'Best unlocked'], ['none', 'None'], ['silver', 'Silver', 'Lv 10'], ['gold', 'Gold', 'Lv 25']].concat(M.reg.map(([n]) => [n.toLowerCase(), n[0] + n.slice(1).toLowerCase(), 'Catch 25% of ' + n[0] + n.slice(1).toLowerCase()]), [['shiny', 'Shiny', 'Catch 25% of a region in shiny']])],
   ['aura', 'Aura', [['auto', 'Best unlocked'], ['none', 'None'], ['gold', 'Golden aura', 'Lv 75'], ['ghost', 'Ghost aura', 'Halloween']]],
   ['trail', 'Ball trail (live)', [['auto', 'Best unlocked'], ['none', 'None'], ['stars', 'Stars', 'Lv 15'], ['fire', 'Fire', 'Lv 30'], ['bats', 'Bats', 'Halloween'], ['week', 'Weekly trail', 'Complete 7 weekly missions']]],
   ['ball', 'Poké Ball (live)', [['auto', 'Best unlocked'], ['normal', 'Normal'], ['pumpkin', 'Pumpkin Ball', 'Halloween']]]];
@@ -1199,6 +1241,7 @@ const TRAILFX = {auto: '★', none: '', stars: '✦ ✧ ✦', fire: '🔥🔥', 
 function wSwatch(k, v, me){
   const best = {name: nameCls(Object.assign({}, me, {u: '_'})), frame: '', aura: ''};
   if (k === 'name'){ const c = v === 'auto' ? best.name : ({white: 'nm-wh', blue: 'nm-bl', gold: 'nm-au', rainbow: 'nm-rb'}[v] || ''); return `<span class="wsw wsn ${c || 'nm-wh'}">Aa</span>`; }
+  if (k === 'frame' && v === 'shiny') return `<span class="wsw wsf fr-shiny" style="--fc:#f2c230;border-radius:50%"><i></i></span>`;
   if (k === 'frame'){ const col = v === 'silver' ? '#c9d1dc' : v === 'gold' ? '#ffc21a' : RCOL[v.toUpperCase()] || (v === 'auto' ? 'conic-gradient(#ffc21a,#4ac8ff,#ff5a4a,#ffc21a)' : 'transparent');
     return `<span class="wsw wsf" style="--fc:${col}"><i></i></span>`; }
   if (k === 'aura') return `<span class="wsw wsa ${v === 'gold' ? 'fr-aura' : v === 'ghost' ? 'fr-ghost' : v === 'auto' ? 'fr-aura' : ''}"><i></i></span>`;
@@ -1405,6 +1448,9 @@ function hwHomeHtml(){
 
 /* ===== BATTLES vs BOTS (gyms + random trainers) ===== */
 const BT = window.BATTLE || null, TI = {}; if (BT) BT.types.forEach((t, i) => TI[t] = i);
+const ATYPES = ['normal', 'fighting', 'flying', 'poison', 'ground', 'rock', 'bug', 'ghost', 'steel', 'fire', 'water', 'grass', 'electric', 'psychic', 'ice', 'dragon', 'dark', 'fairy'];      // unique Arceus = 1251 + index
+const isArc = id => id >= 1251 && id <= 1268;
+if (BT && BT.p[493]) ATYPES.forEach((ty, i) => { if (!BT.p[1251 + i]) BT.p[1251 + i] = [BT.p[493][0], [ty], BT.p[493][2], BT.p[493][3]]; });
 const LEAGUES = [
   {n: 'Verdant League', c: '#3fa129', gyms: [
     {n: 'Mossbrook Gym', l: 'Nell', t: 'bug', b: 'Moss Badge', team: [12, 416, 123]},
