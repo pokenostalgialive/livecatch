@@ -108,6 +108,8 @@ img{display:block}
 .reg{grid-template-columns:76px 1fr 92px!important}.rbar{position:relative;overflow:visible!important}.rbar i{background:var(--rc)!important;opacity:.9}.rbar b{position:absolute;top:-2px;width:2px;height:14px;background:rgba(0,0,0,.25);border-radius:2px}
 .reg.done .rbar i{background:linear-gradient(90deg,#f2c230,#e8a917)!important}
 .rrw{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;margin:-2px 0 4px}.rrw span{font-size:10px;font-weight:800;color:var(--mute);background:rgba(127,127,127,.1);border-radius:7px;padding:2px 6px}.rrw span.ok{background:color-mix(in srgb,var(--rc) 22%,transparent);color:var(--ink)}
+.pmap small{display:block;font-size:12px;font-weight:800;color:var(--mute);margin:2px 0 6px}.pmrow{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.pmr,.pmz{font-size:12px;font-weight:800;padding:4px 9px;border-radius:9px;background:rgba(127,127,127,.1);color:var(--mute)}.pmr.ok{background:color-mix(in srgb,var(--rc) 25%,transparent);color:var(--ink)}.pmz.ok{background:rgba(22,169,158,.16);color:var(--ink)}
 .bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
 .bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
 .bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
@@ -733,7 +735,7 @@ function viewTrainer(u){
     ${evoHtml(t)}
     ${wish.length ? `<h2>Looking for</h2><div class="card"><div class="wish">${wish.map(id => `<button class="tm ${t.c[id] > 0 ? '' : 'want'}" data-id="${id}" title="${esc(name(id))}">${img(id, false)}</button>`).join('')}</div></div>` : ''}
     ${goalsHtml(t)}
-    <h2>Regions</h2><div class="card regs">${regs}</div>
+    <h2>Regions</h2><div class="card regs">${regs}</div>${playMapHtml(t)}
     ${hwOn() ? '' : skinsHtml(t)}
   </div><div>
     <h2>Pokémon box</h2><div class="chips" id="bf">${F.map(([k, l]) => `<button class="chip ${k === BOXSTATE.f ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
@@ -1099,6 +1101,16 @@ function demoTrades(fn, b){      // ?demo only
 
 
 
+
+/* ===== PLAY MAP: regions open on Play (Kanto open, the next one at 50% of the previous) + zones by level ===== */
+const PZONES = [['Meadow', 1], ['Forest', 1], ['Sea', 5], ['City', 10], ['Cave', 15], ['Night', 20]];
+function playMapHtml(t){
+  const RL = regLv(t); let prev = true;
+  const regs = REGIONS.map(r => { const open = prev; prev = RL[r.n].have * 2 >= RL[r.n].tot; return `<span class="pmr ${open ? 'ok' : ''}" style="--rc:${RCOL[r.n]}">${open ? '' : '🔒 '}${r.n[0] + r.n.slice(1).toLowerCase()}</span>`; }).join('');
+  const zones = PZONES.map(([n, lv]) => `<span class="pmz ${t.lv >= lv ? 'ok' : ''}">${t.lv >= lv ? '' : '🔒 '}${n}${lv > 1 ? ' · Lv ' + lv : ''}${n === 'Night' ? ' (20-06)' : ''}</span>`).join('');
+  return `<h2>Play map</h2><div class="card pmap"><small>Regions open on Play (catch 50% of a region to open the next one)</small><div class="pmrow">${regs}</div>
+    <small>Zones in every region</small><div class="pmrow">${zones}</div><a class="btn" href="play.html" style="display:block;text-align:center;text-decoration:none;margin-top:10px">🗺️ Explore on Play</a></div>`;
+}
 
 /* ===== WARDROBE: choose ball, trail, name colour, avatar frame and aura (the live reads skin_choices() every 5 min) ===== */
 const WARD = [['name', 'Name colour', [['auto', 'Best unlocked'], ['white', 'White'], ['blue', 'Blue', 'Lv 5'], ['gold', 'Gold', 'Lv 20'], ['rainbow', 'Rainbow', 'Lv 50']]],
