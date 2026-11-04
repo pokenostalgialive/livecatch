@@ -1266,7 +1266,7 @@ function viewSeason(){
 }
 async function loadSeason(){
   const el = document.getElementById('seabox'); if (!el) return;
-  try { [SEA, SEAB] = await Promise.all([rpc('season_me', {p_token: AUTH ? AUTH.token : null}), rpc('season_board', {})]); } catch(e){ el.innerHTML = `<div class="card"><p class="sub">${esc(e.message)}</p></div>`; return; }
+  try { [SEA, SEAB] = await Promise.all([rpc('season_me', {p_token: AUTH ? AUTH.token : null}), rpc('season_board', {}).catch(() => [])]); } catch(e){ el.innerHTML = `<div class="card"><p class="sub">${esc(e.message)}</p></div>`; return; }
   drawSeason();
 }
 function drawSeason(){
