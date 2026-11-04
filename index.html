@@ -558,7 +558,8 @@ body.nx{--bg1:#0a1030;--bg2:#1b1f5e;--card:#18225c;--card2:#212d74;--ink:#fff;--
 .nx .lgrow .tm{background:none!important;box-shadow:none;color:var(--mute)}.nx .row:active{background:rgba(255,255,255,.06)}
 .nx .warn{background:rgba(255,180,0,.14);color:#ffd88a}.nx .binfo,.nx .blog,.nx .bmv,.nx .bx{background:rgba(14,22,70,.92)!important;color:#fff}.nx .bmv small,.nx .binfo small{color:var(--mute)}.nx .lname{color:var(--c);filter:brightness(1.3)}
 /* ---------- LOBBY ---------- */
-.nx.lob .top,.nx.lob .livebar{display:none}.nx.lob{padding-bottom:0}.nx.lob #app{max-width:none;padding:0}
+html.lobh{overflow:hidden;height:100%;overscroll-behavior:none}.nx.lob .top,.nx.lob .livebar,.nx.lob .foot{display:none}.nx.lob{padding-bottom:0;position:fixed;inset:0;overflow:hidden;overscroll-behavior:none}.nx.lob #app{max-width:none;padding:0}
+.nx.lob .lby{position:fixed;left:0;right:0;top:0;bottom:var(--navh,66px);height:auto;min-height:0;touch-action:manipulation;overscroll-behavior:none}
 .lby{position:relative;max-width:520px;margin:0 auto;height:calc(100dvh - 66px - env(safe-area-inset-bottom));min-height:600px;display:flex;flex-direction:column;overflow:hidden}
 .lby .lvb{display:flex;align-items:center;justify-content:center;gap:8px;padding:7px;background:linear-gradient(90deg,#e8234a,#ff4f6e);font-family:'Lilita One';font-size:14px;letter-spacing:.5px;color:#fff;text-decoration:none}
 .lby .lvb .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:lvdot 1s infinite}.lby .lvb b{background:#fff;color:#e8234a;border-radius:99px;padding:1px 10px;font-weight:400}
@@ -611,7 +612,7 @@ body.nx{--bg1:#0a1030;--bg2:#1b1f5e;--card:#18225c;--card2:#212d74;--ink:#fff;--
 .lgs .search{width:100%;max-width:360px;flex:none}.lgs .lgb{margin-top:14px;flex:none;width:auto;padding:12px 24px;font-size:17px}
 .lgtop{display:flex;gap:8px;margin-top:16px}.lgtop a{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:#fff;background:rgba(10,16,48,.7);border-radius:14px;padding:8px 10px;min-width:90px;box-shadow:0 3px 0 #070b22}
 .lgtop small{font-size:10px;font-weight:900;color:var(--gold)}.lgtop b{font-size:12px;font-weight:900;max-width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(min-width:900px){.lby{height:calc(100dvh - 20px);margin-top:10px;border-radius:24px;box-shadow:0 0 0 3px #070b22,0 20px 60px rgba(0,0,0,.5)}.nx.lob .btabs{max-width:520px;margin:0 auto;border-radius:0 0 24px 24px}}
+@media(min-width:900px){.nx.lob .lby{top:10px;bottom:calc(var(--navh,66px) + 0px);border-radius:24px;box-shadow:0 0 0 3px #070b22,0 20px 60px rgba(0,0,0,.5)}.nx.lob .btabs{max-width:520px;margin:0 auto;border-radius:0 0 24px 24px}}
 </style>
 </head>
 <body>
@@ -1542,7 +1543,8 @@ function viewLobby(){
       <div class="ltm">${team.map(id => `<a data-pid="${id}">${img(id, shN(me, id) > 0)}</a>`).join('')}</div></div>${cta}</div>`;
 }
 async function lobbyLoad(){
-  if (!document.querySelector('.lby')) return;
+  const lb = document.querySelector('.lby'); if (!lb) return;
+  lb.addEventListener('touchmove', e => { if (!e.target.closest('.sugg')) e.preventDefault(); }, {passive: false});
   const me = AUTH && ME ? BY[ME.u.toLowerCase()] : null, $ = id => document.getElementById(id), badge = (id, v) => { const e = $(id); if (e){ e.hidden = !v; e.textContent = v; } };
   document.querySelectorAll('.lby [data-pid]').forEach(x => x.onclick = () => me && sheet(me, +x.dataset.pid, shN(me, +x.dataset.pid) > 0));
   document.querySelectorAll('.lby [data-lc]').forEach(x => x.onclick = () => x.dataset.lc === 'ward' ? openWardrobe() : openShop());
@@ -2233,7 +2235,7 @@ function route(){
   const app = document.getElementById('app'); if (!D) return;
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), [a, b] = [h.split('/')[0], h.split('/').slice(1).join('/')];
   document.querySelectorAll('.sheet-bg').forEach(x => x.remove());
-  document.body.classList.toggle('lob', NX && !a);
+  document.body.classList.toggle('lob', NX && !a); document.documentElement.classList.toggle('lobh', NX && !a);
   app.innerHTML = (a === 't' && b ? viewTrainer(b) : a === 'rank' ? viewRank(b) : a === 'hof' ? viewHof() : a === 'privacy' ? viewPrivacy() : a === 'battle' ? viewBattle() : a === 'log' ? viewLog(b) : a === 'help' ? viewHelp() : a === 'missions' ? viewMissions() : a === 'season' ? viewSeason() : a === 'events' ? viewEvents() : viewHome())
     + `<div class="foot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br>${CONFIG.KOFI ? `<a class="kofi" href="${CONFIG.KOFI}" target="_blank" rel="noopener">☕ Support the project</a><br>` : ''}<a href="#/help">Commands</a> · <a href="#/privacy">Privacy</a></div>`;
   bindSearch(); bindTrainer(); setUpd(); window.scrollTo(0, 0);
@@ -2246,6 +2248,7 @@ function route(){
   if (a === 'events') loadEvents();
   if (a === 't') bindSpec(b);
   if (!a) NX ? lobbyLoad() : homeEvents();
+  if (NX){ const bt = document.getElementById('btabs'); if (bt) document.body.style.setProperty('--navh', bt.offsetHeight + 'px'); }
 }
 window.addEventListener('hashchange', route);
 async function start(){
