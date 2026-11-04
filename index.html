@@ -73,6 +73,9 @@ img{display:block}
 .pbi{flex:none;width:40px;height:40px;border-radius:50%;background:linear-gradient(#ee4035 0 46%,#222 46% 54%,#fff 54%);box-shadow:inset 0 0 0 3px #222;position:relative;animation:pbw 2.4s ease-in-out infinite}
 .pbi:after{content:'';position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px #222}
 @keyframes pbw{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-14deg)}84%{transform:rotate(12deg)}92%{transform:rotate(-6deg)}}
+.lvt{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:900;color:#fff;background:linear-gradient(90deg,#2f6fe0,#16a99e);border-radius:7px;padding:1px 6px;vertical-align:2px}
+.ogt{display:inline-block;margin-left:4px;font-size:10.5px;font-weight:900;color:#5a3d00;background:linear-gradient(90deg,#ffd23f,#ffb000);border-radius:7px;padding:1px 6px;vertical-align:2px}
+.lvline{display:flex;align-items:center;gap:6px;margin:4px 0 2px}.lvline .lvt{margin-left:0}.lvbar{flex:1;max-width:160px;height:6px;border-radius:9px;background:rgba(127,127,127,.2);overflow:hidden}.lvbar i{display:block;height:100%;background:linear-gradient(90deg,#2f6fe0,#16a99e)}
 .bbanner{display:flex;align-items:center;gap:14px;margin-top:12px;padding:16px 18px;border-radius:22px;text-decoration:none;color:#fff;background:linear-gradient(120deg,#e63946,#ff7a3d 55%,#ffb400);box-shadow:0 10px 26px rgba(230,57,70,.3);position:relative;overflow:hidden}
 .bbanner:after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;border:18px solid rgba(255,255,255,.15)}
 .bbanner .bi{font-size:34px;line-height:1}.bbanner b{display:block;font-size:19px;font-weight:900}.bbanner span{font-size:13px;font-weight:700;opacity:.95}
@@ -486,8 +489,9 @@ function build(data){
   D = data; const dex = data.dex || {}, av = data.av || {}, wk = (data.week || {}).n || {};
   T = Object.entries(dex).map(([u, d]) => {
     const c = d.c || {}, own = Object.keys(c).filter(k => c[k] > 0 && M.n[k]).map(Number), mega = Object.keys(c).filter(k => c[k] > 0 && MEGA[k]).map(Number).sort((a, b) => a - b), forms = Object.keys(c).filter(k => c[k] > 0 && FORMS[k]).map(Number);
-    return {u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, forms, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length + forms.filter(isLegForm).length,
-      team: (d.team || []).filter(id => M.n[id] || ALT[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, soup: d.soup || 0, bag: (d.bag && typeof d.bag === 'object') ? d.bag : {}, candy: +d.candy || 0, ac: (d.ac && typeof d.ac === 'object') ? d.ac : {}, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
+    const _lvd = +d.lv || 0;
+    return {lv: _lvd || lvFrom(d.n || 0, d.s || 0, own.length), u, n: d.n || 0, s: d.s || 0, c, sc: d.sc || {}, sh: (d.sh || []).map(Number), own, mega, forms, mg: mega.length, dex: own.length, leg: own.filter(id => LEG.has(id)).length + forms.filter(isLegForm).length,
+      team: (d.team || []).filter(id => M.n[id] || ALT[id]), st: d.st || 0, last: d.last, title: (d.skins && d.skins.ghost) ? 'GHOST MASTER' : d.title || null, skins: d.skins || {}, lwish: (d.wish || []).map(Number), hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, soup: d.soup || 0, bag: (d.bag && typeof d.bag === 'object') ? d.bag : {}, candy: +d.candy || 0, og: +d.og === 1 || d.og === true, ac: (d.ac && typeof d.ac === 'object') ? d.ac : {}, badges: d.badges || [], av: av[u] || null, wk: wk[u] || 0};
   });
   BY = {}; for (const t of T) BY[t.u.toLowerCase()] = t;
   const r = [...T].sort((a, b) => b.n - a.n); r.forEach((t, i) => t.rank = i + 1);
@@ -522,7 +526,11 @@ function setLive(){
 function setUpd(){ setLive(); document.getElementById('upd').innerHTML = (D && D.t ? `<b></b>Updated ${ago(D.t)}` : '') + (AUTH ? `<a class="mepill" href="${link(AUTH.u)}"><span>@${esc(AUTH.u)}</span>${incoming().length ? `<em>${incoming().length}</em>` : ''}</a>` : ''); }
 
 /* ===== RANKINGS ===== */
+const lvFrom = (n, s, dex) => Math.min(100, Math.floor(Math.sqrt((10 * n + 50 * s + 20 * dex) / 40)) + 1);      // same formula as the live: XP = 10 catches + 50 shiny + 20 species
+const lvPct = t => { if (t.lv >= 100) return 100; const xp = 10 * t.n + 50 * t.s + 20 * t.dex, a = 40 * (t.lv - 1) ** 2, b = 40 * t.lv ** 2; return Math.max(0, Math.min(100, Math.round((xp - a) / (b - a) * 100))); };
+const lvTag = t => `<span class="lvt">Lv ${t.lv}</span>${t.og ? '<span class="ogt">OG</span>' : ''}`;
 const RANKS = {
+  level: {l: 'Level', v: t => t.lv, u: 'level'},
   catches: {l: 'Catches', v: t => t.n, u: 'caught'},
   dex: {l: 'Pokédex', v: t => t.dex, u: 'species'},
   shiny: {l: 'Shiny', v: t => t.s, u: 'shiny'},
@@ -536,7 +544,7 @@ function rankRows(key, limit){
   if (!rows.length) return `<div class="list"><div class="row" style="color:var(--mute);font-weight:700">No data yet</div></div>`;
   return `<div class="list">${rows.map(([t, v], i) => `<a class="row" href="${link(t.u)}" style="text-decoration:none;color:inherit">
     <span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${avatar(t)}
-    <span class="who"><b>${esc(t.u)}${crown(t.u)}${skinBadge(t)}</b>${t.title ? `<small>${esc(t.title)}</small>` : ''}</span>
+    <span class="who"><b>${esc(t.u)}${crown(t.u)}${skinBadge(t)}${lvTag(t)}</b>${t.title ? `<small>${esc(t.title)}</small>` : ''}</span>
     <span class="val">${fmt(v)}<small>${R.u}</small></span></a>`).join('')}</div>`;
 }
 
@@ -651,7 +659,7 @@ function viewTrainer(u){
   const wm = !isMe(t.u) && ME ? wishMatch(t) : [];
   const act = (isMe(t.u) ? `<button class="btn" id="editme">Edit my page</button>` : ME ? `<button class="btn" id="propose">Propose trade</button>` : `<button class="btn ghost" id="claim">This is me</button>`) + `<button class="btn ghost" id="sharec">Share card</button>`;
   return `<a class="back" href="#/">${ICON.left}Trainers</a><div class="tgrid"><div class="side">
-    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}${crown(t.u)}${skinBadge(t)}</h1>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
+    <div class="card pcard">${partner ? `<button class="partner tm2" data-id="${partner}" title="Partner">${img(partner, shN(t, partner) > 0)}</button>` : ''}<div class="prof ${partner ? 'hasp' : ''}">${avatar(t)}<div style="min-width:0"><h1>${esc(t.u)}${crown(t.u)}${skinBadge(t)}</h1><div class="lvline">${lvTag(t)}<span class="lvbar"><i style="width:${lvPct(t)}%"></i></span></div>${t.title ? `<span class="ttl">${esc(t.title)}</span>` : ''}<div class="meta">${meta.map(m => `<span>${m}</span>`).join('')}</div></div></div>
       <div class="stats"><div class="stat"><b>${fmt(t.n)}</b><span>Caught</span></div><div class="stat"><b>${fmt(t.dex)}</b><span>Pokédex</span></div><div class="stat s"><b>${fmt(t.s)}</b><span>Shiny</span></div><div class="stat l"><b>${fmt(t.leg)}</b><span>Legends</span></div></div>
       <div class="acts">${act}</div>${wm.length ? `<div class="wmatch">Has ${wm.length} Pokémon from your wishlist: ${wm.slice(0, 6).map(id => `<span class="gm2">${img(id, false)}</span>`).join('')}</div>` : ''}</div>
     ${(() => { const b = (BBOARD || []).find(x => x.u.toLowerCase() === t.u.toLowerCase()); const ct = champTitle(t.u); return (b && b.badges) || ct ? `<div class="card tbadges"><div>${ct ? `<b class="ctl">♛ ${esc(ct)}</b>` : ''}<b>Gym badges ${b ? b.badges : 0}/32</b></div>${badgesRow(b ? b.badges : 0)}</div>` : ''; })()}
