@@ -158,8 +158,8 @@ for (const id of PARADOX) if (A.mons[id] && !RARESET.has(id) && !PARALEG.has(id)
 const NO_RAID = new Set([489, 772, 773, 789, 790, 793, 794, 795, 796, 797, 798, 799, 803, 804, 805, 806, 808, 891, 1005, 1006, 1009, 1010, 1020, 1021]);
 // Ultracreature: etichetta ULTRA BEAST
 const UB = new Set([793, 794, 795, 796, 797, 798, 799, 803, 804, 805, 806]);
-// Mew, Celebi, Victini: mai a caso, solo eventi (finestra Y)
-const EVENT = new Set([151, 251, 494]);
+// misteriosi (04/11): mai a caso (niente selvatici, roulette, raid), fuori dal conteggio del Pokedex; si sbloccano completando la regione e si catturano sul sito (10e_myth.js)
+const EVENT = new Set([151, 251, 385, 491, 492, 494, 719, 801, 893, 1025]);
 // forme alternative (Giratina / Dialga / Palkia Origine, 1196+): leggendarie, raggruppate con la base
 const FORMBASE = {}, GMAX = [];
 // forme Gigamax (1209+): NON leggendarie (solo Urshifu), boss dei raid Dynamax
@@ -373,7 +373,7 @@ function checkRegions(u){
   for (const r of REGIONS) if (!B.includes(r.n) && regHave(d, r) >= r.ids.length){
     B.push(r.n); U(u).master++; dexDirty = true;
     banner(r.n + ' COMPLETE!', u + ' caught every ' + r.n + ' Pokemon: badge + MASTER BALL', '#ffd23f'); mile(u, r.n + ' DEX COMPLETE', '#ffd23f');
-    jingle([523, 659, 784, 1046, 1319, 1568, 2093], 110, 0.16); shake = 0.8; speak(u + ' completed the ' + r.n + ' Pokedex!');
+    jingle([523, 659, 784, 1046, 1319, 1568, 2093], 110, 0.16); shake = 0.8; speak(u + ' completed the ' + r.n + ' Pokedex!'); mythRegion(u, r.n);
   }
   // premi del Pokedex per regione (04/11): 25% cornice della regione, 50% titolo EXPLORER (100% = badge + MASTER BALL qui sopra)
   const X = d.rx || (d.rx = {});
@@ -889,7 +889,7 @@ const isHost = u => String(u).toLowerCase().replace(/^@/, '') === HOST;
 // TikTok nasconde i commenti identici inviati due volte di fila: c, cc, C1, c!, "c c", catch... devono funzionare tutti
 const oneLetter = (t, w, k) => new RegExp('^' + k + '+[0-9]*$').test(w) || t.replace(/[^a-z]/g, '').replace(new RegExp(k, 'g'), '') === '' && t.includes(k);
 function chat(u, txt){
-  newbieMark(u); lastAct[u] = Date.now(); arrival(u); fanDaily(u); orbNote(u); champHello(u); trainerHello(u);
+  newbieMark(u); lastAct[u] = Date.now(); arrival(u); fanDaily(u); orbNote(u); champHello(u); trainerHello(u); mythHello(u);
   if (chooseChat(u, txt)) return;
   // comandi dell'host dal suo account
   if (isHost(u)){
@@ -1515,6 +1515,49 @@ function weeklyTrail(f, x, y, kk){ if (!weekOwn(f.u)) return; const C = WEEK_TRA
 const isWeeklyChamp = u => { const w = weeklyOf(u); return !!(w && w.last); };
 
 // ===================================================================
+// 10e MISTERIOSI (04/11): completi una regione -> si sblocca il suo misterioso, che si cattura SOLO sul sito (lotta + cattura, shiny 1 su 20).
+// Mai a caso in live (sono in EVENT: niente selvatici, roulette, raid) e fuori dal conteggio del Pokedex.
+// In live: alla prima scritta della sessione di chi ce l'ha sbloccato e non ancora preso parte la scena "MYTHICAL UNLOCKED";
+// quando lo cattura sul sito (azione 'catch' di home_actions) parte la scena "MYTHICAL CAUGHT".
+// ===================================================================
+const MYTH = {KANTO: [151], JOHTO: [251], HOENN: [385], SINNOH: [491, 492], UNOVA: [494], KALOS: [719], ALOLA: [801], GALAR: [893], PALDEA: [1025]};
+const MYTHSET = new Set(Object.values(MYTH).flat());
+function mythOf(u){ const d = DEX[u]; if (!d) return []; const out = []; for (const r of (d.badges || [])) for (const id of (MYTH[r] || [])) if (A.mons[id]) out.push({id, r, have: d.c[id] > 0}); return out; }
+let mythQ = [];
+const mythSeen = new Set();
+function mythPush(x){ if (mythQ.length < 3 && !mythQ.some(y => y.u === x.u && y.kind === x.kind)) mythQ.push(x); }
+// alla prima scritta della sessione
+function mythHello(u){ if (WEB || LOUNGE || mythSeen.has(u)) return; mythSeen.add(u); const L = mythOf(u).filter(x => !x.have); if (L.length) mythPush({u, kind: 'unlock', ids: L.map(x => x.id), r: L.map(x => x.r).filter((v, i, a) => a.indexOf(v) === i), t: 0}); }
+// regione appena completata in live
+function mythRegion(u, r){ if (WEB) return; const ids = (MYTH[r] || []).filter(id => A.mons[id]); if (ids.length){ mythSeen.add(u); mythPush({u, kind: 'unlock', ids, r: [r], t: 0, wait: 3.4}); } }
+function mythCaught(u, id, sh){ if (WEB || !MYTHSET.has(+id)) return; MON(+id); mythPush({u, kind: 'caught', ids: [+id], sh, t: 0}); }
+function mythUpdate(dt){ const M = mythQ[0]; if (!M) return; if (M.wait > 0){ M.wait -= dt; return; } M.t += dt; if (M.t > (M.kind === 'caught' ? 5.5 : 6.5)) mythQ.shift(); }
+function drawMyth(){
+  const M = mythQ[0]; if (!M || M.wait > 0) return; const T = M.t, dur = M.kind === 'caught' ? 5.5 : 6.5, a = Math.max(0, Math.min(1, T * 3, (dur - T) * 2)), cy = 760, col = M.kind === 'caught' ? '#ffd23f' : '#d08cff';
+  if (!M.fx){ M.fx = 1; M.ids.forEach(id => MON(id)); jingle(M.kind === 'caught' ? [523, 659, 784, 1046, 1319, 1568, 2093] : [392, 466, 554, 659, 784, 932, 1109], 120, 0.15); shake = Math.max(shake, 0.4); }
+  g.save(); g.globalAlpha = a;
+  g.fillStyle = 'rgba(6,2,16,.94)'; g.fillRect(0, 0, W, H);
+  rays(W / 2, cy - 60, 22, 1100, tick * 0.006, col, 0.13);
+  if (tick % 2 === 0 && T < dur - 1){ const an = Math.random() * 6.283, rr = 120 + Math.random() * 260; parts.push({x: W / 2 + Math.cos(an) * rr, y: cy - 60 + Math.sin(an) * rr, vx: Math.cos(an) * 40, vy: Math.sin(an) * 40 - 30, life: .9, c: pick([col, '#ffffff', '#9fe7ff'])}); }
+  text(M.kind === 'caught' ? 'MYTHICAL CAUGHT!' : 'MYTHICAL UNLOCKED', W / 2, cy - 380, 64, col, 'center', 8);
+  text(M.u, W / 2, cy - 300, 48, '#ffffff', 'center', 7);
+  text(M.kind === 'caught' ? 'caught ' + (M.sh ? 'a SHINY ' : '') + M.ids.map(id => A.mons[id].name.toUpperCase()).join(' & ') + ' on Live Catch Dex' : 'completed ' + M.r.join(' & '), W / 2, cy - 245, 34, '#c8cbe0', 'center', 6);
+  // il Pokemon: sagoma nera che si rivela (sblocco) o subito a colori (catturato)
+  const n = M.ids.length, gap = Math.min(380, 900 / n);
+  M.ids.forEach((id, i) => { const m = MON(id), [x0, y0, x1, y1] = m.pb, sz = Math.max(x1 - x0, y1 - y0) || 1, s = Math.min(7, (n > 1 ? 300 : 420) / sz), x = W / 2 + (i - (n - 1) / 2) * gap, bob = Math.sin(tick * 0.06 + i) * 10;
+    const rev = M.kind === 'caught' ? 1 : Math.max(0, Math.min(1, (T - 1.6) * 1.5));
+    g.save(); g.globalAlpha = a * (0.25 + 0.75 * Math.min(1, T * 2));
+    if (rev < 1){ g.filter = 'brightness(0)'; drawMon(m, frameIdx(m, nowS() * 21, false), x, cy + 230 + bob, s, false); g.filter = 'none'; }
+    if (rev > 0){ g.globalAlpha = a * rev; drawMon(m, frameIdx(m, nowS() * 21, !!M.sh), x, cy + 230 + bob, s, !!M.sh); }
+    g.restore(); if (rev > 0) text(m.name.toUpperCase(), x, cy + 290, 40, col, 'center', 7); });
+  if (M.kind === 'unlock' && T > 2.2) text('battle and catch ' + (n > 1 ? 'them' : 'it') + ' on Live Catch Dex', W / 2, cy + 370, 32, '#ffffff', 'center', 6);
+  g.restore();
+}
+// una volta sola: chi ha gia' tutta la regione (adesso che i misteriosi non contano piu') riceve il badge e la MASTER BALL in silenzio
+if (!store.get('plc_myth_v1', false)){ for (const u in DEX){ const d = DEX[u]; if (!d || !d.c) continue; const B = d.badges || (d.badges = []);
+  for (const r of REGIONS) if (!B.includes(r.n) && regHave(d, r) >= r.ids.length){ B.push(r.n); U(u).master++; } } store.set('plc_myth_v1', true); dexDirty = true; }
+
+// ===================================================================
 // 11 LIVE CATCH HOME (Supabase): snapshot pubblico, scambi, azioni, premi, merge, verifica account
 // ===================================================================
 const HOME_CFG = { url: 'https://pdkxuxpvglrupzacpjdg.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBka3h1eHB2Z2xydXB6YWNwamRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NjM4MTMsImV4cCI6MjEwODMzOTgxM30.sBaf9mCEu_0pgSWIo7qhaSJtmhWxtPvNHC5THXangAw', secret: '' };
@@ -1701,7 +1744,7 @@ async function homeActions(){
       // PLAY sul sito (SUPABASE_PLAY): una cattura fatta sul sito conta come una cattura vera
       else if (x.kind === 'catch' && A.mons[+P.id]){ const id = +P.id, sh = !!P.sh, dd = D(x.u), isNew = !(dd.c[id] > 0);
         dexAddCopy(dd, id, sh); dd.n = (dd.n || 0) + 1; MON(id);
-        if (P.last && P.st && (!dd.last || dateOfKey(P.last) > dateOfKey(dd.last))){ dd.last = P.last; dd.st = +P.st; } if (isNew) afterNew(x.u); if (sh) mile(x.u, 'caught a SHINY ' + A.mons[id].name + ' on the site', '#ffd23f', id); ok = true; }
+        if (P.last && P.st && (!dd.last || dateOfKey(P.last) > dateOfKey(dd.last))){ dd.last = P.last; dd.st = +P.st; } if (isNew) afterNew(x.u); if (sh) mile(x.u, 'caught a SHINY ' + A.mons[id].name + ' on the site', '#ffd23f', id); if (MYTHSET.has(id)){ mythCaught(x.u, id, sh); mile(x.u, 'caught the mythical ' + A.mons[id].name + '!', '#d08cff', id); } ok = true; }
       else if (d && x.kind === 'buy'){ const it = SHOPL.find(s => s[0] === P.item && s[0] !== 'lure'), qty = Math.max(1, Math.min(99, +P.qty || 1));
         if (it && (d.candy || 0) >= it[2] * qty){ d.candy -= it[2] * qty; if (it[0] === 'soup') d.soup = (d.soup || 0) + qty; else if (it[0] === 'stone') d.stones = (d.stones || 0) + qty; else { const st = U(x.u); st[it[0]] = (st[it[0]] || 0) + qty; }
           mile(x.u, 'bought ' + it[1] + ' x' + qty + ' on the site', '#ffd23f'); ok = true; } else note = 'skipped'; }
@@ -1824,7 +1867,7 @@ function update(dt){
   if (megas.length){ megas[0].t += dt; if (megas[0].t > MEGA_T){ const m = megas.shift(); roulette('shiny', m.u); } }
   ageFirst(bigThx, 3.2, dt);
   if (likeRoulPend > 0 && roulette('shinylegend')) likeRoulPend--;
-  rouletteUpdate(dt); goldUpdate(dt); chooseUpdate(); trainerUpdate(dt);
+  rouletteUpdate(dt); goldUpdate(dt); chooseUpdate(); trainerUpdate(dt); mythUpdate(dt);
   if (spot){ spot.t += dt; if (spot.t > 9) spot = null; }
   ageFirst(shows, 5, dt);
   ageFirst(reveals, 4.5, dt);
@@ -2999,7 +3042,7 @@ function draw(){
   drawRaidBar();
   if (!DMX){ drawAuto(); drawBags(); drawWT(); drawQuests(); drawSkinCards(); }
   drawOverlays();
-  drawBoost(); drawHelp(); drawGold(); drawBanners(); drawReveal(); drawRoulette(); drawLegTrade(); drawSpot(); drawMega(); drawMegaShow(); drawLevelUp();
+  drawBoost(); drawHelp(); drawGold(); drawBanners(); drawReveal(); drawRoulette(); drawLegTrade(); drawSpot(); drawMega(); drawMegaShow(); drawLevelUp(); drawMyth();
   drawTransition();
   drawCine();
   drawSlShow();
