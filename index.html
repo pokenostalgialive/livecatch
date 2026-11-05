@@ -1527,7 +1527,7 @@ function bindDex(){
 }
 
 /* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
-const BUILD = '20261105113333';
+const BUILD = '20261105115140';
 async function checkUpdate(){
   if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
   try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
@@ -1615,8 +1615,8 @@ const SPK = {S0: 'SEASON 0', S1: 'SEASON 1', MYTH: 'EVENT', DEX: 'POKÉDEX', EVE
 const spGroup = x => isDexTag(x) ? 'dex' : x.k === 'GIFT' ? 'gift' : (x.k === 'MILE' || x.k === 'TOWER') ? 'ach' : 'ev';
 // Pokédex completion rewards = mythicals really won with the site battle (myth_log, public in myth_board) or the unique Arceus; event/gift mythicals are not.
 // Decided here from myth_log, so it stays right even when the live game re-sends its own copy of the tags.
-let MYTHWON = new Set();
-async function loadMythWon(){ try { const B = await rpc('myth_board', {}); MYTHWON = new Set(((B && B.myths) || []).map(m => m.u.toLowerCase() + '|' + m.id)); } catch(e){} }
+let MYTHWON = new Map();      // 'user|id' -> date the mythical was won (from myth_log)
+async function loadMythWon(){ try { const B = await rpc('myth_board', {}); MYTHWON = new Map(((B && B.myths) || []).map(m => [m.u.toLowerCase() + '|' + m.id, String(m.t || '').slice(0, 10)])); } catch(e){} }
 function dexTagged(L){ const used = new Set(), out = new Set();
   for (const x of L){ if (x.k === 'DEX' || isArc(x.id)){ out.add(x.uid); continue; }
     const key = String(x.ot || '').toLowerCase() + '|' + x.id;
@@ -1666,7 +1666,7 @@ function specSheet(t, uid){
   const bg = openSheet(`<img class="big" src="${spr(x.id, x.sh)}" onerror="sprFallback(this,${x.id},${x.sh ? 1 : 0})" alt=""><h3>${x.sh ? '✦ ' : ''}${esc(name(x.id))}</h3>${isDexTag(x) ? medal(x, true) : `<span class="tagp ${esc(x.k || '')}" style="font-size:11px">${esc(spLabel(x))}</span>`}
     <div class="spinfo">${isDexTag(x) ? `<div><span>Ribbon</span><b>${spRegion(x) === 'ALL' ? 'All 9 Pokédex completed · LIVE CATCH MASTER' : spRn(spRegion(x)) + ' Pokédex completed'}</b></div><div><span>How</span><b>${spRegion(x) === 'ALL' ? 'Won the battle of the unique Arceus' : 'Completed the ' + spRn(spRegion(x)) + ' Pokédex and won the mythical battle'}</b></div>`
       : x.k === 'GIFT' ? `<div><span>From</span><b>${esc(x.ev || 'Roulette')}</b></div><div><span>Why</span><b>${esc(x.why || '—')}</b></div>`
-      : `<div><span>${x.k === 'MILE' || x.k === 'TOWER' ? 'Achievement' : 'Event'}</span><b>${esc(x.ev || '—')}</b></div><div><span>Why</span><b>${esc(whyTxt(x))}</b></div>`}<div><span>Date</span><b>${fdate(x.d)}</b></div><div><span>Original trainer</span><b>${x.ot ? '@' + esc(x.ot) : '—'}</b></div>${hist ? `<div><span>Traded to</span><b>${hist}</b></div>` : ''}<div><span>Shiny</span><b>${x.sh ? 'Yes ✦' : 'No'}</b></div></div>
+      : `<div><span>${x.k === 'MILE' || x.k === 'TOWER' ? 'Achievement' : 'Event'}</span><b>${esc(x.ev || '—')}</b></div><div><span>Why</span><b>${esc(whyTxt(x))}</b></div>`}<div><span>Date</span><b>${fdate(x.d || (isDexTag(x) && MYTHWON.get(String(x.ot || '').toLowerCase() + '|' + x.id)) || '')}</b></div><div><span>Original trainer</span><b>${x.ot ? '@' + esc(x.ot) : '—'}</b></div>${hist ? `<div><span>Traded to</span><b>${hist}</b></div>` : ''}<div><span>Shiny</span><b>${x.sh ? 'Yes ✦' : 'No'}</b></div></div>
     <p class="hint">Tagged Pokémon are never recycled or evolved. They can be traded only one for one with another tagged Pokémon.</p>
     <div class="savebar"><button class="btn ghost" id="spc">Close</button>${canOffer ? '<button class="btn" id="spo">Offer a special trade</button>' : ''}</div>`, 'edit'), sh = bg.querySelector('.sheet');
   sh.querySelector('#spc').onclick = bg.close;
