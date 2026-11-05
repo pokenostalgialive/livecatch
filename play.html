@@ -489,7 +489,7 @@ function spawn(){
   const sp = special.shift();
   if (sp){ kind = sp.type; donor = sp.donor || null;
     if (sp.type === 'raid'){ id = sp.id && A.mons[sp.id] ? sp.id : sp.dmax ? deal('dmax', DMAXPOOL) : raidBoss(); shiny = Math.random() < 0.04 || nextRaidShiny; nextRaidShiny = false; store.set('plc_raid_shiny', false); }
-    else if (sp.type === 'pick'){ id = sp.id; if (sp.shiny) shiny = true; }
+    else if (sp.type === 'pick'){ id = sp.id; if (sp.shiny) shiny = true; else if (WEB) shiny = false; }      // Play (web): shiny only if the server says so
     else if (sp.type === 'horde') id = sp.id;
     else if (sp.type === 'mega' && MEGAS.length) id = deal('mega', MEGAS);
     else if (sp.type === 'comm'){ id = sp.id; shiny = !!sp.shiny; }
