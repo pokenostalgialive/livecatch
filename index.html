@@ -1526,6 +1526,15 @@ function bindDex(){
     bg.querySelector('#mc').onclick = bg.close; });
 }
 
+/* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
+const BUILD = '20261105111750';
+async function checkUpdate(){
+  if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
+  try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+setInterval(checkUpdate, 3 * 60000);
+
 /* ===== GET THE APP: install on the home screen (Android: real install prompt · iPhone: Share > Add to Home Screen · TikTok: open in browser first) ===== */
 let DEFP = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); DEFP = e; });
