@@ -397,6 +397,7 @@ function titleCalc(u){
   if (d.badges && d.badges.length) return d.badges.length > 1 ? d.badges.length + '-REGION MASTER' : d.badges[0] + ' MASTER';
   { const st = shinyTitle(d); if (st) return st; }
   { const X = d.rx || {}, ex = REGIONS.filter(r => (X[r.n] || 0) >= 2); if (ex.length) return ex[ex.length - 1].n + ' EXPLORER'; }
+  { const st = seasonTitleOf(u); if (st) return st; }
   if ((d.s || 0) >= 10) return 'SHINY HUNTER';
   if (own.filter(id => LEG.has(id)).length >= 20) return 'LEGEND COLLECTOR';
   const tc = {}; for (const id of own) for (const t of (PTYPE[id] || '').split('/')) if (t) tc[t] = (tc[t] || 0) + 1;
@@ -445,6 +446,7 @@ function addCatch(u, id, shiny){
   if (fresh){ const sp = Object.keys(d.c).length;
     if ([50, 100, 200, 300, 400, 500, 750, 1000].includes(sp)){ mile(u, sp + ' different Pokemon in the dex', '#7dff9a'); banner(sp + ' POKEMON IN THE DEX!', u + ' has caught ' + sp + ' different Pokemon', '#7dff9a'); jingle([523, 659, 784, 1046, 1319], 100, 0.14); } }
   // 1000, 2000...: festa a schermo intero (anche se l'ha superato prima: alla cattura dopo)
+  if (d.n > 0 && d.n % 1000 === 0) specAdd(u, {uid: 'm' + d.n + '_' + Date.now().toString(36), id, sh: shiny ? 1 : 0, k: 'MILE', ev: 'Catch #' + d.n, why: 'Catch number ' + d.n, d: isoDay(), ot: u});
   { const k = Math.floor(d.n / 1000); if (k >= 1 && (d.mega || 0) < k){ d.mega = k; megaParty(u, k * 1000); } }
   if (d.n % 1000 >= 990) floats.push({x: 540, y: 1460, s: u.slice(0, 14) + ': ' + (1000 - d.n % 1000) + ' to ' + (Math.floor(d.n / 1000) + 1) * 1000 + ' CATCHES!', u, life: 2.6, big: true});
   // MASTER BALL a 100, 250, 500, 1000, 1500, 2000, poi ogni 500
@@ -482,14 +484,16 @@ const activeTrainers = () => Math.max(4, Object.values(lastAct).filter(t => Date
 function hurry(){ if (enc && phase === 'enc') enc.dur = Math.min(enc.dur, enc.t + 8); }
 let lastThrowAt = nowS();
 // comuni casuali normali: 18 s (li prendono tutti); rari, leggendari, shiny, speciali e raid tengono CFG.encSec
-const COMMON_SEC = 18;
+// 04/11: i comuni tornano alla durata normale (prima 18 s)
+const COMMON_SEC = CFG.encSec;
 
 function spawn(){
   let id, shiny = Math.random() < (szOn() ? 1 / 25 : 1 / 350), donor = null, kind = 'random';
   const sp = special.shift();
-  if (sp){ kind = sp.type; donor = sp.donor || null;
+  let fromRoul = false;
+  if (sp){ kind = sp.type; donor = sp.donor || null; fromRoul = !!sp.roul;
     if (sp.type === 'raid'){ id = sp.id && A.mons[sp.id] ? sp.id : sp.dmax ? deal('dmax', DMAXPOOL) : raidBoss(); shiny = Math.random() < 0.04 || nextRaidShiny; nextRaidShiny = false; store.set('plc_raid_shiny', false); }
-    else if (sp.type === 'pick'){ id = sp.id; if (sp.shiny) shiny = true; else if (WEB) shiny = false; }      // Play (web): shiny only if the server says so
+    else if (sp.type === 'pick'){ id = sp.id; if (sp.shiny) shiny = true; else if (WEB) shiny = false; }
     else if (sp.type === 'horde') id = sp.id;
     else if (sp.type === 'mega' && MEGAS.length) id = deal('mega', MEGAS);
     else if (sp.type === 'comm'){ id = sp.id; shiny = !!sp.shiny; }
@@ -509,7 +513,7 @@ function spawn(){
   if (!id){ const r = Math.random(); id = r < 0.003 ? deal('legend', LEGPOOL) : r < 0.005 && MEGAWILD.length ? deal('megaw', MEGAWILD) : r < 0.16 ? deal('rare', RARE) : deal('common', COMMON); }
   const rar = rarityOf(id), big = rar === 'legend' || shiny;
   const intro = big ? 1.8 : 1.1;
-  enc = {raid: null, id, m: MON(id), rar, shiny, t: -intro, intro, dur: big ? CFG.bigSec : (rar === 'common' && !shiny && kind === 'random' ? COMMON_SEC : CFG.encSec), caught: [], throws: 0, miss: {}, key: Date.now() + '_' + id, donor, kind,
+  enc = {roul: fromRoul, raid: null, id, m: MON(id), rar, shiny, t: -intro, intro, dur: big ? CFG.bigSec : (rar === 'common' && !shiny && kind === 'random' ? COMMON_SEC : CFG.encSec), caught: [], throws: 0, miss: {}, key: Date.now() + '_' + id, donor, kind,
     hard: sp && sp.type === 'pick' && sp.hard !== null ? sp.hard : rar !== 'legend' && Math.random() < 0.3, bg: TYPE_OF[id] || 'classic'};
   // ALPHA: 1 ogni 500 spawn casuali, piu' grande, aura rossa, 20% piu' difficile
   if (kind === 'random' && !isMega(id) && !FORMBASE[id] && Math.random() < 1 / 500){ enc.alpha = true; enc.dur = Math.max(enc.dur, CFG.encSec); banner('ALPHA POKEMON!', 'a huge ALPHA ' + A.mons[id].name + ' appeared!', '#ff3a3a'); jingle([196, 247, 294, 392, 494], 110, 0.14); shake = 0.6; }
@@ -528,13 +532,13 @@ function spawn(){
   if (kind === 'comm'){ enc.comm = true; enc.hard = false; banner('COMMUNITY BONUS!', 'thanks to all of you: SHINY ' + enc.m.name.toUpperCase() + ' - easy to catch for everyone!', '#ffd23f'); }
   if (kind === 'raid'){ const hp = Math.max(800, Math.min(5000, activeTrainers() * 100)); enc.raid = {hp, max: hp, beaten: false, hitters: new Set(), dmgBy: {}}; enc.dur = 75; enc.hard = false;
     if (sp.dmax){ enc.raid.dmax = true; enc.cine = 3; enc.t = -(enc.intro + enc.cine); }
-    if (raidSponsor){ enc.raid.sponsor = raidSponsor.u; banner('RAID PRESENTED BY ' + raidSponsor.u.toUpperCase(), 'thank you! his attacks hit x3 - everybody write c!', '#ff8fc8'); speak('This raid is presented by ' + raidSponsor.u + '! Thank you!'); raidSponsor = null; } }
+    if (raidSponsor){ enc.raid.sponsor = raidSponsor.u; raidSponsor = null; } }
   phase = 'enc'; beep(330, 0.3, 'sawtooth', 0.04);
   const nm = enc.m.name.toUpperCase();
   if (enc.raid && enc.raid.dmax){ banner((shiny ? 'SHINY ' : '') + 'DYNAMAX ' + nm + '!', 'write c to attack  ·  likes break the MAX SHIELDS!', '#ff3a6a'); speak('A Dynamax ' + enc.m.name + '! Attack all together!'); }
   else if (enc.mega){ banner('MEGA EVOLUTION!', 'a wild ' + nm + ' appeared - hard to catch, write C!', '#ff5ad0'); jingle([523, 659, 784, 1046, 1319, 1568, 2093], 80, 0.16); speak(A.mons[enc.mega].name + ' Mega Evolved!'); }
-  else if (shiny){ banner('SHINY ' + nm + '!', donor ? donor + ': FREE MASTER BALL, 100% catch!  Everyone else can try' : 'A shiny appeared!', '#ffd23f'); jingle([1319,1568,2093,2637], 90, 0.14); speak('A shiny ' + enc.m.name + ' appeared!' + (donor ? ' Thank you ' + donor + '!' : '')); }
-  else if (rar === 'legend'){ banner(legName(id) + ' ' + nm + '!', donor ? donor + ': FREE MASTER BALL, 100% catch!  Everyone else can try' : UB.has(id) ? 'An Ultra Beast appeared!' : 'A legendary appeared!', '#ff6a4a'); jingle([392,523,659,784,1046], 110, 0.16); shake = 0.8; speak((UB.has(id) ? 'An Ultra Beast, ' : 'A legendary ') + enc.m.name + ' appeared!' + (donor ? ' Thank you ' + donor + '!' : '')); }
+  else if (shiny){ banner('SHINY ' + nm + '!', 'A shiny appeared!', '#ffd23f'); jingle([1319,1568,2093,2637], 90, 0.14); speak('A shiny ' + enc.m.name + ' appeared!' + (donor ? ' Thank you ' + donor + '!' : '')); }
+  else if (rar === 'legend'){ banner(legName(id) + ' ' + nm + '!', UB.has(id) ? 'An Ultra Beast appeared!' : 'A legendary appeared!', '#ff6a4a'); jingle([392,523,659,784,1046], 110, 0.16); shake = 0.8; speak((UB.has(id) ? 'An Ultra Beast, ' : 'A legendary ') + enc.m.name + ' appeared!' + (donor ? ' Thank you ' + donor + '!' : '')); }
   else if (enc.mystery || enc.horde) {}
   else if (rar === 'rare'){ jingle([784,988,1175], 90, 0.1); speak((PARADOX.has(id) ? 'A paradox Pokemon, ' : 'A rare ') + enc.m.name + '!'); }
   else beep(660, 0.08);
@@ -658,6 +662,7 @@ function resolve(f){
     if (!e.caught.length){ f.first = true; if (popQ.length < 3) popQ.push({u: f.u, t: 0, kind: 'first'}); jingle([880, 1175], 80, 0.1); }
     if (!e.caught.includes(f.u)) e.caught.push(f.u);
     addCatch(f.u, e.id, e.shiny);
+    if (e.roul) specAdd(f.u, {uid: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: e.id, sh: e.shiny ? 1 : 0, k: 'GIFT', ev: 'Roulette', why: e.donor ? (e.donor === f.u ? 'gifted by @' : 'Gift from @') + e.donor : 'Community roulette', d: isoDay(), ot: f.u});
     if (e.alpha){ const da = DEX[f.u]; (da.ac || (da.ac = {}))[e.id] = (da.ac[e.id] || 0) + 1; dexDirty = true; mile(f.u, 'ALPHA ' + (e.shiny ? 'SHINY ' : '') + A.mons[e.id].name, '#ff3a3a', e.id); if (e.caught[0] === f.u) homeLog('alpha', f.u, e.id, e.shiny); }
     for (let i = 0; i < 18; i++) parts.push({x: f.tx, y: f.ty - 10, vx: (Math.random() - .5) * 360, vy: -Math.random() * 360, life: .9, c: e.shiny ? '#ffd23f' : '#ffffff'});
     jingle([988, 1319], 70, 0.08);
@@ -756,7 +761,7 @@ function rouletteUpdate(dt){
     if (roul.donor) homeLog('roul', roul.donor, roul.win, roul.kind === 'shiny' || roul.kind === 'shinylegend');
     jingle([784, 988, 1175, 1568, 2093, 2637], 100, 0.16); shake = 0.7; flashT = 0.5;
     speak((roul.kind === 'shiny' || roul.kind === 'shinylegend' ? 'Shiny ' : '') + A.mons[roul.win].name + ' for everyone!'); }
-  if (roul.t > R_END){ special.unshift({type: 'pick', id: roul.win, shiny: roul.kind === 'shiny' || roul.kind === 'shinylegend', hard: false, donor: roul.donor || null}); roul = null; phaseT = 0; }
+  if (roul.t > R_END){ special.unshift({type: 'pick', roul: true, id: roul.win, shiny: roul.kind === 'shiny' || roul.kind === 'shinylegend', hard: false, donor: roul.donor || null}); roul = null; phaseT = 0; }
 }
 
 // ===================================================================
@@ -1417,7 +1422,7 @@ function trainerUpdate(dt){
   if (welcomes.length){ welcomes[0].t += dt; if (welcomes[0].t > 3.4) welcomes.shift(); }
 }
 // pastiglia "Lv 32" (e OG) accanto al nome
-function lvPill(u, x, y, h, k){ if (WEB && u !== window.LC_ME) return 0; const lv = trainerLv(u), s = 'Lv' + lv, fs = Math.round(h * 0.62), w = measure(s, fs) + 10 * k;
+function lvPill(u, x, y, h, k){ if (WEB && u !== window.LC_ME) return 0; const lv = trainerLv(u), pst = lv >= 100 ? prestige(u) : 0, s = 'Lv' + lv + (pst ? ' ★' + pst : ''), fs = Math.round(h * 0.62), w = measure(s, fs) + 10 * k;
   g.fillStyle = 'rgba(10,10,20,.88)'; g.fillRect(x, y, w, h); g.strokeStyle = lvCol(lv); g.lineWidth = Math.max(1.5, 2 * k); g.strokeRect(x + 1, y + 1, w - 2, h - 2);
   text(s, x + w / 2, y + h / 2 + 1, fs, lvCol(lv), 'center', 0); let ww = w;
   if (isOG(u)){ const ow = measure('OG', fs) + 10 * k; g.fillStyle = '#ffd23f'; g.fillRect(x + w + 3, y, ow, h); text('OG', x + w + 3 + ow / 2, y + h / 2 + 1, fs, '#1a1400', 'center', 0); ww += ow + 3; }
@@ -1484,12 +1489,12 @@ setTimeout(homeSkinsLoad, 35000); setInterval(homeSkinsLoad, 5 * 60000);
 const skinOwn = (u, k) => { const d = DEX[u]; return !!(d && d.skins && d.skins[k]); };
 const weekOwn = u => { const w = typeof weeklyOf === 'function' ? weeklyOf(u) : null; return !!(w && (w.now || w.weeks >= 4)); };
 const UNLOCK = {ball: {normal: () => true, pumpkin: u => skinOwn(u, 'pumpkin')},
-  trail: {none: () => true, stars: u => cosLv(u) >= 15, fire: u => cosLv(u) >= 30, bats: u => skinOwn(u, 'bats'), week: weekOwn},
+  trail: {s0: () => true, s1: () => true, none: () => true, stars: u => cosLv(u) >= 15, fire: u => cosLv(u) >= 30, bats: u => skinOwn(u, 'bats'), week: weekOwn},
   name: {white: () => true, blue: u => cosLv(u) >= 5, gold: u => cosLv(u) >= 20, rainbow: u => cosLv(u) >= 50},
-  frame: Object.assign({none: () => true, silver: u => cosLv(u) >= 10, gold: u => cosLv(u) >= 25, shiny: u => shinyOwn(u)}, ...REGIONS.map(r => ({[r.n.toLowerCase()]: u => regOwn(u, r.n)}))),
+  frame: Object.assign({p1: u => prestige(u) >= 1, p3: u => prestige(u) >= 3, p5: u => prestige(u) >= 5, s0: () => true, s1: () => true, none: () => true, silver: u => cosLv(u) >= 10, gold: u => cosLv(u) >= 25, shiny: u => shinyOwn(u)}, ...REGIONS.map(r => ({[r.n.toLowerCase()]: u => regOwn(u, r.n)}))),
   aura: {none: () => true, gold: u => cosLv(u) >= 75, ghost: u => skinOwn(u, 'ghost')}};
 // ordine del "migliore" per lo slot in automatico
-const BEST = {ball: ['pumpkin', 'normal'], trail: ['week', 'fire', 'bats', 'stars', 'none'], name: ['rainbow', 'gold', 'blue', 'white'], frame: ['shiny', 'gold'].concat(REGIONS.map(r => r.n.toLowerCase()).reverse(), ['silver', 'none']), aura: ['ghost', 'gold', 'none']};
+const BEST = {ball: ['pumpkin', 'normal'], trail: ['week', 'fire', 'bats', 'stars', 'none'], name: ['rainbow', 'gold', 'blue', 'white'], frame: ['p5', 'p3', 'p1', 'shiny', 'gold'].concat(REGIONS.map(r => r.n.toLowerCase()).reverse(), ['silver', 'none']), aura: ['ghost', 'gold', 'none']};
 const skC = {};
 function skinOf(u, slot){
   const key = u + '|' + slot, c = skC[key], now = performance.now(); if (c && now - c.t < 2000) return c.v;
@@ -1499,7 +1504,7 @@ function skinOf(u, slot){
     v = want && want !== 'auto' && UNLOCK[slot][want] && UNLOCK[slot][want](u) ? want : BEST[slot].find(k => UNLOCK[slot][k](u)); }
   skC[key] = {v, t: now}; return v; }
 function lvNameCol(u, base){ if (base && base !== '#ffffff') return base; if (dexDone(u) && !(DEX[u] && DEX[u].skinOff)) return 'hsl(' + ((tick * 8) % 360) + ',100%,70%)'; const k = skinOf(u, 'name'); return k === 'rainbow' ? 'hsl(' + ((tick * 5) % 360) + ',100%,72%)' : k === 'gold' ? '#ffd23f' : k === 'blue' ? '#9fe7ff' : base || '#ffffff'; }
-function lvFrame(u, x, y, r){ const k = skinOf(u, 'frame'); if (k === 'none') return;
+function lvFrame(u, x, y, r){ const k = skinOf(u, 'frame'); if (k === 'none') return; if (SEACOL[k]){ seasonFrame(k, x, y, r); return; } if (k in PRCOL){ prestigeFrame(k, x, y, r); return; }
   if (k === 'shiny'){ g.strokeStyle = '#fff3a0'; g.lineWidth = Math.max(2, r * 0.18); g.beginPath(); g.arc(x, y, r + 1, 0, 7); g.stroke(); const an = tick * 0.08; g.fillStyle = '#ffffff'; for (let i = 0; i < 3; i++){ const a2 = an + i * 2.094, sx = x + Math.cos(a2) * (r + 2), sy = y + Math.sin(a2) * (r + 2), q = Math.max(2, r * 0.22); g.fillRect(sx - q / 2, sy - 1, q, 2); g.fillRect(sx - 1, sy - q / 2, 2, q); } return; }
   const rc = REGCOL[k.toUpperCase()];
   if (rc){ g.strokeStyle = rc; g.lineWidth = Math.max(2, r * 0.16); g.beginPath(); g.arc(x, y, r + 1, 0, 7); g.stroke(); g.lineWidth = Math.max(1, r * 0.07); g.strokeStyle = '#ffffff'; g.beginPath(); g.arc(x, y, r + 1 + r * 0.2, 0, 7); g.stroke(); return; }
@@ -1510,6 +1515,7 @@ function shinyOwn(u){ if (WEB && u !== window.LC_ME) return false; const d = DEX
 function regOwn(u, n){ if (WEB && u !== window.LC_ME) return false; const d = DEX[u]; return !!d && (((d.rx || {})[n] || 0) >= 1 || (d.badges || []).includes(n)); }
 function lvTrail(f, x, y, kk){ const k = skinOf(f.u, 'trail'); if (k === 'none' || tick % 2) return;
   if (k === 'week'){ weeklyTrail(f, x, y, kk); return; }
+  if (SEACOL[k]){ seasonTrail(k, x, y, kk); return; }
   if (k === 'bats') parts.push({x, y, vx: (Math.random() - .5) * 60, vy: -30 - Math.random() * 40, life: .5, c: Math.random() < .5 ? '#2a0a3a' : '#ff8a1e'});
   else if (k === 'fire') parts.push({x: x + (Math.random() - .5) * 10 * kk, y: y + (Math.random() - .5) * 10 * kk, vx: (Math.random() - .5) * 40, vy: 20 + Math.random() * 40, life: .45, c: pick(['#ff3a1e', '#ff8a1e', '#ffd23f'])});
   else parts.push({x, y, vx: (Math.random() - .5) * 50, vy: (Math.random() - .5) * 50, life: .5, c: pick(['#ffffff', '#ffd23f', '#9fe7ff'])}); }
@@ -1644,6 +1650,35 @@ function drawEventStrip(){
   if (EV.season){ const se = EV.season; L.push(['SEASON ' + String(se.id).slice(1) + ' · ' + String(se.name).toUpperCase() + ' · ' + left(Date.parse(se.ends) - now) + ' · season pass on Live Catch Dex', '#c08cff', '#14062a']); }
   if (!L.length) return; const [s, bg, fg] = L[Math.floor(now / 8000) % L.length], fs = fitSize(s, 24, W - 120), w = Math.min(W - 60, measure(s, fs) + 50), x = (W - w) / 2, y = 112;
   g.fillStyle = bg; g.fillRect(x, y, w, 40); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x, y + 36, w, 4); text(s, W / 2, y + 21, fs, fg, 'center', 0); }
+
+// ---------- scambio speciale dal sito (spec_move): la copia targhettata esce da chi l'ha data ----------
+function specOut(u, P){ const d = DEX[u]; if (!d || !d.spec) return false; const i = d.spec.findIndex(x => x.uid === P.uid); if (i < 0) return false;
+  const sp = d.spec.splice(i, 1)[0], id = +(P.id || sp.id), sh = P.sh !== undefined ? !!P.sh : !!sp.sh;
+  if (!(d.c[id] > 0)) return true;
+  if (sh && shinyN(d, id) > 0){ d.c[id]--; d.sc = d.sc || {}; d.sc[id] = Math.max(0, shinyN(d, id) - 1); if (!d.sc[id]) d.sh = d.sh.filter(x => +x !== id); if (d.c[id] <= 0){ delete d.c[id]; delete d.sc[id]; if (d.team) d.team = d.team.filter(x => +x !== id); } }
+  else dexTake(d, id, 1);
+  dexDirty = true; return true; }
+// ---------- titoli di stagione (season_titles del sito) ----------
+let seasonTitles = {};
+async function seasonTitlesLoad(){ if (!HOME_CFG.url || WEB) return;
+  try { const r = await fetch(HOME_CFG.url + '/rest/v1/rpc/season_titles', {method: 'POST', headers: {'Content-Type': 'application/json', apikey: HOME_CFG.key, Authorization: 'Bearer ' + HOME_CFG.key}, body: '{}'});
+    if (r.ok){ const T = {}; for (const x of await r.json()) T[String(x.u).toLowerCase()] = x.title; seasonTitles = T; } } catch(e){} }
+setTimeout(seasonTitlesLoad, 12000); setInterval(seasonTitlesLoad, 5 * 60000);
+const seasonTitleOf = u => seasonTitles[String(u).toLowerCase()] || null;
+// estetica di stagione (scelta dal Guardaroba del sito, che controlla lo sblocco): cornice / scia S0 viola, S1 ghiaccio
+const SEACOL = {s0: ['#c08cff', '#ffffff'], s1: ['#9fe7ff', '#ffffff']};
+function seasonFrame(k, x, y, r){ const c = SEACOL[k]; g.strokeStyle = c[0]; g.lineWidth = Math.max(2, r * 0.2); g.beginPath(); g.arc(x, y, r + 1, 0, 7); g.stroke();
+  const n = k === 's1' ? 6 : 4, an = tick * 0.03; g.fillStyle = c[1]; for (let i = 0; i < n; i++){ const a2 = an + i * 6.283 / n, sx = x + Math.cos(a2) * (r + 2), sy = y + Math.sin(a2) * (r + 2), q = Math.max(2, r * 0.16); g.fillRect(sx - q / 2, sy - q / 2, q, q); } }
+function seasonTrail(k, x, y, kk){ const c = SEACOL[k]; parts.push({x: x + (Math.random() - .5) * 12 * kk, y: y + (Math.random() - .5) * 12 * kk, vx: (Math.random() - .5) * 40, vy: k === 's1' ? 25 + Math.random() * 30 : -20 - Math.random() * 30, life: .55, c: Math.random() < .6 ? c[0] : c[1]}); }
+const isoDay = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+// 05/11 (chat HOME): le vecchie targhette MYTH 'caught before the event box' erano di eventi/regali -> EVENT. MYTH solo per i misteriosi vinti con la lotta del sito.
+if (!store.get('plc_spec_v2', false)){ for (const u in DEX){ for (const x of (DEX[u] && DEX[u].spec) || []) if (x.k === 'MYTH' && x.why === 'caught before the event box'){ x.k = 'EVENT'; x.why = 'caught in a live event before tags existed'; } }
+  store.set('plc_spec_v2', true); dexDirty = true; }
+// ---------- PRESTIGIO (dopo il Lv 100): una stella ogni 200.000 XP oltre 392.040 ----------
+const prestige = u => { const d = DEX[u]; if (!d) return 0; const x = trainerXP(d) - 392040; return x >= 0 ? Math.floor(x / 200000) : 0; };
+const PRCOL = {p1: '#d0803a', p3: '#b46aff', p5: null};
+function prestigeFrame(k, x, y, r){ g.strokeStyle = k === 'p5' ? 'hsl(' + ((tick * 6) % 360) + ',100%,65%)' : PRCOL[k]; g.lineWidth = Math.max(2, r * 0.24); g.beginPath(); g.arc(x, y, r + 1, 0, 7); g.stroke();
+  g.fillStyle = '#ffffff'; const q = Math.max(2, r * 0.18); text('★', x, y - r - 2, Math.max(10, r * 0.7), k === 'p5' ? '#ffffff' : PRCOL[k], 'center', 2); }
 
 // ===================================================================
 // 11 LIVE CATCH HOME (Supabase): snapshot pubblico, scambi, azioni, premi, merge, verifica account
@@ -1835,6 +1870,8 @@ async function homeActions(){
       else if (x.kind === 'catch' && A.mons[+P.id]){ const id = +P.id, sh = !!P.sh, dd = D(x.u), isNew = !(dd.c[id] > 0);
         dexAddCopy(dd, id, sh); if (!P.nocount) dd.n = (dd.n || 0) + 1; if (P.spec && P.spec.uid) specAdd(x.u, Object.assign({}, P.spec, {id, sh: sh ? 1 : 0})); MON(id);
         if (P.last && P.st && (!dd.last || dateOfKey(P.last) > dateOfKey(dd.last))){ dd.last = P.last; dd.st = +P.st; } if (isNew) afterNew(x.u); if (sh) mile(x.u, 'caught a SHINY ' + A.mons[id].name + ' on the site', '#ffd23f', id); if (sh) checkShinyDex(x.u); if (MYTHSET.has(id)){ mythCaught(x.u, id, sh); mile(x.u, 'caught the mythical ' + A.mons[id].name + '!', '#d08cff', id); } ok = true; }
+      else if (x.kind === 'spec_tag' && P.spec && P.spec.uid){ specAdd(x.u, P.spec); ok = true; }
+      else if (d && x.kind === 'spec_out'){ if (specOut(x.u, P)) ok = true; }
       else if (d && x.kind === 'arceus'){ if (arceusSet(x.u, P.type, true)) ok = true; else note = 'not possible'; }
       else if (d && x.kind === 'buy'){ const it = SHOPL.find(s => s[0] === P.item && s[0] !== 'lure'), qty = Math.max(1, Math.min(99, +P.qty || 1));
         if (it && (d.candy || 0) >= it[2] * qty){ d.candy -= it[2] * qty; if (it[0] === 'soup') d.soup = (d.soup || 0) + qty; else if (it[0] === 'stone') d.stones = (d.stones || 0) + qty; else { const st = U(x.u); st[it[0]] = (st[it[0]] || 0) + qty; }
@@ -2229,7 +2266,7 @@ function drawGoal(){
   const gr = g.createLinearGradient(x, 0, x + w, 0); gr.addColorStop(0, '#3cd070'); gr.addColorStop(1, '#7dff9a'); g.fillStyle = gr; g.fillRect(x + 4, y + 4, (w - 8) * fr, h - 8);
   g.strokeStyle = '#7dff9a'; g.lineWidth = 3; g.strokeRect(x, y, w, h);
   const s = 'COMMUNITY GOAL  ' + Math.min(DAY.n, gq) + ' / ' + gq + ' caught today  =  SHINY FOR EVERYONE'; text(s, W/2, y + h/2 + 1, fitSize(s, 20, w - 30), '#ffffff', 'center', 3); }
-function drawBoost(){ if (!boostOn() || !enc || phase !== 'enc') return; const left = Math.ceil((boostEnd - Date.now()) / 1000), y = 542, pu = 1 + 0.03 * Math.sin(tick * 0.3);
+function drawBoost(){ return; if (!boostOn() || !enc || phase !== 'enc') return; const left = Math.ceil((boostEnd - Date.now()) / 1000), y = 542, pu = 1 + 0.03 * Math.sin(tick * 0.3);
   const s = 'BOOST +10% CATCH FOR EVERYONE  ' + left + 's  ·  thanks ' + boostBy.slice(0, 14); g.save(); g.translate(W/2, y); g.scale(pu, pu);
   g.fillStyle = '#2a1020'; g.fillRect(-425, -22, 850, 44); g.strokeStyle = '#ff8fc8'; g.lineWidth = 3; g.strokeRect(-425, -22, 850, 44);
   text(s, 0, 1, fitSize(s, 20, 800), '#ff8fc8', 'center', 3); g.restore(); }
@@ -2367,7 +2404,7 @@ function supTrail(f, x, y){ const k = supTrailTier(f.u); if (!k || f.t >= f.fly)
   for (let i = 0; i < n; i++){ const c = k === 1 ? pick(['#ff8fc8', '#ffd0e4', '#ffffff']) : k === 2 ? pick(['#ffd23f', '#ffe98a', '#fff6c8', '#ffb020']) : 'hsl(' + ((tick * 8 + i * 120 + Math.random() * 60) % 360) + ',100%,70%)';
     parts.push({x: x + (Math.random() - .5) * 26, y: y + (Math.random() - .5) * 26, vx: (Math.random() - .5) * 60, vy: 20 + Math.random() * 50, life: k === 3 ? 1 : .8, c}); } }
 // regalo piccolo: petali rosa dietro le prossime ball
-function petalTrail(f, x, y){ const st = users[f.u]; if (!st || !(st.petalUntil > Date.now()) || f.t >= f.fly) return;
+function petalTrail(f, x, y){ return; const st = users[f.u]; if (!st || !(st.petalUntil > Date.now()) || f.t >= f.fly) return;
   if (tick % 2 === 0) parts.push({x: x + (Math.random() - .5) * 20, y: y + (Math.random() - .5) * 20, vx: (Math.random() - .5) * 80, vy: 40 + Math.random() * 60, life: .8, c: Math.random() < .5 ? '#ff8fc8' : '#ffd0e4'}); }
 const SLC = document.createElement('canvas'); SLC.width = SLC.height = 640; const slg = SLC.getContext('2d');
 function drawSlShow(){ const s = slShow; if (!s) return; s.t += 1 / 60; const T = s.t, Dd = 10; if (T > Dd){ slShow = null; return; }
@@ -3004,7 +3041,7 @@ function drawEncBox(e){
     g.strokeStyle = '#000'; g.lineWidth = 3; g.strokeRect(90, 414, W - 310, 32); text('HP  ' + Math.ceil(e.raid.hp) + ' / ' + e.raid.max, 90 + (W - 310) / 2, 431, 18, '#ffffff', 'center', 3); }
   else { g.fillStyle = '#d8d8e0'; g.fillRect(90, 420, W - 310, 20);
     g.fillStyle = fr > 0.3 ? '#4ac870' : '#e05050'; g.fillRect(90, 420, (W - 310) * fr, 20); }
-  const ct = e.raid && !e.raid.beaten ? (e.raid.sponsor ? 'presented by ' + e.raid.sponsor.slice(0, 14) + '  ·  ' : '') + e.raid.hitters.size + ' trainers attacking  ·  c = attack  ·  likes = damage' : e.raid ? 'DEFEATED! catch it now  ·  attackers get a bonus' : 'Caught by ' + e.caught.length + '  ·  ' + e.throws + ' throws';
+  const ct = e.raid && !e.raid.beaten ? e.raid.hitters.size + ' trainers attacking  ·  c = attack  ·  likes = damage' : e.raid ? 'DEFEATED! catch it now  ·  attackers get a bonus' : 'Caught by ' + e.caught.length + '  ·  ' + e.throws + ' throws';
   text(ct, 90, 462, fitSize(ct, 22, e.hard ? 470 : W - 320), '#2a8a3a', 'left');
   if (e.hard){ g.fillStyle = (tick >> 4) % 2 ? '#e05050' : '#b83232'; g.fillRect(600, 446, 260, 32); text('HARD TO CATCH', 730, 462, 17, '#ffffff', 'center', 2); }
   // countdown grande
