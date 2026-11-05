@@ -577,6 +577,12 @@ body.nx{--bg1:#0a1030;--bg2:#1b1f5e;--card:#18225c;--card2:#212d74;--ink:#fff;--
 .lapp img{width:22px;height:22px;border-radius:6px}.fapp{display:inline-flex;align-items:center;gap:8px;margin:0 0 12px;padding:8px 14px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);color:var(--ink);font-weight:900;font-size:13px}.fapp img{width:22px;height:22px;border-radius:6px}
 .inst ol{text-align:left;margin:10px 0 4px 20px;font-weight:700;line-height:1.5}.inst ol li{margin:6px 0}.inst .ico{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:rgba(127,127,127,.18);vertical-align:middle;margin:0 2px}.inst .ico svg{width:16px;height:16px}
 .inst .appic{width:72px;height:72px;border-radius:18px;margin:4px auto 8px;box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.spsub{display:flex;align-items:baseline;gap:8px;margin:12px 4px 8px;font-family:'Lilita One',Nunito;font-size:15px;color:#fff}.spsub small{font-family:Nunito;font-size:11.5px;font-weight:800;color:var(--mute)}
+.medal{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 3px;border-radius:99px;background:linear-gradient(90deg,var(--rc),color-mix(in srgb,var(--rc) 55%,#ffd23f));color:#160f00;font-weight:900;font-size:9.5px;letter-spacing:.4px;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+.medal i{display:grid;place-items:center;width:15px;height:15px;border-radius:50%;background:#fff6c8;color:#c99a00;font-style:normal;font-size:10px;box-shadow:0 0 0 1.5px rgba(0,0,0,.25)}
+.medal.all{background:linear-gradient(90deg,#ff4d4d,#ff9f1a,#ffd23f,#3ddc84,#2f9bff,#a46bff);color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.5)}.medal.mbig{font-size:12px;padding:4px 12px 4px 4px;margin-top:2px}.medal.mbig i{width:20px;height:20px;font-size:13px}
+.spc.dex{border:2px solid var(--rc)!important;background:radial-gradient(circle at 50% 32%,color-mix(in srgb,var(--rc) 30%,transparent),var(--card) 68%)!important;box-shadow:0 0 14px color-mix(in srgb,var(--rc) 40%,transparent),0 4px 0 #070b22!important}
+.spc.dex img{filter:drop-shadow(0 0 8px color-mix(in srgb,var(--rc) 70%,transparent))}.spc.dex.all{border-image:linear-gradient(90deg,#ff4d4d,#ffd23f,#3ddc84,#2f9bff,#a46bff) 1!important}
 /* ---------- LOBBY ---------- */
 html.lobh{overflow:hidden;height:100%;overscroll-behavior:none}.nx.lob .top,.nx.lob .livebar,.nx.lob .foot{display:none}.nx.lob{padding-bottom:0;position:fixed;inset:0;overflow:hidden;overscroll-behavior:none}.nx.lob #app{max-width:none;padding:0}
 .nx.lob .lby{position:fixed;left:0;right:0;top:0;bottom:var(--navh,66px);height:auto;min-height:0;touch-action:manipulation;overscroll-behavior:none}
@@ -1529,6 +1535,13 @@ function openInstall(){
 
 /* ===== SPECIAL BOX: Pokémon with a tag (season pass, mythicals, unique Arceus). Never recycled or evolved; traded only one for one ===== */
 const SPK = {S0: 'SEASON 0', S1: 'SEASON 1', MYTH: 'MYTHICAL', DEX: 'POKÉDEX'};
+const isDexTag = x => x.k === 'MYTH' || x.k === 'DEX' || isArc(x.id) || MYTHID.has(x.id);      // Pokédex completion rewards (mythicals, unique Arceus)
+const spRegion = x => isArc(x.id) || x.k === 'DEX' ? 'ALL' : (Object.entries(MYTHS).find(([r, ids]) => ids.includes(x.id)) || [((x.ev || '').match(/of (\w+)/) || [])[1] || 'KANTO'])[0];
+const spRcol = x => spRegion(x) === 'ALL' ? '#ffd23f' : RCOL[spRegion(x)] || '#c08cff';
+const spRn = r => r === 'ALL' ? 'National' : r[0] + r.slice(1).toLowerCase();
+const medal = (x, big) => { const r = spRegion(x); return `<span class="medal ${r === 'ALL' ? 'all' : ''} ${big ? 'mbig' : ''}" style="--rc:${spRcol(x)}"><i>★</i>${r === 'ALL' ? 'NATIONAL DEX' : r + ' DEX'}</span>`; };
+const spCard = x => isDexTag(x) ? `<button class="spc dex ${spRegion(x) === 'ALL' ? 'all' : ''}" style="--rc:${spRcol(x)}" data-spu="${esc(x.uid)}">${x.sh ? '<span class="shs">✦</span>' : ''}${img(x.id, x.sh)}<b>${esc(name(x.id))}</b>${medal(x)}</button>`
+  : `<button class="spc" data-spu="${esc(x.uid)}">${x.sh ? '<span class="shs">✦</span>' : ''}${img(x.id, x.sh)}<b>${esc(name(x.id))}</b><span class="tagp ${esc(x.k || '')}">${esc(spLabel(x))}</span></button>`;
 const spLabel = x => SPK[x.k] || (/^S\d+$/.test(x.k || '') ? 'SEASON ' + sNum(x.k) : String(x.k || 'EVENT').toUpperCase());
 const fdate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'}) : '—';
 let SPTR = null;
@@ -1540,7 +1553,9 @@ function specHtml(t){
     return `<div class="trow st-open"><div class="trx">${trMon(...give)}<span class="arr">⇄</span>${trMon(...get)}</div><div class="trinfo"><b>${mine ? 'You → ' : ''}<a href="${link(other)}">@${esc(other)}</a></b><small>You give ${esc(name(give[0]))}${give[1] ? ' ✦' : ''} · you get ${esc(name(get[0]))}${get[1] ? ' ✦' : ''}</small><small class="sts">Special trade</small></div>
     <div class="trb">${mine ? `<button class="mini ghost" data-spx="${x.id}">Cancel</button>` : `<button class="mini" data-spa="${x.id}">Accept</button><button class="mini ghost" data-spd="${x.id}">Decline</button>`}</div></div>`; };
   return `<h2>Special box</h2>${inc.length || outg.length ? `<div class="card trades">${inc.concat(outg).map(offer).join('')}<p class="hint" style="text-align:left">Special trades: one tagged Pokémon for one tagged Pokémon. The tag and the original trainer stay.</p></div>` : ''}
-    <div class="spgrid">${L.map(x => `<button class="spc" data-spu="${esc(x.uid)}">${x.sh ? '<span class="shs">✦</span>' : ''}${img(x.id, x.sh)}<b>${esc(name(x.id))}</b><span class="tagp ${esc(x.k || '')}">${esc(spLabel(x))}</span></button>`).join('')}</div>`;
+    ${(() => { const dx = L.filter(isDexTag), ev = L.filter(x => !isDexTag(x));
+      return (dx.length ? `<div class="spsub">🏅 Pokédex rewards<small>for completing a regional Pokédex</small></div><div class="spgrid">${dx.map(spCard).join('')}</div>` : '')
+        + (ev.length ? `<div class="spsub">🎟 Events &amp; seasons<small>season pass and event Pokémon</small></div><div class="spgrid">${ev.map(spCard).join('')}</div>` : ''); })()}`;
 }
 function bindSpec(u){
   const t = BY[(u || '').toLowerCase()]; if (!t) return; const app = document.getElementById('app');
@@ -1559,8 +1574,9 @@ function specSheet(t, uid){
   const x = (t.spec || []).find(s => s.uid === uid); if (!x) return;
   const mine = ME && BY[ME.u.toLowerCase()], canOffer = AUTH && ME && !isMe(t.u) && mine && (mine.spec || []).length;
   const hist = (x.h || []).map(h => `@${esc(h.u)} (${fdate(h.d)})`).join(', ');
-  const bg = openSheet(`<img class="big" src="${spr(x.id, x.sh)}" onerror="sprFallback(this,${x.id},${x.sh ? 1 : 0})" alt=""><h3>${x.sh ? '✦ ' : ''}${esc(name(x.id))}</h3><span class="tagp ${esc(x.k || '')}" style="font-size:11px">${esc(spLabel(x))}</span>
-    <div class="spinfo"><div><span>Event</span><b>${esc(x.ev || '—')}</b></div><div><span>Why</span><b>${esc(x.why || '—')}</b></div><div><span>Date</span><b>${fdate(x.d)}</b></div><div><span>Original trainer</span><b>${x.ot ? '@' + esc(x.ot) : '—'}</b></div>${hist ? `<div><span>Traded to</span><b>${hist}</b></div>` : ''}<div><span>Shiny</span><b>${x.sh ? 'Yes ✦' : 'No'}</b></div></div>
+  const bg = openSheet(`<img class="big" src="${spr(x.id, x.sh)}" onerror="sprFallback(this,${x.id},${x.sh ? 1 : 0})" alt=""><h3>${x.sh ? '✦ ' : ''}${esc(name(x.id))}</h3>${isDexTag(x) ? medal(x, true) : `<span class="tagp ${esc(x.k || '')}" style="font-size:11px">${esc(spLabel(x))}</span>`}
+    <div class="spinfo">${isDexTag(x) ? `<div><span>Ribbon</span><b>${spRegion(x) === 'ALL' ? 'All 9 Pokédex completed · LIVE CATCH MASTER' : spRn(spRegion(x)) + ' Pokédex completed'}</b></div><div><span>How</span><b>${spRegion(x) === 'ALL' ? 'Won the battle of the unique Arceus' : 'Completed the ' + spRn(spRegion(x)) + ' Pokédex and won the mythical battle'}</b></div>`
+      : `<div><span>Event</span><b>${esc(x.ev || '—')}</b></div><div><span>Why</span><b>${esc(x.why || '—')}</b></div>`}<div><span>Date</span><b>${fdate(x.d)}</b></div><div><span>Original trainer</span><b>${x.ot ? '@' + esc(x.ot) : '—'}</b></div>${hist ? `<div><span>Traded to</span><b>${hist}</b></div>` : ''}<div><span>Shiny</span><b>${x.sh ? 'Yes ✦' : 'No'}</b></div></div>
     <p class="hint">Tagged Pokémon are never recycled or evolved. They can be traded only one for one with another tagged Pokémon.</p>
     <div class="savebar"><button class="btn ghost" id="spc">Close</button>${canOffer ? '<button class="btn" id="spo">Offer a special trade</button>' : ''}</div>`, 'edit'), sh = bg.querySelector('.sheet');
   sh.querySelector('#spc').onclick = bg.close;
