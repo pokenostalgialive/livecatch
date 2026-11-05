@@ -583,6 +583,16 @@ body.nx{--bg1:#0a1030;--bg2:#1b1f5e;--card:#18225c;--card2:#212d74;--ink:#fff;--
 .medal.all{background:linear-gradient(90deg,#ff4d4d,#ff9f1a,#ffd23f,#3ddc84,#2f9bff,#a46bff);color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.5)}.medal.mbig{font-size:12px;padding:4px 12px 4px 4px;margin-top:2px}.medal.mbig i{width:20px;height:20px;font-size:13px}
 .spc.dex{border:2px solid var(--rc)!important;background:radial-gradient(circle at 50% 32%,color-mix(in srgb,var(--rc) 30%,transparent),var(--card) 68%)!important;box-shadow:0 0 14px color-mix(in srgb,var(--rc) 40%,transparent),0 4px 0 #070b22!important}
 .spc.dex img{filter:drop-shadow(0 0 8px color-mix(in srgb,var(--rc) 70%,transparent))}.spc.dex.all{border-image:linear-gradient(90deg,#ff4d4d,#ffd23f,#3ddc84,#2f9bff,#a46bff) 1!important}
+.pst{display:inline-block;margin-left:4px;font-size:10.5px;font-weight:900;color:#3a2300;background:linear-gradient(90deg,#ffd23f,#fff3b0,#ffb000);border-radius:7px;padding:1px 6px;vertical-align:2px;box-shadow:0 0 8px rgba(255,210,63,.6)}
+.fr-p1{box-shadow:0 0 0 2px #fff,0 0 0 4px #cd7f32,0 0 10px 3px rgba(205,127,50,.7)!important}.fr-p3{box-shadow:0 0 0 2px #fff,0 0 0 4px #9fe7ff,0 0 0 6px #a46bff,0 0 14px 4px rgba(164,107,255,.7)!important}
+.fr-p5{box-shadow:0 0 0 2px #fff,0 0 0 5px #ffd23f,0 0 18px 6px rgba(255,120,200,.75)!important;animation:p5 2.4s linear infinite}@keyframes p5{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
+.tagp.EVENT,.tagp.MYTH{background:linear-gradient(90deg,#ff9a3a,#ff5ab4)}.tagp.GIFT{background:linear-gradient(90deg,#ff3b5c,#ffb000)}.tagp.MILE{background:linear-gradient(90deg,#2f9bff,#2fd4c4)}.tagp.TOWER{background:linear-gradient(90deg,#7a5cf0,#2f2f8a);box-shadow:0 0 0 1px #c9b8ff}
+.tower{padding:14px;background:linear-gradient(135deg,#2a1f6e,#141b4d)!important;border:1px solid rgba(201,184,255,.25)!important}.tower .th{display:flex;align-items:center;gap:12px}.tower .ti{font-size:38px;line-height:1}
+.tower .th b{display:block;font-family:'Lilita One',Nunito;font-weight:400;font-size:21px}.tower .th small{font-size:12px;font-weight:800;color:var(--mute)}
+.tstk{display:flex;gap:8px;margin:12px 0}.tstk div{flex:1;background:rgba(255,255,255,.06);border-radius:12px;padding:8px;text-align:center}.tstk b{display:block;font-family:'Lilita One',Nunito;font-weight:400;font-size:24px}.tstk span{font-size:11px;font-weight:800;color:var(--mute)}
+.tpz{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:4px 0 12px}.tpz div{background:rgba(255,255,255,.05);border-radius:12px;padding:6px 2px;text-align:center;position:relative}.tpz div.ok{background:rgba(61,220,132,.16);outline:1.5px solid #3ddc84}
+.tpz img{width:46px;height:46px;margin:0 auto}.tpz b{display:block;font-size:12px;font-weight:900}.tpz small{display:block;font-size:9.5px;font-weight:800;color:var(--mute);line-height:1.2}
+.tbd{margin-top:10px}.tbd .row{padding:7px 10px}
 /* ---------- LOBBY ---------- */
 html.lobh{overflow:hidden;height:100%;overscroll-behavior:none}.nx.lob .top,.nx.lob .livebar,.nx.lob .foot{display:none}.nx.lob{padding-bottom:0;position:fixed;inset:0;overflow:hidden;overscroll-behavior:none}.nx.lob #app{max-width:none;padding:0}
 .nx.lob .lby{position:fixed;left:0;right:0;top:0;bottom:var(--navh,66px);height:auto;min-height:0;touch-action:manipulation;overscroll-behavior:none}
@@ -762,7 +772,7 @@ const srLv = t => { if (t._sl) return t._sl; const sx = t.srx || {}, o = {};
 const lcMaster = t => { const rl = regLv(t); return REGIONS.every(r => rl[r.n].lv >= 3); };
 const RGX = '(' + REGIONS.map(r => r.n).join('|') + ')';
 const tPr = ti => !ti ? 0 : ti === 'LIVE CATCH MASTER' ? 90 : new RegExp('^' + RGX + ' SHINY MASTER$').test(ti) ? 80 : ti === 'POKEDEX MASTER' ? 70 : new RegExp('^' + RGX + ' MASTER$').test(ti) ? 60
-  : new RegExp('^' + RGX + ' SHINY HUNTER$').test(ti) ? 50 : / EXPLORER$/.test(ti) ? 40 : ti === 'SHINY HUNTER' ? 30 : ti === 'LEGEND COLLECTOR' ? 20 : ti === 'GHOST MASTER' ? 100 : TYPEM.test(ti) ? 10 : (ti === 'WINTER LEGEND' || /^SEASON /.test(ti)) ? 35 : 100;      // unknown titles (CHAMPION...) stay on top
+  : new RegExp('^' + RGX + ' SHINY HUNTER$').test(ti) ? 50 : / EXPLORER$/.test(ti) ? 40 : ti === 'SHINY HUNTER' ? 30 : ti === 'LEGEND COLLECTOR' ? 20 : ti === 'GHOST MASTER' ? 100 : TYPEM.test(ti) ? 10 : (ti === 'WINTER LEGEND' || /^SEASON /.test(ti)) ? 35 : ti === 'TOWER LEGEND' ? 36 : ti === 'TOWER ACE' ? 33 : 100;      // unknown titles (CHAMPION...) stay on top
 const TYPEM = /^(NORMAL|FIRE|WATER|GRASS|ELECTRIC|ICE|FIGHTING|POISON|GROUND|FLYING|PSYCHIC|BUG|ROCK|GHOST|DRAGON|DARK|STEEL|FAIRY) MASTER$/;
 function finalTitle(t){
   const rl = regLv(t), sl = srLv(t);
@@ -773,17 +783,21 @@ function finalTitle(t){
   return ti || lvTitle(t.lv);
 }
 let SKINCH = {}, SEASONT = {};
-async function loadSeasonTitles(){ try { const L = await rpc('season_titles', {}) || []; SEASONT = {}; for (const x of L) SEASONT[x.u.toLowerCase()] = x.title; } catch(e){} }
+async function loadSeasonTitles(){ try { const [L, TB] = await Promise.all([rpc('season_titles', {}).catch(() => []), rpc('tower_board', {}).catch(() => [])]); SEASONT = {}; TOWERB = TB || [];
+  for (const x of TOWERB) if (x.best >= 25) SEASONT[x.u.toLowerCase()] = x.best >= 100 ? 'TOWER LEGEND' : 'TOWER ACE';
+  for (const x of L || []) SEASONT[x.u.toLowerCase()] = x.title; } catch(e){} }
+let TOWERB = [];
 const skc = t => SKINCH[t.u.toLowerCase()] || {};
 const nameCls = t => { const c = skc(t).name; if (c && c !== 'auto') return {white: '', blue: 'nm-bl', gold: 'nm-au', rainbow: 'nm-rb'}[c] || ''; return t.lv >= 50 || lcMaster(t) ? 'nm-rb' : t.lv >= 20 ? 'nm-au' : t.lv >= 5 ? 'nm-bl' : ''; };
 const frameCls = t => { const c = skc(t), rl = regLv(t), rg = REGIONS.map(r => r.n).filter(n => rl[n].lv >= 1).pop();
-  const f = c.frame && c.frame !== 'auto' ? ({none: '', silver: ' fr-ag', gold: ' fr-au', shiny: ' fr-shiny', s0: ' fr-s0', s1: ' fr-s1'}[c.frame] ?? (RCOL[c.frame.toUpperCase()] ? ' fr-rg fr-' + c.frame : '')) : (REGIONS.some(r => srLv(t)[r.n].lv >= 1) ? ' fr-shiny' : t.lv >= 25 ? ' fr-au' : rg ? ' fr-rg fr-' + rg.toLowerCase() : t.lv >= 10 ? ' fr-ag' : '');
+  const f = c.frame && c.frame !== 'auto' ? ({none: '', silver: ' fr-ag', gold: ' fr-au', shiny: ' fr-shiny', s0: ' fr-s0', s1: ' fr-s1', p1: ' fr-p1', p3: ' fr-p3', p5: ' fr-p5'}[c.frame] ?? (RCOL[c.frame.toUpperCase()] ? ' fr-rg fr-' + c.frame : '')) : (prestige(t) >= 5 ? ' fr-p5' : prestige(t) >= 3 ? ' fr-p3' : prestige(t) >= 1 ? ' fr-p1' : REGIONS.some(r => srLv(t)[r.n].lv >= 1) ? ' fr-shiny' : t.lv >= 25 ? ' fr-au' : rg ? ' fr-rg fr-' + rg.toLowerCase() : t.lv >= 10 ? ' fr-ag' : '');
   const a = c.aura && c.aura !== 'auto' ? ({none: '', gold: ' fr-aura', ghost: ' fr-ghost'}[c.aura] || '') : (t.lv >= 75 ? ' fr-aura' : ''); return f + a; };
 const lvTitle = lv => lv >= 100 ? 'LEGEND TRAINER' : lv >= 50 ? 'ELITE' : lv >= 25 ? 'VETERAN' : null;
 const boxWall = t => t.lv >= 40 ? 'bw-light' : t.lv >= 30 ? 'bw-ember' : t.lv >= 15 ? 'bw-stars' : '';
 let WCHAMPS = {};
 const wkBadge = t => { const w = WCHAMPS[t.u.toLowerCase()]; return w && w.last ? '<span class="wkb" title="Completed all weekly missions last week">WEEKLY CHAMP</span>' : ''; };
-const lvTag = t => `${t.lv >= 100 ? '<span class="lvcr" title="Level 100">👑</span>' : ''}<span class="lvt">Lv ${t.lv}</span>${t.og ? '<span class="ogt">OG</span>' : ''}${wkBadge(t)}`;
+const PXP = 392040, PSTEP = 200000, xpOf = t => 10 * t.n + 50 * t.s + 20 * t.dex, prestige = t => t.lv >= 100 ? Math.max(0, Math.floor((xpOf(t) - PXP) / PSTEP)) : 0;      // after Lv 100: one star every 200,000 XP
+const lvTag = t => `${t.lv >= 100 ? '<span class="lvcr" title="Level 100">👑</span>' : ''}<span class="lvt">Lv ${t.lv}</span>${prestige(t) ? `<span class="pst" title="Prestige">★${prestige(t)}</span>` : ''}${t.og ? '<span class="ogt">OG</span>' : ''}${wkBadge(t)}`;
 const RANKS = {
   level: {l: 'Level', v: t => t.lv, u: 'level'},
   catches: {l: 'Catches', v: t => t.n, u: 'caught'},
@@ -999,6 +1013,7 @@ async function rpc(fn, body){
 function demoRpc(fn, b){      // ?demo only: fakes the server (verification completes by itself after 4 s)
   if (/^spec_trade|^my_spec_trades$/.test(fn)) return demoSpec(fn, b);
   if (/^season_|^events_now$/.test(fn)) return demoSeason(fn, b);
+  if (/^tower_/.test(fn)) return demoTower(fn);
   if (/trade/.test(fn)) return demoTrades(fn, b);
   if (/battle|champions/.test(fn)) return demoBattle(fn, b);
   if (fn === 'my_skins'){ const t = BY[ME.u.toLowerCase()]; return {choice: Object.assign({ball: 'auto', trail: 'auto', name: 'auto', frame: 'auto', aura: 'auto'}, SKINCH[ME.u.toLowerCase()] || {}), unlocked: {lv: t.lv, ball: ['auto', 'normal', 'pumpkin'], trail: ['auto', 'none', 'stars', 'fire'], name: ['auto', 'white', 'blue', 'gold'], frame: ['auto', 'none', 'silver', 'gold'].concat(REGIONS.filter(r => regLv(t)[r.n].lv >= 1).map(r => r.n.toLowerCase())), aura: ['auto', 'none']}}; }
@@ -1414,7 +1429,7 @@ function drawSeason(){
         : `<p class="sub" style="text-align:left;margin-top:8px">${GUEST ? 'Link your TikTok name to collect points: open your box and tap <b>This is me</b>.' : 'Sign in and link your TikTok name to see your points and claim rewards.'}</p>${GUEST ? '' : '<button class="btn" onclick="openAccount()">Sign in</button>'}`}</div>
     <h2>Season pass</h2><div class="card" style="padding:0">${rows}</div>
     <h2>Season ranking</h2>${board}
-    <h2>How to get points</h2><div class="card"><div class="spinfo"><div><span>Every catch (live or Play)</span><b>+1</b></div><div><span>Every new species</span><b>+5</b></div><div><span>Every shiny</span><b>+20</b></div><div><span>Every mission claimed on the site</span><b>+10</b></div></div>
+    <h2>How to get points</h2><div class="card"><div class="spinfo"><div><span>Every catch in the live</span><b>+1</b></div><div><span>Every catch on Play (max 50 a day)</span><b>+1</b></div><div><span>Every new species</span><b>+5</b></div><div><span>Every shiny</span><b>+20</b></div><div><span>Every mission claimed on the site</span><b>+10</b></div></div>
       <p class="hint" style="text-align:left">Points count from the start of the season. Balls arrive in the live like the other rewards. Pokémon from the pass get a tag and go to your special box. Unclaimed rewards are lost when the season ends.</p></div>`;
   el.querySelectorAll('[data-claim]').forEach(b => b.onclick = async () => { b.disabled = true;
     try { const r = await rpc('season_claim', {p_token: AUTH.token, p_lv: +b.dataset.claim});
@@ -1544,16 +1559,59 @@ function viewEvolve(){
   return `<div class="rankg">${back}${h || `<h2>Evolve</h2><div class="card"><p class="empty" style="text-align:left">No Pokémon ready to evolve yet. You need 3 copies of the same Pokémon (tagged ones from the special box don't count). Catch more in the live or on Play!</p></div>`}</div>`;
 }
 
+/* ===== BATTLE TOWER: battles in a row, harder and harder; lose one and the streak starts over ===== */
+let TOWER = null;
+async function loadTower(){
+  if (!AUTH) return; try { TOWER = await rpc('tower_state', {p_token: AUTH.token}); } catch(e){}
+  try { TOWERB = (await rpc('tower_board', {})) || TOWERB; } catch(e){}
+  const el = document.getElementById('towerbox'); if (el){ el.innerHTML = towerHtml(); bindTower(); }
+}
+function towerHtml(){
+  if (!AUTH || !ME) return '';
+  const T0 = TOWER || {streak: 0, best: 0, prizes: {}, claimed: []}, pz = T0.prizes || {}, cl = new Set(T0.claimed || []), nx = T0.streak + 1;
+  const top = (TOWERB || []).slice(0, 5);
+  return `<h2>Battle Tower</h2><div class="card tower"><div class="th"><span class="ti">🗼</span><div><b>${T0.streak ? 'Battle ' + nx : 'Start a run'}</b><small>Win in a row against stronger and stronger trainers · lose once and the streak starts over</small></div></div>
+    <div class="tstk"><div><b>${T0.streak}</b><span>current streak</span></div><div><b>${T0.best}</b><span>best streak</span></div></div>
+    <div class="tpz">${Object.entries(pz).map(([m, p]) => `<div class="${cl.has(+m) ? 'ok' : ''}">${img(p.mon, false)}<b>${m} wins</b><small>${esc(name(p.mon))}${p.title ? '<br>' + esc(p.title) : ''}</small></div>`).join('')}</div>
+    <button class="btn" id="tgo" style="width:100%">${T0.streak ? 'Next battle (' + nx + ')' : 'Start the Tower'}</button>
+    <p class="hint" style="text-align:left">Prizes (once each): Pokémon with the TOWER tag + balls in the next live. 25 wins = title TOWER ACE · 100 wins = TOWER LEGEND.</p>
+    ${top.length ? `<div class="list tbd">${top.map((x, i) => { const t = BY[x.u.toLowerCase()]; return `<a class="row" href="${link(x.u)}" style="text-decoration:none;color:inherit"><span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${t ? avatar(t) : ''}<span class="who"><b>${esc(x.u)}</b><small>now ${x.streak}</small></span><span class="val">${x.best}<small>best</small></span></a>`; }).join('')}</div>` : ''}</div>`;
+}
+function towerOpp(n){
+  const lim = Math.min(700, 420 + n * 10), legOk = n >= 25;
+  let pool = IDS.filter(id => BT.p[id] && !EVENT.has(id) && !MYTHID.has(id) && (legOk || !LEG.has(id))).filter(id => { const s = BT.p[id][0].reduce((a, b) => a + b, 0); return s >= lim - 80 && s <= lim + 40; });
+  if (pool.length < 6) pool = IDS.filter(id => BT.p[id] && !EVENT.has(id));
+  const team = []; while (team.length < 3){ const id = pool[Math.floor(Math.random() * pool.length)]; if (!team.includes(id)) team.push(id); }
+  const boost = n >= 50 ? 1 + Math.min(0.25, (n - 50) * 0.005) : 1;
+  const mons = team.map(id => { const m = mkMon(id, Math.min(100, 70 + n), defMoves(id), Math.random() < 0.02); if (boost > 1){ m.maxhp = m.hp = Math.round(m.maxhp * boost); m.atk = Math.round(m.atk * boost); m.spa = Math.round(m.spa * boost); } return m; });
+  return {n: (n % 10 === 0 ? 'Tower Boss ' : 'Tower ') + TCLS[Math.floor(Math.random() * TCLS.length)] + ' ' + TNAMES[Math.floor(Math.random() * TNAMES.length)], kind: 'tower', team, mons, rnd: Math.max(0.02, 0.25 - n * 0.006), color: '#7a5cf0'};
+}
+function bindTower(){
+  const b = document.getElementById('tgo'); if (!b) return;
+  b.onclick = () => { const n = ((TOWER && TOWER.streak) || 0) + 1, opp = towerOpp(n);
+    pickTeam(opp, async mons => { try { await rpc('tower_start', {p_token: AUTH.token}); } catch(e){ toast(e.message); return; } runBattle(opp, mons, () => route()); }); };
+}
+let DTOW = {streak: 0, best: 0, claimed: []};
+function demoTower(fn){
+  const pz = {10: {item: 'ultra', qty: 2, mon: 131}, 25: {item: 'master', qty: 1, mon: 149, title: 'TOWER ACE'}, 50: {item: 'master', qty: 1, mon: 376}, 100: {item: 'master', qty: 1, mon: 150, title: 'TOWER LEGEND'}};
+  if (fn === 'tower_state') return Object.assign({prizes: pz}, DTOW);
+  if (fn === 'tower_start') return {streak: DTOW.streak};
+  if (fn === 'tower_win'){ DTOW.streak++; DTOW.best = Math.max(DTOW.best, DTOW.streak); const rw = []; for (const m of Object.keys(pz)) if (+m <= DTOW.streak && !DTOW.claimed.includes(+m)){ DTOW.claimed.push(+m); rw.push(Object.assign({m: +m}, pz[m])); } return {streak: DTOW.streak, best: DTOW.best, rewards: rw}; }
+  if (fn === 'tower_lose'){ DTOW.streak = 0; return {streak: 0, best: DTOW.best}; }
+  if (fn === 'tower_board') return [{u: 'pkmn.luca', best: 31, streak: 4}, {u: 'giulia_shinyhunt', best: DTOW.best || 12, streak: DTOW.streak}];
+}
+
 /* ===== SPECIAL BOX: Pokémon with a tag (season pass, mythicals, unique Arceus). Never recycled or evolved; traded only one for one ===== */
-const SPK = {S0: 'SEASON 0', S1: 'SEASON 1', MYTH: 'MYTHICAL', DEX: 'POKÉDEX'};
-const isDexTag = x => x.k === 'MYTH' || x.k === 'DEX' || isArc(x.id) || MYTHID.has(x.id);      // Pokédex completion rewards (mythicals, unique Arceus)
+const SPK = {S0: 'SEASON 0', S1: 'SEASON 1', MYTH: 'EVENT', DEX: 'POKÉDEX', EVENT: 'EVENT', TOWER: 'BATTLE TOWER'};
+const spGroup = x => isDexTag(x) ? 'dex' : x.k === 'GIFT' ? 'gift' : (x.k === 'MILE' || x.k === 'TOWER') ? 'ach' : 'ev';
+const isDexTag = x => x.k === 'DEX' || (x.k === 'MYTH' && x.why !== 'caught before the event box');      // Pokédex completion rewards only (event/gift mythicals are not)      // Pokédex completion rewards (mythicals, unique Arceus)
 const spRegion = x => isArc(x.id) || x.k === 'DEX' ? 'ALL' : (Object.entries(MYTHS).find(([r, ids]) => ids.includes(x.id)) || [((x.ev || '').match(/of (\w+)/) || [])[1] || 'KANTO'])[0];
 const spRcol = x => spRegion(x) === 'ALL' ? '#ffd23f' : RCOL[spRegion(x)] || '#c08cff';
 const spRn = r => r === 'ALL' ? 'National' : r[0] + r.slice(1).toLowerCase();
 const medal = (x, big) => { const r = spRegion(x); return `<span class="medal ${r === 'ALL' ? 'all' : ''} ${big ? 'mbig' : ''}" style="--rc:${spRcol(x)}"><i>★</i>${r === 'ALL' ? 'NATIONAL DEX' : r + ' DEX'}</span>`; };
 const spCard = x => isDexTag(x) ? `<button class="spc dex ${spRegion(x) === 'ALL' ? 'all' : ''}" style="--rc:${spRcol(x)}" data-spu="${esc(x.uid)}">${x.sh ? '<span class="shs">✦</span>' : ''}${img(x.id, x.sh)}<b>${esc(name(x.id))}</b>${medal(x)}</button>`
   : `<button class="spc" data-spu="${esc(x.uid)}">${x.sh ? '<span class="shs">✦</span>' : ''}${img(x.id, x.sh)}<b>${esc(name(x.id))}</b><span class="tagp ${esc(x.k || '')}">${esc(spLabel(x))}</span></button>`;
-const spLabel = x => SPK[x.k] || (/^S\d+$/.test(x.k || '') ? 'SEASON ' + sNum(x.k) : String(x.k || 'EVENT').toUpperCase());
+const spLabel = x => x.k === 'GIFT' ? (/^gift from/i.test(x.why || '') ? 'GIFT' : 'ROULETTE') : x.k === 'MILE' ? String(x.ev || 'MILESTONE').toUpperCase() : SPK[x.k] || (/^S\d+$/.test(x.k || '') ? 'SEASON ' + sNum(x.k) : String(x.k || 'EVENT').toUpperCase());
 const fdate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'}) : '—';
 let SPTR = null;
 async function loadSpecTrades(){ if (!AUTH){ SPTR = null; return; } try { SPTR = await rpc('my_spec_trades', {p_token: AUTH.token}); } catch(e){} }
@@ -1564,9 +1622,8 @@ function specHtml(t){
     return `<div class="trow st-open"><div class="trx">${trMon(...give)}<span class="arr">⇄</span>${trMon(...get)}</div><div class="trinfo"><b>${mine ? 'You → ' : ''}<a href="${link(other)}">@${esc(other)}</a></b><small>You give ${esc(name(give[0]))}${give[1] ? ' ✦' : ''} · you get ${esc(name(get[0]))}${get[1] ? ' ✦' : ''}</small><small class="sts">Special trade</small></div>
     <div class="trb">${mine ? `<button class="mini ghost" data-spx="${x.id}">Cancel</button>` : `<button class="mini" data-spa="${x.id}">Accept</button><button class="mini ghost" data-spd="${x.id}">Decline</button>`}</div></div>`; };
   return `<h2>Special box</h2>${inc.length || outg.length ? `<div class="card trades">${inc.concat(outg).map(offer).join('')}<p class="hint" style="text-align:left">Special trades: one tagged Pokémon for one tagged Pokémon. The tag and the original trainer stay.</p></div>` : ''}
-    ${(() => { const dx = L.filter(isDexTag), ev = L.filter(x => !isDexTag(x));
-      return (dx.length ? `<div class="spsub">🏅 Pokédex rewards<small>for completing a regional Pokédex</small></div><div class="spgrid">${dx.map(spCard).join('')}</div>` : '')
-        + (ev.length ? `<div class="spsub">🎟 Events &amp; seasons<small>season pass and event Pokémon</small></div><div class="spgrid">${ev.map(spCard).join('')}</div>` : ''); })()}`;
+    ${[['dex', '🏅 Pokédex rewards', 'for completing a regional Pokédex'], ['gift', '🎁 Gifts', 'roulettes and Pokémon gifted by other trainers'], ['ach', '🏆 Achievements', 'catch milestones and Battle Tower'], ['ev', '🎟 Events &amp; seasons', 'season pass and live events']]
+      .map(([g, tt, sub]) => { const l = L.filter(x => spGroup(x) === g); return l.length ? `<div class="spsub">${tt}<small>${sub}</small></div><div class="spgrid">${l.map(spCard).join('')}</div>` : ''; }).join('')}`;
 }
 function bindSpec(u){
   const t = BY[(u || '').toLowerCase()]; if (!t) return; const app = document.getElementById('app');
@@ -1587,7 +1644,8 @@ function specSheet(t, uid){
   const hist = (x.h || []).map(h => `@${esc(h.u)} (${fdate(h.d)})`).join(', ');
   const bg = openSheet(`<img class="big" src="${spr(x.id, x.sh)}" onerror="sprFallback(this,${x.id},${x.sh ? 1 : 0})" alt=""><h3>${x.sh ? '✦ ' : ''}${esc(name(x.id))}</h3>${isDexTag(x) ? medal(x, true) : `<span class="tagp ${esc(x.k || '')}" style="font-size:11px">${esc(spLabel(x))}</span>`}
     <div class="spinfo">${isDexTag(x) ? `<div><span>Ribbon</span><b>${spRegion(x) === 'ALL' ? 'All 9 Pokédex completed · LIVE CATCH MASTER' : spRn(spRegion(x)) + ' Pokédex completed'}</b></div><div><span>How</span><b>${spRegion(x) === 'ALL' ? 'Won the battle of the unique Arceus' : 'Completed the ' + spRn(spRegion(x)) + ' Pokédex and won the mythical battle'}</b></div>`
-      : `<div><span>Event</span><b>${esc(x.ev || '—')}</b></div><div><span>Why</span><b>${esc(x.why || '—')}</b></div>`}<div><span>Date</span><b>${fdate(x.d)}</b></div><div><span>Original trainer</span><b>${x.ot ? '@' + esc(x.ot) : '—'}</b></div>${hist ? `<div><span>Traded to</span><b>${hist}</b></div>` : ''}<div><span>Shiny</span><b>${x.sh ? 'Yes ✦' : 'No'}</b></div></div>
+      : x.k === 'GIFT' ? `<div><span>From</span><b>${esc(x.ev || 'Roulette')}</b></div><div><span>Why</span><b>${esc(x.why || '—')}</b></div>`
+      : `<div><span>${x.k === 'MILE' || x.k === 'TOWER' ? 'Achievement' : 'Event'}</span><b>${esc(x.ev || '—')}</b></div><div><span>Why</span><b>${esc(x.why || '—')}</b></div>`}<div><span>Date</span><b>${fdate(x.d)}</b></div><div><span>Original trainer</span><b>${x.ot ? '@' + esc(x.ot) : '—'}</b></div>${hist ? `<div><span>Traded to</span><b>${hist}</b></div>` : ''}<div><span>Shiny</span><b>${x.sh ? 'Yes ✦' : 'No'}</b></div></div>
     <p class="hint">Tagged Pokémon are never recycled or evolved. They can be traded only one for one with another tagged Pokémon.</p>
     <div class="savebar"><button class="btn ghost" id="spc">Close</button>${canOffer ? '<button class="btn" id="spo">Offer a special trade</button>' : ''}</div>`, 'edit'), sh = bg.querySelector('.sheet');
   sh.querySelector('#spc').onclick = bg.close;
@@ -1665,7 +1723,7 @@ function viewLobby(){
   const P = PROF[me.u.toLowerCase()] || ME || {}, partner = (M.n[P.partner] || ALT[P.partner]) && me.c[P.partner] > 0 ? P.partner : (me.team[0] || me.own[0] || 25);
   const team = me.team.filter(id => id !== partner && me.c[id] > 0).slice(0, 5), b = me.bag || {};
   const cur = [['great', 'great-ball'], ['ultra', 'ultra-ball'], ['master', 'master-ball']].map(([k, s]) => `<span><img src="${ITEMSPR(s)}" alt="">${fmt(+b[k] || 0)}</span>`).join('') + `<span><img src="${ITEMSPR('rare-candy')}" alt="">${fmt(me.candy)}</span>`;
-  return `<div class="lby">${lvb}<a class="lhd" href="${link(me.u)}"><span class="avb">${avatar(me)}<span class="lvn">${me.lv}</span></span>
+  return `<div class="lby">${lvb}<a class="lhd" href="${link(me.u)}"><span class="avb">${avatar(me)}<span class="lvn">${me.lv}${prestige(me) ? '★' + prestige(me) : ''}</span></span>
       <span class="who"><b class="${nameCls(me)}">${esc(me.u)}</b><small>${esc(me.title || 'TRAINER')}</small><span class="lxp"><i style="width:${lvPct(me)}%"></i><span>Lv ${me.lv} · ${lvPct(me)}%</span></span></span>
       <span class="lcur">${cur}</span></a>
     <div class="lst">${skyHtml()}
@@ -1707,7 +1765,7 @@ function playMapHtml(t){
 
 /* ===== WARDROBE: choose ball, trail, name colour, avatar frame and aura (the live reads skin_choices() every 5 min) ===== */
 const WARD = [['name', 'Name colour', [['auto', 'Best unlocked'], ['white', 'White'], ['blue', 'Blue', 'Lv 5'], ['gold', 'Gold', 'Lv 20'], ['rainbow', 'Rainbow', 'Lv 50 or LIVE CATCH MASTER']]],
-  ['frame', 'Avatar frame', [['auto', 'Best unlocked'], ['none', 'None'], ['silver', 'Silver', 'Lv 10'], ['gold', 'Gold', 'Lv 25']].concat(M.reg.map(([n]) => [n.toLowerCase(), n[0] + n.slice(1).toLowerCase(), 'Catch 25% of ' + n[0] + n.slice(1).toLowerCase()]), [['shiny', 'Shiny', 'Catch 25% of a region in shiny'], ['s0', 'Season 0', 'Season 0 pass Lv 5'], ['s1', 'Season 1', 'Season 1 pass Lv 10']])],
+  ['frame', 'Avatar frame', [['auto', 'Best unlocked'], ['none', 'None'], ['silver', 'Silver', 'Lv 10'], ['gold', 'Gold', 'Lv 25']].concat(M.reg.map(([n]) => [n.toLowerCase(), n[0] + n.slice(1).toLowerCase(), 'Catch 25% of ' + n[0] + n.slice(1).toLowerCase()]), [['shiny', 'Shiny', 'Catch 25% of a region in shiny'], ['s0', 'Season 0', 'Season 0 pass Lv 5'], ['s1', 'Season 1', 'Season 1 pass Lv 10'], ['p1', 'Prestige ★1', 'Prestige ★1 (after Lv 100)'], ['p3', 'Prestige ★3', 'Prestige ★3'], ['p5', 'Prestige ★5', 'Prestige ★5']])],
   ['aura', 'Aura', [['auto', 'Best unlocked'], ['none', 'None'], ['gold', 'Golden aura', 'Lv 75'], ['ghost', 'Ghost aura', 'Halloween']]],
   ['trail', 'Ball trail (live)', [['auto', 'Best unlocked'], ['none', 'None'], ['stars', 'Stars', 'Lv 15'], ['fire', 'Fire', 'Lv 30'], ['bats', 'Bats', 'Halloween'], ['week', 'Weekly trail', 'Complete 7 weekly missions'], ['s0', 'Season 0', 'Season 0 pass Lv 15'], ['s1', 'Snowflakes', 'Season 1 pass Lv 20']]],
   ['ball', 'Poké Ball (live)', [['auto', 'Best unlocked'], ['normal', 'Normal'], ['pumpkin', 'Pumpkin Ball', 'Halloween']]]];
@@ -1717,6 +1775,7 @@ const TRAILFX = {auto: '★', none: '', stars: '✦ ✧ ✦', fire: '🔥🔥', 
 function wSwatch(k, v, me){
   const best = {name: nameCls(Object.assign({}, me, {u: '_'})), frame: '', aura: ''};
   if (k === 'name'){ const c = v === 'auto' ? best.name : ({white: 'nm-wh', blue: 'nm-bl', gold: 'nm-au', rainbow: 'nm-rb'}[v] || ''); return `<span class="wsw wsn ${c || 'nm-wh'}">Aa</span>`; }
+  if (k === 'frame' && /^p\d$/.test(v)) return `<span class="wsw wsf fr-${v}" style="--fc:#ffd23f;border-radius:50%"><i></i></span>`;
   if (k === 'frame' && (v === 's0' || v === 's1')) return `<span class="wsw wsf fr-${v}" style="--fc:${v === 's0' ? '#16a99e' : '#8fd8ff'};border-radius:50%"><i></i></span>`;
   if (k === 'frame' && v === 'shiny') return `<span class="wsw wsf fr-shiny" style="--fc:#f2c230;border-radius:50%"><i></i></span>`;
   if (k === 'frame'){ const col = v === 'silver' ? '#c9d1dc' : v === 'gold' ? '#ffc21a' : RCOL[v.toUpperCase()] || (v === 'auto' ? 'conic-gradient(#ffc21a,#4ac8ff,#ff5a4a,#ffc21a)' : 'transparent');
@@ -2059,11 +2118,13 @@ function viewBattle(){
     <div class="card"><div class="bhead"><div><b>${BPROG.badges}/32 badges</b><small>${fmt(BPROG.wins)} wins${BPROG.cleared ? ' · ' + BPROG.cleared + ' League' + (BPROG.cleared > 1 ? 's' : '') + ' cleared' : ''}${myChampLeagues().length ? ' · ♛ ' + champTitle(ME.u) : ''}</small></div>${badgesRow(BPROG.badges)}</div>
       <button class="btn" id="rndt" style="width:100%;margin-top:12px">Battle a random trainer</button>
       <p class="hint" style="text-align:left">3 vs 3 · opponents are Lv 100 · Legendary and Mega = Lv 100 · others: 1 copy Lv 80, 2 copies Lv 90, 3+ copies Lv 100. Each badge = an Ultra Ball in the next live. Your first Champion title = a Master Ball.</p></div>
+    <div id="towerbox">${towerHtml()}</div>
     <h2>Leagues</h2><div class="chips" id="ltabs">${tabs}</div>
     <div class="gyms"><div class="lname" style="--c:${L.c}">${esc(L.n)} · ${nb}/8 badges${done ? ' · cleared' : ''}</div>${gy}${elite}<div class="lname" style="--c:${L.c}">Champion</div>${cc}</div>
     ${champs}${board}</div>`;
 }
 function bindBattle(){
+  loadTower();
   const r = document.getElementById('rndt'); if (r) r.onclick = () => pickTeam(randomTrainer());
   document.querySelectorAll('[data-lg]').forEach(b => b.onclick = () => { if (b.disabled) return; BL = +b.dataset.lg; const y = scrollY; route(); scrollTo(0, y); });
   document.querySelectorAll('[data-gym]').forEach(b => b.onclick = () => { const [li, i] = b.dataset.gym.split('-').map(Number), g = LEAGUES[li].gyms[i];
@@ -2213,6 +2274,9 @@ async function runBattle(opp, mine, onEnd){
   async function forceSwitch(s){ a = s; await say(`Go, ${name(P[a].id)}!`, 700); log = `What will ${name(P[a].id)} do?`; render('moves'); }
   async function win(){
     busy = true; ended = true; result = true; let msg = `You defeated ${opp.n}!`;
+    if (opp.kind === 'tower'){ try { const r = await rpc('tower_win', {p_token: AUTH.token}); TOWER = Object.assign(TOWER || {}, {streak: r.streak, best: r.best});
+        msg += ` ${r.streak} win${r.streak > 1 ? 's' : ''} in a row!`; for (const w of r.rewards || []) msg += ` 🏆 ${w.m} WINS: ${name(w.mon)} with the TOWER tag is in your special box, + ${w.qty} ${BALLN[w.item] || w.item}${w.qty > 1 ? 's' : ''}${w.title ? ' and the title ' + w.title : ''}!`; }
+      catch(e){ msg += ' (' + e.message + ')'; } log = msg; busy = false; render('Continue'); return; }
     if (opp.kind === 'myth'){ try { const r = await rpc('myth_win', {p_token: AUTH.token, p_id: opp.myth}); msg += r.sh ? ` ✦ SHINY ${name(opp.myth).toUpperCase()} caught! ✦` : ` ${name(opp.myth)} was caught! It's in your box.`; }
       catch(e){ msg += ' (' + e.message + ')'; } log = msg; busy = false; render('Continue'); return; }
     try { const r = await rpc('battle_win', {p_token: AUTH.token, p_kind: opp.kind, p_gym: opp.gym !== undefined ? opp.gym + 1 : 0, p_league: (opp.league || 0) + 1, p_team: opp.kind === 'champ' ? opp.snap : null});
@@ -2223,7 +2287,8 @@ async function runBattle(opp, mine, onEnd){
         if (r.reward === 'master') msg += ' Reward: a Master Ball in the next live!'; } } catch(e){ if (opp.kind === 'champ') msg += ' (' + e.message + ')'; }
     log = msg; busy = false; render('Continue');
   }
-  async function lose(){ ended = true; result = false; log = opp.kind === 'myth' ? `${name(opp.myth)} fled... Come back tomorrow and try again!` : opp.kind === 'elite' ? 'All your Pokémon fainted... The Elite Four run starts over.' : opp.kind === 'champ' ? `${opp.n} defended the title!` : 'All your Pokémon fainted... Try again with another team!'; busy = false; render('Continue');
+  async function lose(){ ended = true; result = false; if (opp.kind === 'tower'){ const n = (TOWER && TOWER.streak) || 0; try { await rpc('tower_lose', {p_token: AUTH.token}); } catch(e){} if (TOWER) TOWER.streak = 0; log = `Your Battle Tower run ended at ${n} win${n === 1 ? '' : 's'}. Best: ${(TOWER && TOWER.best) || n}.`; render('Continue'); return; }
+    log = opp.kind === 'myth' ? `${name(opp.myth)} fled... Come back tomorrow and try again!` : opp.kind === 'elite' ? 'All your Pokémon fainted... The Elite Four run starts over.' : opp.kind === 'champ' ? `${opp.n} defended the title!` : 'All your Pokémon fainted... Try again with another team!'; busy = false; render('Continue');
     if (opp.kind === 'champ'){ try { await rpc('battle_lose', {p_token: AUTH.token, p_kind: 'champ', p_league: opp.league + 1}); } catch(e){} } }
   log = `${opp.n} wants to battle! ${opp.n} sent out ${name(F[0].id)}!`; render('moves');
 }
