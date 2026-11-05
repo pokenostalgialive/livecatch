@@ -1527,7 +1527,7 @@ function bindDex(){
 }
 
 /* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
-const BUILD = '20261105111750';
+const BUILD = '20261105112928';
 async function checkUpdate(){
   if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
   try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
@@ -1613,7 +1613,18 @@ function demoTower(fn){
 /* ===== SPECIAL BOX: Pokémon with a tag (season pass, mythicals, unique Arceus). Never recycled or evolved; traded only one for one ===== */
 const SPK = {S0: 'SEASON 0', S1: 'SEASON 1', MYTH: 'EVENT', DEX: 'POKÉDEX', EVENT: 'EVENT', TOWER: 'BATTLE TOWER'};
 const spGroup = x => isDexTag(x) ? 'dex' : x.k === 'GIFT' ? 'gift' : (x.k === 'MILE' || x.k === 'TOWER') ? 'ach' : 'ev';
-const isDexTag = x => x.k === 'DEX' || (x.k === 'MYTH' && x.why !== 'caught before the event box');      // Pokédex completion rewards only (event/gift mythicals are not)      // Pokédex completion rewards (mythicals, unique Arceus)
+// Pokédex completion rewards = mythicals really won with the site battle (myth_log, public in myth_board) or the unique Arceus; event/gift mythicals are not.
+// Decided here from myth_log, so it stays right even when the live game re-sends its own copy of the tags.
+let MYTHWON = new Set();
+async function loadMythWon(){ try { const B = await rpc('myth_board', {}); MYTHWON = new Set(((B && B.myths) || []).map(m => m.u.toLowerCase() + '|' + m.id)); } catch(e){} }
+function dexTagged(L){ const used = new Set(), out = new Set();
+  for (const x of L){ if (x.k === 'DEX' || isArc(x.id)){ out.add(x.uid); continue; }
+    const key = String(x.ot || '').toLowerCase() + '|' + x.id;
+    if ((x.k === 'MYTH' || MYTHID.has(x.id)) && (x.why === 'won the mythical battle' || MYTHWON.has(key)) && !used.has(key)){ used.add(key); out.add(x.uid); } }
+  return out; }
+let DEXSET = new Set();
+const isDexTag = x => DEXSET.has(x.uid);
+const whyTxt = x => x.why === 'caught before the event box' || x.why === 'caught in a live event before tags existed' ? 'Caught in a live event' : (x.why || '—');      // Pokédex completion rewards (mythicals, unique Arceus)
 const spRegion = x => isArc(x.id) || x.k === 'DEX' ? 'ALL' : (Object.entries(MYTHS).find(([r, ids]) => ids.includes(x.id)) || [((x.ev || '').match(/of (\w+)/) || [])[1] || 'KANTO'])[0];
 const spRcol = x => spRegion(x) === 'ALL' ? '#ffd23f' : RCOL[spRegion(x)] || '#c08cff';
 const spRn = r => r === 'ALL' ? 'National' : r[0] + r.slice(1).toLowerCase();
@@ -1626,6 +1637,7 @@ let SPTR = null;
 async function loadSpecTrades(){ if (!AUTH){ SPTR = null; return; } try { SPTR = await rpc('my_spec_trades', {p_token: AUTH.token}); } catch(e){} }
 function specHtml(t){
   const L = t.spec || []; if (!L.length) return '';
+  DEXSET = dexTagged(L);
   const inc = isMe(t.u) && SPTR ? SPTR.filter(x => x.status === 'open' && x.b === ME.u) : [], outg = isMe(t.u) && SPTR ? SPTR.filter(x => x.status === 'open' && x.a === ME.u) : [];
   const offer = x => { const mine = x.a === ME.u, give = mine ? [x.a_id, x.a_sh] : [x.b_id, x.b_sh], get = mine ? [x.b_id, x.b_sh] : [x.a_id, x.a_sh], other = mine ? x.b : x.a;
     return `<div class="trow st-open"><div class="trx">${trMon(...give)}<span class="arr">⇄</span>${trMon(...get)}</div><div class="trinfo"><b>${mine ? 'You → ' : ''}<a href="${link(other)}">@${esc(other)}</a></b><small>You give ${esc(name(give[0]))}${give[1] ? ' ✦' : ''} · you get ${esc(name(get[0]))}${get[1] ? ' ✦' : ''}</small><small class="sts">Special trade</small></div>
@@ -1648,13 +1660,13 @@ function bindSpecOffers(){
   app.querySelectorAll('[data-spx]').forEach(b => b.onclick = () => { b.disabled = true; act('spec_trade_cancel', {p_id: +b.dataset.spx}, 'Offer cancelled'); });
 }
 function specSheet(t, uid){
-  const x = (t.spec || []).find(s => s.uid === uid); if (!x) return;
+  const x = (t.spec || []).find(s => s.uid === uid); if (!x) return; DEXSET = dexTagged(t.spec || []);
   const mine = ME && BY[ME.u.toLowerCase()], canOffer = AUTH && ME && !isMe(t.u) && mine && (mine.spec || []).length;
   const hist = (x.h || []).map(h => `@${esc(h.u)} (${fdate(h.d)})`).join(', ');
   const bg = openSheet(`<img class="big" src="${spr(x.id, x.sh)}" onerror="sprFallback(this,${x.id},${x.sh ? 1 : 0})" alt=""><h3>${x.sh ? '✦ ' : ''}${esc(name(x.id))}</h3>${isDexTag(x) ? medal(x, true) : `<span class="tagp ${esc(x.k || '')}" style="font-size:11px">${esc(spLabel(x))}</span>`}
     <div class="spinfo">${isDexTag(x) ? `<div><span>Ribbon</span><b>${spRegion(x) === 'ALL' ? 'All 9 Pokédex completed · LIVE CATCH MASTER' : spRn(spRegion(x)) + ' Pokédex completed'}</b></div><div><span>How</span><b>${spRegion(x) === 'ALL' ? 'Won the battle of the unique Arceus' : 'Completed the ' + spRn(spRegion(x)) + ' Pokédex and won the mythical battle'}</b></div>`
       : x.k === 'GIFT' ? `<div><span>From</span><b>${esc(x.ev || 'Roulette')}</b></div><div><span>Why</span><b>${esc(x.why || '—')}</b></div>`
-      : `<div><span>${x.k === 'MILE' || x.k === 'TOWER' ? 'Achievement' : 'Event'}</span><b>${esc(x.ev || '—')}</b></div><div><span>Why</span><b>${esc(x.why || '—')}</b></div>`}<div><span>Date</span><b>${fdate(x.d)}</b></div><div><span>Original trainer</span><b>${x.ot ? '@' + esc(x.ot) : '—'}</b></div>${hist ? `<div><span>Traded to</span><b>${hist}</b></div>` : ''}<div><span>Shiny</span><b>${x.sh ? 'Yes ✦' : 'No'}</b></div></div>
+      : `<div><span>${x.k === 'MILE' || x.k === 'TOWER' ? 'Achievement' : 'Event'}</span><b>${esc(x.ev || '—')}</b></div><div><span>Why</span><b>${esc(whyTxt(x))}</b></div>`}<div><span>Date</span><b>${fdate(x.d)}</b></div><div><span>Original trainer</span><b>${x.ot ? '@' + esc(x.ot) : '—'}</b></div>${hist ? `<div><span>Traded to</span><b>${hist}</b></div>` : ''}<div><span>Shiny</span><b>${x.sh ? 'Yes ✦' : 'No'}</b></div></div>
     <p class="hint">Tagged Pokémon are never recycled or evolved. They can be traded only one for one with another tagged Pokémon.</p>
     <div class="savebar"><button class="btn ghost" id="spc">Close</button>${canOffer ? '<button class="btn" id="spo">Offer a special trade</button>' : ''}</div>`, 'edit'), sh = bg.querySelector('.sheet');
   sh.querySelector('#spc').onclick = bg.close;
@@ -2463,7 +2475,7 @@ window.addEventListener('hashchange', route);
 async function start(){
   nxInit();
   await googleInit();
-  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe(), loadSeasonTitles()]); build(d); await Promise.all([loadSpecTrades(), loadTrades(), loadBattle(), loadBoard(), loadPlayBoard(), loadWChamps(), loadSkinChoices()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
+  try { const [d] = await Promise.all([load(), loadProfiles(), loadMe(), loadSeasonTitles(), loadMythWon()]); build(d); await Promise.all([loadSpecTrades(), loadTrades(), loadBattle(), loadBoard(), loadPlayBoard(), loadWChamps(), loadSkinChoices()]); } catch(e){ document.getElementById('app').innerHTML = '<div class="card">Could not load data. Try again in a minute.</div>'; return; }
   route();
   const pend = LS.get('lch_pending', null); if (pend && Date.now() < pend.until && !AUTH) pollClaim(pend.u, null);
   setInterval(setUpd, 30000);
