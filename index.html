@@ -1527,7 +1527,7 @@ function bindDex(){
 }
 
 /* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
-const BUILD = '20261105112928';
+const BUILD = '20261105113333';
 async function checkUpdate(){
   if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
   try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
@@ -1624,6 +1624,7 @@ function dexTagged(L){ const used = new Set(), out = new Set();
   return out; }
 let DEXSET = new Set();
 const isDexTag = x => DEXSET.has(x.uid);
+const oldEv = x => !isDexTag(x) && (x.why === 'caught before the event box' || x.why === 'caught in a live event before tags existed');      // old event mythicals: not shown in the special box (they stay in the normal box)
 const whyTxt = x => x.why === 'caught before the event box' || x.why === 'caught in a live event before tags existed' ? 'Caught in a live event' : (x.why || '—');      // Pokédex completion rewards (mythicals, unique Arceus)
 const spRegion = x => isArc(x.id) || x.k === 'DEX' ? 'ALL' : (Object.entries(MYTHS).find(([r, ids]) => ids.includes(x.id)) || [((x.ev || '').match(/of (\w+)/) || [])[1] || 'KANTO'])[0];
 const spRcol = x => spRegion(x) === 'ALL' ? '#ffd23f' : RCOL[spRegion(x)] || '#c08cff';
@@ -1636,8 +1637,7 @@ const fdate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString(undefined, {
 let SPTR = null;
 async function loadSpecTrades(){ if (!AUTH){ SPTR = null; return; } try { SPTR = await rpc('my_spec_trades', {p_token: AUTH.token}); } catch(e){} }
 function specHtml(t){
-  const L = t.spec || []; if (!L.length) return '';
-  DEXSET = dexTagged(L);
+  DEXSET = dexTagged(t.spec || []); const L = (t.spec || []).filter(x => !oldEv(x)); if (!L.length) return '';
   const inc = isMe(t.u) && SPTR ? SPTR.filter(x => x.status === 'open' && x.b === ME.u) : [], outg = isMe(t.u) && SPTR ? SPTR.filter(x => x.status === 'open' && x.a === ME.u) : [];
   const offer = x => { const mine = x.a === ME.u, give = mine ? [x.a_id, x.a_sh] : [x.b_id, x.b_sh], get = mine ? [x.b_id, x.b_sh] : [x.a_id, x.a_sh], other = mine ? x.b : x.a;
     return `<div class="trow st-open"><div class="trx">${trMon(...give)}<span class="arr">⇄</span>${trMon(...get)}</div><div class="trinfo"><b>${mine ? 'You → ' : ''}<a href="${link(other)}">@${esc(other)}</a></b><small>You give ${esc(name(give[0]))}${give[1] ? ' ✦' : ''} · you get ${esc(name(get[0]))}${get[1] ? ' ✦' : ''}</small><small class="sts">Special trade</small></div>
