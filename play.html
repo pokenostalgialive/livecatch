@@ -446,7 +446,6 @@ function addCatch(u, id, shiny){
   if (fresh){ const sp = Object.keys(d.c).length;
     if ([50, 100, 200, 300, 400, 500, 750, 1000].includes(sp)){ mile(u, sp + ' different Pokemon in the dex', '#7dff9a'); banner(sp + ' POKEMON IN THE DEX!', u + ' has caught ' + sp + ' different Pokemon', '#7dff9a'); jingle([523, 659, 784, 1046, 1319], 100, 0.14); } }
   // 1000, 2000...: festa a schermo intero (anche se l'ha superato prima: alla cattura dopo)
-  if (d.n > 0 && d.n % 1000 === 0) specAdd(u, {uid: 'm' + d.n + '_' + Date.now().toString(36), id, sh: shiny ? 1 : 0, k: 'MILE', ev: 'Catch #' + d.n, why: 'Catch number ' + d.n, d: isoDay(), ot: u});
   { const k = Math.floor(d.n / 1000); if (k >= 1 && (d.mega || 0) < k){ d.mega = k; megaParty(u, k * 1000); } }
   if (d.n % 1000 >= 990) floats.push({x: 540, y: 1460, s: u.slice(0, 14) + ': ' + (1000 - d.n % 1000) + ' to ' + (Math.floor(d.n / 1000) + 1) * 1000 + ' CATCHES!', u, life: 2.6, big: true});
   // MASTER BALL a 100, 250, 500, 1000, 1500, 2000, poi ogni 500
@@ -491,7 +490,8 @@ function spawn(){
   let id, shiny = Math.random() < (szOn() ? 1 / 25 : 1 / 350), donor = null, kind = 'random';
   const sp = special.shift();
   let fromRoul = false;
-  if (sp){ kind = sp.type; donor = sp.donor || null; fromRoul = !!sp.roul;
+  let fromMile = 0;
+  if (sp){ kind = sp.type; donor = sp.donor || null; fromRoul = !!sp.roul; fromMile = sp.mile || 0;
     if (sp.type === 'raid'){ id = sp.id && A.mons[sp.id] ? sp.id : sp.dmax ? deal('dmax', DMAXPOOL) : raidBoss(); shiny = Math.random() < 0.04 || nextRaidShiny; nextRaidShiny = false; store.set('plc_raid_shiny', false); }
     else if (sp.type === 'pick'){ id = sp.id; if (sp.shiny) shiny = true; else if (WEB) shiny = false; }
     else if (sp.type === 'horde') id = sp.id;
@@ -513,7 +513,7 @@ function spawn(){
   if (!id){ const r = Math.random(); id = r < 0.003 ? deal('legend', LEGPOOL) : r < 0.005 && MEGAWILD.length ? deal('megaw', MEGAWILD) : r < 0.16 ? deal('rare', RARE) : deal('common', COMMON); }
   const rar = rarityOf(id), big = rar === 'legend' || shiny;
   const intro = big ? 1.8 : 1.1;
-  enc = {roul: fromRoul, raid: null, id, m: MON(id), rar, shiny, t: -intro, intro, dur: big ? CFG.bigSec : (rar === 'common' && !shiny && kind === 'random' ? COMMON_SEC : CFG.encSec), caught: [], throws: 0, miss: {}, key: Date.now() + '_' + id, donor, kind,
+  enc = {roul: fromRoul, mile: fromMile, raid: null, id, m: MON(id), rar, shiny, t: -intro, intro, dur: big ? CFG.bigSec : (rar === 'common' && !shiny && kind === 'random' ? COMMON_SEC : CFG.encSec), caught: [], throws: 0, miss: {}, key: Date.now() + '_' + id, donor, kind,
     hard: sp && sp.type === 'pick' && sp.hard !== null ? sp.hard : rar !== 'legend' && Math.random() < 0.3, bg: TYPE_OF[id] || 'classic'};
   // ALPHA: 1 ogni 500 spawn casuali, piu' grande, aura rossa, 20% piu' difficile
   if (kind === 'random' && !isMega(id) && !FORMBASE[id] && Math.random() < 1 / 500){ enc.alpha = true; enc.dur = Math.max(enc.dur, CFG.encSec); banner('ALPHA POKEMON!', 'a huge ALPHA ' + A.mons[id].name + ' appeared!', '#ff3a3a'); jingle([196, 247, 294, 392, 494], 110, 0.14); shake = 0.6; }
@@ -662,7 +662,8 @@ function resolve(f){
     if (!e.caught.length){ f.first = true; if (popQ.length < 3) popQ.push({u: f.u, t: 0, kind: 'first'}); jingle([880, 1175], 80, 0.1); }
     if (!e.caught.includes(f.u)) e.caught.push(f.u);
     addCatch(f.u, e.id, e.shiny);
-    if (e.roul) specAdd(f.u, {uid: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: e.id, sh: e.shiny ? 1 : 0, k: 'GIFT', ev: 'Roulette', why: e.donor ? (e.donor === f.u ? 'gifted by @' : 'Gift from @') + e.donor : 'Community roulette', d: isoDay(), ot: f.u});
+    if (e.roul && e.mile && e.donor === f.u) specAdd(f.u, {uid: 'p' + e.mile + '_' + Date.now().toString(36), id: e.id, sh: e.shiny ? 1 : 0, k: 'MILE', ev: 'Prize · ' + e.mile + ' catches', why: 'reward for ' + e.mile + ' catches', d: isoDay(), ot: f.u});
+    else if (e.roul && !e.mile) specAdd(f.u, {uid: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: e.id, sh: e.shiny ? 1 : 0, k: 'GIFT', ev: 'Roulette', why: e.donor ? (e.donor === f.u ? 'gifted by @' : 'Gift from @') + e.donor : 'Community roulette', d: isoDay(), ot: f.u});
     if (e.alpha){ const da = DEX[f.u]; (da.ac || (da.ac = {}))[e.id] = (da.ac[e.id] || 0) + 1; dexDirty = true; mile(f.u, 'ALPHA ' + (e.shiny ? 'SHINY ' : '') + A.mons[e.id].name, '#ff3a3a', e.id); if (e.caught[0] === f.u) homeLog('alpha', f.u, e.id, e.shiny); }
     for (let i = 0; i < 18; i++) parts.push({x: f.tx, y: f.ty - 10, vx: (Math.random() - .5) * 360, vy: -Math.random() * 360, life: .9, c: e.shiny ? '#ffd23f' : '#ffffff'});
     jingle([988, 1319], 70, 0.08);
@@ -732,8 +733,8 @@ const hasMegaTeam = u => { const d = DEX[u]; return !!(d && d.team && d.team.som
 // ===================================================================
 // il Pokemon in corso va a 8 secondi, dopo il riepilogo parte lo show: intro -> giro lento -> fermata; il vincitore arriva per TUTTI
 // donor: quella persona ha una Master Ball sicura sul Pokemon che esce
-function roulette(kind, donor){
-  if (roulQ.length >= 5 || (!donor && (roul || roulQ.length))) return false; roulQ.push({kind, donor: donor || null});
+function roulette(kind, donor, mileN){
+  if (roulQ.length >= 5 || (!donor && (roul || roulQ.length))) return false; roulQ.push({kind, donor: donor || null, mile: mileN || 0});
   if (enc && phase === 'enc' && !enc.raid) enc.dur = Math.min(enc.dur, Math.max(0, enc.t) + 8);
   hostMsg = {s: (kind === 'mega' ? 'MEGA' : kind === 'shinylegend' ? 'SHINY LEGENDARY' : kind === 'shiny' ? 'SHINY' : 'LEGENDARY') + ' ROULETTE after this Pokemon' , t: 0};
   return true;
@@ -754,14 +755,14 @@ function startRoulette(kind, donor){
 }
 const R_IN = 1.8, R_SPIN = 7.5, R_END = R_IN + R_SPIN + 3.2;
 function rouletteUpdate(dt){
-  if (!roul && roulQ.length && phase === 'gap' && !flying.length && (!summary || summary.t > 3)){ const q = roulQ.shift(); startRoulette(q.kind, q.donor); }
+  if (!roul && roulQ.length && phase === 'gap' && !flying.length && (!summary || summary.t > 3)){ const q = roulQ.shift(); startRoulette(q.kind, q.donor); if (roul) roul.mile = q.mile || 0; }
   if (!roul) return; roul.t += dt;
   if (roul.t >= R_IN + R_SPIN && !roul.done){ roul.done = 1;
     // LIVE LOG: roulette partite da qualcuno (non i tasti di prova dell'host)
     if (roul.donor) homeLog('roul', roul.donor, roul.win, roul.kind === 'shiny' || roul.kind === 'shinylegend');
     jingle([784, 988, 1175, 1568, 2093, 2637], 100, 0.16); shake = 0.7; flashT = 0.5;
     speak((roul.kind === 'shiny' || roul.kind === 'shinylegend' ? 'Shiny ' : '') + A.mons[roul.win].name + ' for everyone!'); }
-  if (roul.t > R_END){ special.unshift({type: 'pick', roul: true, id: roul.win, shiny: roul.kind === 'shiny' || roul.kind === 'shinylegend', hard: false, donor: roul.donor || null}); roul = null; phaseT = 0; }
+  if (roul.t > R_END){ special.unshift({type: 'pick', roul: true, mile: roul.mile || 0, id: roul.win, shiny: roul.kind === 'shiny' || roul.kind === 'shinylegend', hard: false, donor: roul.donor || null}); roul = null; phaseT = 0; }
 }
 
 // ===================================================================
@@ -1868,7 +1869,7 @@ async function homeActions(){
       else if (d && x.kind === 'candy'){ const id = +P.id; if (d.c[id] > 0){ const [n, got] = recycle(d, id, !!P.sh, +P.n || 0); if (n){ d.candy = (d.candy || 0) + got; mile(x.u, 'recycled ' + n + ' ' + A.mons[id].name + ' on the site: +' + got + ' CANDY', '#ffd23f'); ok = true; } } }
       // PLAY sul sito (SUPABASE_PLAY): una cattura fatta sul sito conta come una cattura vera
       else if (x.kind === 'catch' && A.mons[+P.id]){ const id = +P.id, sh = !!P.sh, dd = D(x.u), isNew = !(dd.c[id] > 0);
-        dexAddCopy(dd, id, sh); if (!P.nocount) dd.n = (dd.n || 0) + 1; if (P.spec && P.spec.uid) specAdd(x.u, Object.assign({}, P.spec, {id, sh: sh ? 1 : 0})); MON(id);
+        dexAddCopy(dd, id, sh); if (!P.nocount){ dd.n = (dd.n || 0) + 1; const k = Math.floor(dd.n / 1000); if (k >= 1 && (dd.mega || 0) < k && !WEB){ dd.mega = k; megaParty(x.u, k * 1000); } } if (P.spec && P.spec.uid) specAdd(x.u, Object.assign({}, P.spec, {id, sh: sh ? 1 : 0})); MON(id);
         if (P.last && P.st && (!dd.last || dateOfKey(P.last) > dateOfKey(dd.last))){ dd.last = P.last; dd.st = +P.st; } if (isNew) afterNew(x.u); if (sh) mile(x.u, 'caught a SHINY ' + A.mons[id].name + ' on the site', '#ffd23f', id); if (sh) checkShinyDex(x.u); if (MYTHSET.has(id)){ mythCaught(x.u, id, sh); mile(x.u, 'caught the mythical ' + A.mons[id].name + '!', '#d08cff', id); } ok = true; }
       else if (x.kind === 'spec_tag' && P.spec && P.spec.uid){ specAdd(x.u, P.spec); ok = true; }
       else if (d && x.kind === 'spec_out'){ if (specOut(x.u, P)) ok = true; }
@@ -1992,7 +1993,7 @@ function update(dt){
   ageFirst(megaShow, 4.2, dt);
   // cartello JOIN ogni 18 min
   if (Date.now() > homeAd && !(enc && enc.raid) && !banners.length && !LOUNGE && !endScreen && !fanCard && !shareCard && !autoCard && !roul) showJoin();
-  if (megas.length){ megas[0].t += dt; if (megas[0].t > MEGA_T){ const m = megas.shift(); roulette('shiny', m.u); } }
+  if (megas.length){ megas[0].t += dt; if (megas[0].t > MEGA_T){ const m = megas.shift(); roulette('shiny', m.u, m.n); } }
   ageFirst(bigThx, 3.2, dt);
   if (likeRoulPend > 0 && roulette('shinylegend')) likeRoulPend--;
   rouletteUpdate(dt); goldUpdate(dt); chooseUpdate(); trainerUpdate(dt); mythUpdate(dt);
