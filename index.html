@@ -840,7 +840,7 @@ function viewHome(){
     <div class="today"><div><b>${fmt(T.length)}</b><span>Trainers</span></div><div><b>${fmt(T.reduce((s, t) => s + t.n, 0))}</b><span>Caught</span></div><div><b>${fmt(day.n)}</b><span>Today</span></div></div>
     <div class="sbanrow"><a class="sban season" href="#/season"><b>🏆 Season pass</b><span id="hsea">Points, rewards, ranking</span></a><a class="sban ev" id="hevb" href="#/events"><b>📅 Events</b><span id="hev">Community Day and more</span></a></div>
     <a class="cmdban misban" href="#/missions"><div><b>🎯 Missions</b><span style="display:block">5 daily · 7 weekly · streak rewards</span></div><em>›</em></a>
-    <a class="pbanner" href="play.html"><span class="pbi"></span><div><b>PLAY NOW</b><span>Catch together with everyone · 50 free throws a day</span></div><em>Play</em></a>
+    <a class="pbanner" href="play.html"><span class="pbi"></span><div><b>PLAY NOW</b><span>Catch together with everyone · up to 200 catches a day</span></div><em>Play</em></a>
     <a class="bbanner" href="#/battle"><i>NEW</i><span class="bi">⚔️</span><div><b>Battle the 4 Leagues</b><span>Beat 32 Gym Leaders &amp; the Elite Four. Become Champion!</span></div><em>Battle now</em></a>
     <a class="cmdban" href="#/help"><div><b>📖 All commands</b><span style="display:block">Everything you can write in the live chat</span></div><em>›</em></a>
     ${hwHomeHtml()}
@@ -1530,7 +1530,7 @@ function bindDex(){
 }
 
 /* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
-const BUILD = '20261106111619';
+const BUILD = '20261106112034';
 async function checkUpdate(){
   if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
   try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
