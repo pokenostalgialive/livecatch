@@ -1529,7 +1529,7 @@ function bindDex(){
 }
 
 /* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
-const BUILD = '20261105120145';
+const BUILD = '20261106104055';
 async function checkUpdate(){
   if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
   try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
@@ -1586,6 +1586,16 @@ function musBtn(){ return `<button class="lmus ${MUSON ? 'on' : ''}" id="lmus" o
 function toggleMusic(){ MUSON = !MUSON; LS.set('lch_music', MUSON); try { MUSON ? LOFI.start() : LOFI.stop(); } catch(e){} const b = document.getElementById('lmus'); if (b) b.outerHTML = musBtn(); }
 // browsers only allow sound after a tap: if music was on last time, it starts at the first tap anywhere
 if (MUSON) document.addEventListener('pointerdown', () => { if (MUSON && !LOFI.on) try { LOFI.start(); } catch(e){} }, {once: true});
+
+/* ===== PLAY status on the lobby button: raids at :00 and :30 (90 s fight + 30 s catch), Shiny Zone 15 min every 4 h (UTC 0/4/8/12/16/20) — same clock as the server ===== */
+function playStatus(){
+  const now = Date.now(), half = 30 * 60000, inRaid = now % half < 120000, sz4 = 4 * 3600000, inSz = now % sz4 < 15 * 60000;
+  if (inSz) return '✨ SHINY ZONE NOW';
+  if (inRaid) return '⚔️ RAID NOW · join!';
+  const m = Math.ceil((half - now % half) / 60000);
+  return m <= 5 ? `⚔️ Raid in ${m} min` : `Next raid in ${m} min`;
+}
+setInterval(() => { const e = document.getElementById('lpst'); if (e) e.textContent = playStatus(); }, 15000);
 
 /* ===== GET THE APP: install on the home screen (Android: real install prompt · iPhone: Share > Add to Home Screen · TikTok: open in browser first) ===== */
 let DEFP = null;
@@ -1782,7 +1792,7 @@ function viewLobby(){
   nav('home');
   const me = AUTH && ME ? BY[ME.u.toLowerCase()] : null, live = !!(D && D.live === true && D.t && Date.now() - D.t < 15 * 60000);
   const lvb = live ? `<a class="lvb" href="${CONFIG.LIVE_URL}" target="_blank" rel="noopener"><span class="dot"></span>LIVE NOW · Join and catch<b>Watch</b></a>` : '';
-  const cta = `<div class="lcta"><a class="lp" href="play.html">${lic('play')}PLAY<small>50 free throws a day</small></a><a class="lb" href="#/battle">${lic('bat')}BATTLE</a></div>
+  const cta = `<div class="lcta"><a class="lp" href="play.html">${lic('play')}PLAY<small id="lpst">${playStatus()}</small></a><a class="lb" href="#/battle">${lic('bat')}BATTLE</a></div>
     <a class="lsea" href="#/season"><span class="sl" id="lssl">S</span><div class="sb"><b id="lsst">Season pass</b><div class="sbar"><i id="lssb" style="width:0%"></i></div></div><span class="claim off" id="lscl">Open</span></a>${appBtn('lapp')}`;
   if (!me){
     const wk = T.slice().sort((a, b) => b.wk - a.wk).slice(0, 3).filter(t => t.wk > 0), top = T.slice().sort((a, b) => b.n - a.n)[0];
