@@ -46,7 +46,7 @@ if (WEB){
   wsConnect = noop; migrate = noop; memCheck = noop; playTrack = noop; speak = noop;
   homePush = anoop; homeTrades = async () => true; homeActions = anoop; homePlay = anoop; homeRewards = anoop; homeLogFlush = anoop; homeChampsLoad = anoop; homeWishLoad = anoop; homeWeeklyLoad = anoop; homeSkinsLoad = anoop; homeLog = noop;
   startRaid = noop; dropGold = noop; showJoin = noop; showFan = noop; showShare = noop; showAuto = noop; showNews = noop; spotlight = noop; slStart = noop; weekPicture = noop;
-  roulette = () => false; startRoulette = noop;
+  roulette = () => false; startRoulette = noop; stoneDrop = noop; soupDrop = noop; skinRaid = noop;
   // sotto la scena c'e' la pagina del sito (pulsanti, feed, classifica): i pannelli della live non si disegnano
   drawTrainers = noop; rightPanel = noop; drawDex = noop; drawGoal = noop; drawRecords = noop; drawStatus = noop; drawHelp = noop; drawAuto = noop; drawRaidBar = noop;
   // i tasti dell'host non esistono sul sito
@@ -492,7 +492,7 @@ function spawn(){
   let fromRoul = false;
   let fromMile = 0;
   if (sp){ kind = sp.type; donor = sp.donor || null; fromRoul = !!sp.roul; fromMile = sp.mile || 0;
-    if (sp.type === 'raid'){ id = sp.id && A.mons[sp.id] ? sp.id : sp.dmax ? deal('dmax', DMAXPOOL) : raidBoss(); shiny = Math.random() < 0.04 || nextRaidShiny; nextRaidShiny = false; store.set('plc_raid_shiny', false); }
+    if (sp.type === 'raid'){ id = sp.id && A.mons[sp.id] ? sp.id : sp.dmax ? deal('dmax', DMAXPOOL) : raidBoss(); shiny = Math.random() < 0.04 || nextRaidShiny; nextRaidShiny = false; store.set('plc_raid_shiny', false); if (sp.sh !== undefined) shiny = !!sp.sh; }
     else if (sp.type === 'pick'){ id = sp.id; if (sp.shiny) shiny = true; else if (WEB) shiny = false; }
     else if (sp.type === 'horde') id = sp.id;
     else if (sp.type === 'mega' && MEGAS.length) id = deal('mega', MEGAS);
@@ -699,6 +699,8 @@ function startRaid(dm){
 }
 function raidHit(e, u, dmg, x, y, isLike){
   const r = e && e.raid; if (!r || r.beaten || phase !== 'enc' || enc !== e) return;
+  // sul sito (Play) gli HP li decide il server (play_attack): qui solo l'effetto
+  if (WEB){ if (hits.length < 40) hits.push({x, y, s: r.shield > 0 ? 'BLOCKED' : '-' + dmg, t: 0}); for (let i = 0; i < 6; i++) parts.push({x, y, vx: (Math.random() - .5) * 400, vy: -Math.random() * 300, life: .5, c: Math.random() < .5 ? '#ff5050' : '#ffffff'}); shake = Math.max(shake, 0.12); return; }
   // MAX SHIELD: attacchi bloccati, solo i like lo rompono
   if (r.dmax && r.shield > 0){ r.hitters.add(u);
     if (isLike){ const sd = Math.max(1, Math.round(dmg / 2)); r.shield = Math.max(0, r.shield - sd); r.dmgBy[u] = (r.dmgBy[u] || 0) + sd; if (hits.length < 40) hits.push({x, y, s: '-' + sd, t: 0, like: true});
@@ -762,6 +764,7 @@ function rouletteUpdate(dt){
     if (roul.donor) homeLog('roul', roul.donor, roul.win, roul.kind === 'shiny' || roul.kind === 'shinylegend');
     jingle([784, 988, 1175, 1568, 2093, 2637], 100, 0.16); shake = 0.7; flashT = 0.5;
     speak((roul.kind === 'shiny' || roul.kind === 'shinylegend' ? 'Shiny ' : '') + A.mons[roul.win].name + ' for everyone!'); }
+  if (roul.t > R_END && WEB){ const nm = A.mons[roul.win].name.toUpperCase(); if (reveals.length < 3) reveals.push({u: window.LC_ME || 'you', kind: 'shiny', g: roul.web || 'SHINY ROULETTE', what: 'SHINY ' + nm + '!', id: roul.win, sh: true, t: 0}); banner('SHINY ' + nm + '!', 'it goes straight into your Dex', '#ffd23f'); roul = null; return; }
   if (roul.t > R_END){ special.unshift({type: 'pick', roul: true, mile: roul.mile || 0, id: roul.win, shiny: roul.kind === 'shiny' || roul.kind === 'shinylegend', hard: false, donor: roul.donor || null}); roul = null; phaseT = 0; }
 }
 
@@ -1708,7 +1711,7 @@ function homeMerge(oldU, newU){
   if (a.srx){ b.srx = b.srx || {}; for (const k in a.srx) b.srx[k] = Math.max(b.srx[k] || 0, a.srx[k]); }
   if (a.rx){ b.rx = b.rx || {}; for (const k in a.rx) b.rx[k] = Math.max(b.rx[k] || 0, a.rx[k]); }
   if (!(b.team || []).length) b.team = a.team || [];
-  b.skins = Object.assign({}, a.skins || {}, b.skins || {}); b.hw = (b.hw || 0) + (a.hw || 0); b.hwr = (b.hwr || 0) + (a.hwr || 0); b.stones = (b.stones || 0) + (a.stones || 0); b.soup = (b.soup || 0) + (a.soup || 0); b.candy = (b.candy || 0) + (a.candy || 0); if (a.ac){ b.ac = b.ac || {}; for (const k in a.ac) b.ac[k] = (b.ac[k] || 0) + a.ac[k]; }
+  b.skins = Object.assign({}, a.skins || {}, b.skins || {}); b.hw = (b.hw || 0) + (a.hw || 0); b.hwr = (b.hwr || 0) + (a.hwr || 0); b.stones = (b.stones || 0) + (a.stones || 0); b.mega = Math.max(b.mega || 0, a.mega || 0); b.soup = (b.soup || 0) + (a.soup || 0); b.candy = (b.candy || 0) + (a.candy || 0); if (a.ac){ b.ac = b.ac || {}; for (const k in a.ac) b.ac[k] = (b.ac[k] || 0) + a.ac[k]; }
   b.wish = [...new Set((b.wish || []).concat(a.wish || []))].slice(0, 3);
   if (a.orbs){ b.orbs = b.orbs || {}; for (const k in a.orbs) b.orbs[k] = Math.max(b.orbs[k] || 0, a.orbs[k]); }
   if (a.fan && !b.fan){ b.fan = a.fan; b.fanDay = a.fanDay; } if (a.homeGift) b.homeGift = true; b.mega = Math.max(b.mega || 0, a.mega || 0);
@@ -1757,7 +1760,7 @@ function homeBag(u, d){ const b = {}, st = users[u] || {};
 function homeSnapshot(){
   const dex = store.get('plc_dex_v1', {}), out = {};
   for (const [u, d] of Object.entries(dex)){
-    out[u] = {n: d.n || 0, s: d.s || 0, c: d.c || {}, sh: d.sh || [], sc: d.sc || {}, team: d.team || [], st: d.st || 0, last: d.last || '', lv: lvOfXP(trainerXP(d)), og: d.og ? 1 : 0, title: d.title || null, badges: d.badges || [], skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, wish: d.wish || [], soup: d.soup || 0, bag: homeBag(u, d), candy: d.candy || 0, ac: d.ac || {}, rx: d.rx || {}, srx: d.srx || {}, spec: d.spec || []};
+    out[u] = {n: d.n || 0, mega: d.mega || 0, s: d.s || 0, c: d.c || {}, sh: d.sh || [], sc: d.sc || {}, team: d.team || [], st: d.st || 0, last: d.last || '', lv: lvOfXP(trainerXP(d)), og: d.og ? 1 : 0, title: d.title || null, badges: d.badges || [], skins: d.skins || {}, hw: d.hw || 0, hwr: d.hwr || 0, stones: d.stones || 0, wish: d.wish || [], soup: d.soup || 0, bag: homeBag(u, d), candy: d.candy || 0, ac: d.ac || {}, rx: d.rx || {}, srx: d.srx || {}, spec: d.spec || []};
   }
   const wk = store.get('plc_week', {}), wp = store.get('plc_week_prev', {}), day = store.get('plc_day', {});
   return {v: 1, t: Date.now(), dex: out, hof: store.get('plc_hof', {}),
@@ -1869,8 +1872,11 @@ async function homeActions(){
       else if (d && x.kind === 'candy'){ const id = +P.id; if (d.c[id] > 0){ const [n, got] = recycle(d, id, !!P.sh, +P.n || 0); if (n){ d.candy = (d.candy || 0) + got; mile(x.u, 'recycled ' + n + ' ' + A.mons[id].name + ' on the site: +' + got + ' CANDY', '#ffd23f'); ok = true; } } }
       // PLAY sul sito (SUPABASE_PLAY): una cattura fatta sul sito conta come una cattura vera
       else if (x.kind === 'catch' && A.mons[+P.id]){ const id = +P.id, sh = !!P.sh, dd = D(x.u), isNew = !(dd.c[id] > 0);
-        dexAddCopy(dd, id, sh); if (!P.nocount){ dd.n = (dd.n || 0) + 1; const k = Math.floor(dd.n / 1000); if (k >= 1 && (dd.mega || 0) < k && !WEB){ dd.mega = k; megaParty(x.u, k * 1000); } } if (P.spec && P.spec.uid) specAdd(x.u, Object.assign({}, P.spec, {id, sh: sh ? 1 : 0})); MON(id);
+        dexAddCopy(dd, id, sh); if (!P.nocount) dd.n = (dd.n || 0) + 1; if (P.spec && P.spec.uid) specAdd(x.u, Object.assign({}, P.spec, {id, sh: sh ? 1 : 0})); MON(id);
         if (P.last && P.st && (!dd.last || dateOfKey(P.last) > dateOfKey(dd.last))){ dd.last = P.last; dd.st = +P.st; } if (isNew) afterNew(x.u); if (sh) mile(x.u, 'caught a SHINY ' + A.mons[id].name + ' on the site', '#ffd23f', id); if (sh) checkShinyDex(x.u); if (MYTHSET.has(id)){ mythCaught(x.u, id, sh); mile(x.u, 'caught the mythical ' + A.mons[id].name + '!', '#d08cff', id); } ok = true; }
+      else if (d && x.kind === 'stone'){ d.stones = (d.stones || 0) + 1; mile(x.u, 'found a MEGA STONE in a Play raid', '#ff5ad0'); ok = true; }
+      else if (d && x.kind === 'alpha' && P.id){ (d.ac || (d.ac = {}))[P.id] = (d.ac[P.id] || 0) + 1; ok = true; }
+      else if (d && x.kind === 'mega_set'){ d.mega = Math.max(d.mega || 0, +P.k || 0); ok = true; }
       else if (x.kind === 'spec_tag' && P.spec && P.spec.uid){ specAdd(x.u, P.spec); ok = true; }
       else if (d && x.kind === 'spec_out'){ if (specOut(x.u, P)) ok = true; }
       else if (d && x.kind === 'arceus'){ if (arceusSet(x.u, P.type, true)) ok = true; else note = 'not possible'; }
@@ -2504,7 +2510,7 @@ function drawRoulette(){
   if (SL || MG){ const hue = (tick * 4) % 360; text(title, 0, 0, fitSize(title, 44, W - 80), 'hsl(' + hue + ',100%,70%)', 'center', 6); } else text(title, 0, 0, fitSize(title, 52, W - 80), col, 'center', 6);
   g.restore();
   if (T < 0.25){ g.fillStyle = 'rgba(255,255,255,' + (1 - T / 0.25) * 0.8 + ')'; g.fillRect(0, 330, W, 900); }
-  const sub = r.hideDonor ? 'THANKS TO ' + r.hideDonor.slice(0, 16).toUpperCase() + '!' : 'BONUS FOR EVERYONE!';
+  const sub = r.hideDonor ? 'THANKS TO ' + r.hideDonor.slice(0, 16).toUpperCase() + '!' : r.web || 'BONUS FOR EVERYONE!';
   if (r.hideDonor){ const intro = T < R_IN, ax = intro ? W/2 : 96, ay = intro ? cy + 150 : 600, rr = intro ? 52 : 40;
     g.fillStyle = col; g.beginPath(); g.arc(ax, ay, rr + 6, 0, 7); g.fill(); if (!avatar(r.hideDonor, ax, ay, rr)){ g.fillStyle = '#20264a'; g.beginPath(); g.arc(ax, ay, rr, 0, 7); g.fill(); text(r.hideDonor.slice(0, 1).toUpperCase(), ax, ay + 3, rr * 0.85, '#ffffff', 'center', 3); }
     g.save(); g.translate(ax, ay - rr - 14); g.scale(intro ? 2 : 1.5, intro ? 2 : 1.5); crownMini(0, 0, col); g.restore(); }
@@ -2539,7 +2545,7 @@ function drawGold(){
   g.fillStyle = '#7a5200'; g.fillRect(G.x - r, y - 3, r * 2, 6); g.beginPath(); g.arc(G.x, y, r * 0.32, 0, 7); g.fill(); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(G.x, y, r * 0.2, 0, 7); g.fill();
   g.strokeStyle = '#7a5200'; g.lineWidth = 3; g.beginPath(); g.arc(G.x, y, r, 0, 7); g.stroke();
   if (tick % 5 === 0) parts.push({x: G.x + (Math.random() - .5) * 60, y: y + (Math.random() - .5) * 60, vx: 0, vy: -40, life: .7, c: '#fff3a0'});
-  if (!G.win){ const left = Math.ceil(20 - G.t); text('WRITE  GOLD!', G.x, y - r - 30, 30, '#ffd23f', 'center', 5); text(left + 's', G.x, y + r + 26, 20, '#ffffff', 'center', 3); }
+  if (!G.win){ const left = Math.ceil(20 - G.t); text(WEB ? 'TAP IT!' : 'WRITE  GOLD!', G.x, y - r - 30, 30, '#ffd23f', 'center', 5); text(left + 's', G.x, y + r + 26, 20, '#ffffff', 'center', 3); }
   else text(G.win.slice(0, 12) + '!', G.x, y - r - 26, 26, '#ffffff', 'center', 4);
 }
 function drawNews(){
@@ -3021,7 +3027,7 @@ function drawHeader(RAIDON, SZT, szPre){
   g.save(); g.translate(W/2, 222); g.scale(s1, s1); text(RAIDON ? (enc.raid.beaten ? 'CATCH THE BOSS!' : enc.raid.dmax ? 'DYNAMAX RAID' : enc.mega ? 'MEGA RAID' : 'LEGENDARY RAID') : SZT ? 'SHINY  ZONE' : 'COMMENT  CATCH', 0, 0, 58, RAIDON || SZT ? '#ffffff' : RED, 'center', RAIDON || SZT ? 5 : 0, SZT ? '#7a4a00' : undefined); g.restore();
   const TIPS = (HW() ? ['HALLOWEEN WEEK: ghost & dark types everywhere!', 'HALLOWEEN: a MEGA GENGAR raid every day!'] : []).concat(['C throw  ·  G great  U ultra  M master  ·  B bag  ·  D dex', 'SHARE the live = ULTRA BALL every 10 min!', 'FOLLOW = ULTRA BALL  ·  never miss a live!', 'NEW: F charizard = add it to your TEAM (max 6)', 'NEW: EV pichu = 3 of the same evolve!', 'NEW: write Q for your daily missions', 'NEW: write DUP to see your duplicates (for WT and EV)', 'NEW: QUICK · DUSK · TIMER = special balls (write the name)', 'NEW: write REG to see your Pokedex by region', 'a GOLDEN BALL falls sometimes: write GOLD first!', 'NEW: D charizard = see it first in your dex', 'write WT to trade a duplicate - Wonder Trade!', 'every 30 min a RAID: LEGENDARY or DYNAMAX!', 'D legend · D shiny · D rare · D 2 = more of your dex']);
   const szl = Math.max(0, (szPre ? szStart : szEnd) - Date.now()), szt = Math.floor(szl / 60000) + ':' + String(Math.floor(szl / 1000) % 60).padStart(2, '0');
-  const sub = RAIDON && !enc.raid.beaten ? (enc.raid.dmax ? 'write c to ATTACK  ·  LIKES break the MAX SHIELDS!' : 'write c to ATTACK  ·  every like hits the boss too!') : RAIDON ? 'catch it!  ·  top 5 attackers get a bonus  ·  C / G / U / M' : SZT ? (szPre ? 'starts in ' + szt + '  ·  shinies x10 for 15 minutes!' : 'SHINIES x10  ·  ' + szt + ' left  ·  write C!') : TIPS[Math.floor(performance.now() / 7000) % TIPS.length];
+  const sub = RAIDON && !enc.raid.beaten ? (WEB ? (enc.raid.dmax ? 'tap ATTACK all together  ·  attacks break the MAX SHIELDS!' : 'tap ATTACK all together!') : enc.raid.dmax ? 'write c to ATTACK  ·  LIKES break the MAX SHIELDS!' : 'write c to ATTACK  ·  every like hits the boss too!') : RAIDON ? (WEB ? 'catch it!  ·  top 5 attackers get a bonus' : 'catch it!  ·  top 5 attackers get a bonus  ·  C / G / U / M') : SZT ? (szPre ? 'starts in ' + szt + '  ·  shinies x10 for 15 minutes!' : 'SHINIES x10  ·  ' + szt + ' left  ·  write C!') : TIPS[Math.floor(performance.now() / 7000) % TIPS.length];
   text(sub, W/2, 278, fitSize(sub, 26, W - 160), RAIDON || SZT ? '#ffffff' : INK, 'center', RAIDON || SZT ? 3 : 0, SZT ? '#7a4a00' : undefined);
 }
 // ---------- il riquadro dell'incontro: nome / WANTED, etichetta, HP o timer, countdown ----------
@@ -3042,7 +3048,7 @@ function drawEncBox(e){
     g.strokeStyle = '#000'; g.lineWidth = 3; g.strokeRect(90, 414, W - 310, 32); text('HP  ' + Math.ceil(e.raid.hp) + ' / ' + e.raid.max, 90 + (W - 310) / 2, 431, 18, '#ffffff', 'center', 3); }
   else { g.fillStyle = '#d8d8e0'; g.fillRect(90, 420, W - 310, 20);
     g.fillStyle = fr > 0.3 ? '#4ac870' : '#e05050'; g.fillRect(90, 420, (W - 310) * fr, 20); }
-  const ct = e.raid && !e.raid.beaten ? e.raid.hitters.size + ' trainers attacking  ·  c = attack  ·  likes = damage' : e.raid ? 'DEFEATED! catch it now  ·  attackers get a bonus' : 'Caught by ' + e.caught.length + '  ·  ' + e.throws + ' throws';
+  const ct = e.raid && !e.raid.beaten ? e.raid.hitters.size + ' trainers attacking' + (WEB ? '  ·  tap ATTACK!' : '  ·  c = attack  ·  likes = damage') : e.raid ? 'DEFEATED! catch it now  ·  attackers get a bonus' : 'Caught by ' + e.caught.length + '  ·  ' + e.throws + ' throws';
   text(ct, 90, 462, fitSize(ct, 22, e.hard ? 470 : W - 320), '#2a8a3a', 'left');
   if (e.hard){ g.fillStyle = (tick >> 4) % 2 ? '#e05050' : '#b83232'; g.fillRect(600, 446, 260, 32); text('HARD TO CATCH', 730, 462, 17, '#ffffff', 'center', 2); }
   // countdown grande
@@ -3124,7 +3130,7 @@ function drawBalls(){
   if (enc && throwsQ.length > 3){ const wt = '+' + throwsQ.length + ' balls in line'; text(wt, W/2, 1000, 16, '#ffffff', 'center', 3); }
   for (const h of hits){ g.globalAlpha = Math.max(0, 1 - h.t / 0.8); if (h.like) heart(h.x - 30, h.y - h.t * 70, 12); text(h.s, h.x, h.y - h.t * 70, 26, h.like ? '#ff8fc8' : '#ffdf40', 'center', 4); } g.globalAlpha = 1;
   // i like contano: sempre visibile durante la lotta
-  if (enc && enc.raid && !enc.raid.beaten){ const pu = 1 + 0.06 * Math.sin(tick * 0.25), lt = 'TAP LIKES = DAMAGE!  likes did ' + (enc.raid.likeDmg || 0);
+  if (enc && enc.raid && !enc.raid.beaten){ const pu = 1 + 0.06 * Math.sin(tick * 0.25), lt = WEB ? (enc.raid.shield > 0 ? 'MAX SHIELD!  TAP ATTACK TO BREAK IT' : 'TAP ATTACK AS FAST AS YOU CAN!') : 'TAP LIKES = DAMAGE!  likes did ' + (enc.raid.likeDmg || 0);
     g.save(); g.translate(W/2, 975); g.scale(pu, pu); g.fillStyle = 'rgba(200,30,90,.9)'; g.fillRect(-330, -24, 660, 48); g.strokeStyle = '#ffffff'; g.lineWidth = 3; g.strokeRect(-330, -24, 660, 48);
     heart(-300, 0, 16); heart(300, 0, 16); text(lt, 0, 1, fitSize(lt, 22, 560), '#ffffff', 'center', 3); g.restore(); }
 }
@@ -3442,6 +3448,7 @@ if (WEB){
     .wb button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
     .wb button[disabled]{opacity:.35;cursor:default}
     .wb small{display:block;font-size:11px;font-weight:800;opacity:.9;margin-top:2px}
+    #bC.atk{background:linear-gradient(180deg,#ff8a3d,#ff3048);animation:wgp .35s ease-in-out infinite alternate}
     #bC{flex:2.2;background:linear-gradient(180deg,#ff5a5a,#d01030);font-size:22px}
     #bG{background:linear-gradient(180deg,#4a8cff,#2457c9)}#bU{background:linear-gradient(180deg,#ffd23f,#c99400);color:#1a1400}#bM{background:linear-gradient(180deg,#b56cff,#6a2bc0)}
     #auto{display:none;margin-top:8px;width:100%;border:0;border-radius:14px;padding:11px;font:900 15px system-ui;cursor:pointer;background:#2a2c3e;color:#ffd23f;border:2px solid #ffd23f}
@@ -3501,19 +3508,31 @@ if (WEB){
     .zgo{display:block;width:100%;border:0;border-radius:16px;padding:16px;font:900 16px system-ui;letter-spacing:1px;color:#1a1400;background:linear-gradient(180deg,#ffe066,#ffb800);box-shadow:0 5px 0 #a77800;cursor:pointer}
     .zgo:active{transform:translateY(3px);box-shadow:0 2px 0 #a77800}.zgo.off{background:#3a3f5c;color:#c8cbe0;box-shadow:0 5px 0 #23263a;cursor:default}
     #wev div{border-radius:12px;padding:8px 12px;margin-bottom:8px;font:900 13px system-ui;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+    #wraid{display:none;background:linear-gradient(160deg,#3a0a12,#1a0a1e);border:2px solid #ff3048;border-radius:16px;padding:10px 12px;margin-bottom:8px;box-shadow:0 4px 0 rgba(0,0,0,.4)}
+    #wraid.dm{border-color:#ff3a6a;background:linear-gradient(160deg,#4a0a2e,#140a24)}
+    #wraid .rt{display:flex;justify-content:space-between;gap:8px;font:900 14px system-ui;letter-spacing:.5px;color:#ff8f9f}#wraid .rt span:last-child{color:#fff;white-space:nowrap}
+    #wraid .hp{position:relative;height:22px;border-radius:11px;background:rgba(0,0,0,.5);overflow:hidden;margin-top:8px}#wraid .hp i{display:block;height:100%;background:linear-gradient(90deg,#ff3048,#ff8a3d);transition:width .4s}
+    #wraid .hp b{position:absolute;inset:0;display:grid;place-items:center;font:900 12px system-ui;text-shadow:0 1px 0 #000}#wraid .shd i{background:linear-gradient(90deg,#8a3aff,#d08cff)}
+    #wraid .rk{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:12.5px;font-weight:800;color:#c8cbe0}#wraid .rk b{color:#ffd23f}#wraid .rm{margin-top:6px;font-size:12.5px;font-weight:800;color:#9aa3c0}#wraid .rm b{color:#fff}
+    #wguess{display:none;gap:6px;margin-top:8px}#wguess input{flex:1;min-width:0;border-radius:12px;border:2px solid #4ac8ff;background:#11131f;color:#fff;font:800 15px system-ui;padding:10px}
+    #wguess button{border:0;border-radius:12px;padding:0 16px;font:900 14px system-ui;background:#4ac8ff;color:#062030;cursor:pointer}
+    #wgold{display:none;margin-top:8px;width:100%;border:0;border-radius:14px;padding:13px;font:900 16px system-ui;cursor:pointer;background:linear-gradient(180deg,#ffe066,#ffb800);color:#1a1400;box-shadow:0 4px 0 #a77800;animation:wgp .6s ease-in-out infinite alternate}
+    @keyframes wgp{to{transform:scale(1.03)}}
+    #wroul{display:flex;flex-direction:column;gap:6px;margin-top:8px}#wroul button{border:2px solid #ffd23f;border-radius:14px;padding:10px;font:900 15px system-ui;cursor:pointer;background:#2a1f4a;color:#ffd23f}#wroul small{display:block;font-size:11px;font-weight:800;color:#c8cbe0;margin-top:2px}
+    #wnext{text-align:center;font-size:12.5px;font-weight:800;color:#9aa3c0;margin-top:2px}#wnext b{color:#fff}#wnext .sz{color:#ffd23f}
     .wr small.z{color:#7d84a6;font-weight:700;margin-left:4px}`;
   document.head.appendChild(css);
   const hl = document.getElementById('help'); if (hl) hl.remove();
   const scn = document.createElement('div'); scn.id = 'scn'; document.body.insertBefore(scn, cv); scn.appendChild(cv);
   const ui = document.createElement('div'); ui.id = 'ui'; document.body.appendChild(ui);
-  ui.innerHTML = `<div id="wev"></div><div id="zbar"><div id="zic">🌿</div><div><b id="zn">MEADOW</b><small id="zr">KANTO</small></div><span id="zp"></span><button id="zmapb">MAP</button></div><div class="wtop"><span id="wonl">-</span><span id="wtime"></span></div>
-    <div id="wact"></div><div id="wmsg"></div>
+  ui.innerHTML = `<div id="wev"></div><div id="wraid"></div><div id="zbar"><div id="zic">🌿</div><div><b id="zn">MEADOW</b><small id="zr">KANTO</small></div><span id="zp"></span><button id="zmapb">MAP</button></div><div class="wtop"><span id="wonl">-</span><span id="wtime"></span></div>
+    <div id="wact"></div><div id="wguess"><input id="wgin" placeholder="Who's that Pokémon? type the name" autocomplete="off"><button id="wgb">GUESS</button></div><button id="wgold">✨ GRAB THE GOLDEN BALL!</button><div id="wroul"></div><div id="wmsg"></div><div id="wnext"></div>
     <a id="live" href="https://www.tiktok.com/@.pokemon.nostalgia/live" target="_blank" rel="noopener">● LIVE NOW · join the live on TikTok</a>
     <div class="wc"><h3>HAPPENING NOW</h3><div id="wfeed"><div class="wr">Nobody has thrown yet. Be the first!</div></div></div>
     <div class="wc"><h3>TOP CATCHERS ON THE SITE</h3><div id="wboard">…</div></div>
     <div class="wc wrules"><h3>HOW IT WORKS</h3><b>Explore the world.</b> Every zone has its own Pokémon, a new one every 30 seconds, the same for everyone in the zone. Throw to catch it: it goes straight into your Live Catch Dex and counts in the rankings.<br><b>Unlock the map:</b> Meadow and Forest are open, Sea opens at trainer level 5, City at 10, Cave at 15, Night at 20 (only 20:00-06:00). Catch 50% of a region to open the next one, starting from Kanto.<br>
       <b>Poké Ball: 50 free throws a day.</b> Great, Ultra and Master Balls are the ones in your bag from the live, and your AUTO-THROW from the live works here too.<br>
-      Shinies are very rare here: legendaries, raids and roulettes are only in the live.<br>To play, link your account: open your page on the Dex, tap <b>This is me</b> and write the code in the live chat.</div>
+      <b>Same as the live:</b> RAIDS every :00 and :30 (tap ATTACK all together, Dynamax raids have MAX SHIELDS, attackers catch the boss, a MEGA STONE every 2 raids), HORDES, WHO'S THAT POKÉMON (first to guess wins a Great Ball), the GOLDEN BALL (first to tap it wins a Master Ball), SHINY ZONE 15 minutes every 4 hours, legendaries, Megas and Alphas. Plus a free shiny roulette every day.<br>To play, link your account: open your page on the Dex, tap <b>This is me</b> and write the code in the live chat.</div>
     <div class="wfoot">Fan-made page for the Live Catch community. Not affiliated with Nintendo, The Pokémon Company or Game Freak.<br><a href="index.html">Back to the Dex</a></div>`;
   const $ = id => document.getElementById(id), esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
   document.body.insertAdjacentHTML('beforeend', '<div id="zmapv"><div class="zwrap"><div class="zhead"><span id="zlv"></span><button id="zxm">×</button></div><div id="ztitle"></div><div id="zbody"></div></div></div><div id="zsheet"></div>');
@@ -3614,6 +3633,7 @@ if (WEB){
   }
   let S = null, off = 0, slot = null, lastFeed = 0, first = true, busy = false, autoOnW = false, msgT = null;
   // il conto alla rovescia della card 'caught by' sul sito (in WEB CFG.gap = 1e9): secondi al prossimo Pokemon
+  window.playS = () => S;
   window.playLeft = () => S && S.ends ? Math.max(0, (S.ends - (Date.now() + off)) / 1000) : null;
   const msg = (s, ms) => { $('wmsg').textContent = s; clearTimeout(msgT); if (ms) msgT = setTimeout(() => $('wmsg').textContent = '', ms); };
   // gli altri giocatori: qui non c'e' il loro Pokedex, quindi niente "WELCOME NEW TRAINER" / "NEW!" finti
@@ -3624,18 +3644,26 @@ if (WEB){
       const j = await r.json(); const d = j && j[0] && j[0].me; if (d && d.c){ DEX[ME] = Object.assign({n: 0, s: 0, c: {}, sh: []}, d); DEX[ME].mega = Math.max(DEX[ME].mega || 0, Math.floor((DEX[ME].n || 0) / 1000)); DEX[ME].lv = trainerLv(ME); NEWBIE[ME] = 0; trainerHello(ME); } } catch(e){} }
   function startSlot(){
     const e = S.enc; enc = null; summary = null; flying = []; throwsQ = []; sucks = []; special.length = 0; for (const k in users){ users[k].pend = null; users[k].next = 0; }
-    special.unshift({type: 'pick', id: +e.id, shiny: !!e.sh, hard: false, donor: null}); MON(+e.id);
-    spawn(); if (!enc) return; enc.bg = ZN[zParts(ZONE)[1]][6];
-    const rem = (S.ends - (Date.now() + off)) / 1000; enc.dur = Math.max(2, rem - enc.intro - 1.2); enc.hard = false;
+    if (e.raid) special.unshift({type: 'raid', id: +e.id, dmax: !!e.dmax, sh: !!e.sh});
+    else special.unshift({type: 'pick', id: +e.id, shiny: !!e.sh, hard: false, donor: null});
+    MON(+e.id); spawn(); if (!enc) return;
+    if (!e.raid) enc.bg = ZN[zParts(ZONE)[1]][6];
+    enc.shiny = !!e.sh; enc.hard = false; const nm = enc.m.name.toUpperCase();
+    if (e.raid){ RD = null; raidSync(true); }
+    if (e.alpha){ enc.alpha = true; banner('ALPHA POKEMON!', 'a huge ALPHA ' + enc.m.name + ' appeared!', '#ff3a3a'); jingle([196, 247, 294, 392, 494], 110, 0.14); shake = 0.6; }
+    if (e.horde){ enc.horde = {n: e.horde, of: 5}; if (e.horde === 1){ banner('HORDE! 5 ' + nm + '!', 'five rounds in a row - catch them all!', '#ff8a3d'); jingle([392, 523, 392, 523, 659], 80, 0.12); } }
+    if (e.myst){ enc.mystery = true; banner('WHO\'S THAT POKEMON?', 'type its name below: the first one wins a GREAT BALL!', '#4ac8ff'); jingle([392, 494, 587, 784], 110, 0.12); }
+    const rem = (S.ends - (Date.now() + off)) / 1000; enc.dur = Math.max(2, rem + enc.t - 1.2);
   }
   async function poll(){
     try {
       const t0 = Date.now(); S = await rpc('play_state', {p_token: AUTH ? AUTH.token : null, p_zone: ZONE}); off = S.now - (t0 + Date.now()) / 2;
       if (S.z && S.z !== ZONE){ ZONE = S.z; try { localStorage.setItem('lc_zone', ZONE); } catch(e){} }
-      if (slot !== S.slot + '|' + S.z){ slot = S.slot + '|' + S.z; startSlot(); }
+      if (slot !== S.slot + '|' + S.rz){ slot = S.slot + '|' + S.rz; startSlot(); }
+      if (S.raid && enc && enc.raid) raidSync(); szSync(); goldSync(); if (S.myst && enc && enc.mystery && !enc.revealed) revealMyst(S.myst.me ? ME : S.myst.u);
       const F = S.feed.slice().sort((a, b) => a.id - b.id);
       for (const f of F) if (f.id > lastFeed){ lastFeed = f.id;
-        if (!first && f.u !== ME && f.slot === S.slot && (f.z || 'kanto-meadow') === S.z && enc && throwsQ.length < 40){ lastAct[f.u] = Date.now(); known(f.u, f.mon); throwsQ.push({u: f.u, ball: f.ball || 'poke', res: {ok: f.ok, shakes: f.id % 3}}); } }
+        if (!first && f.u !== ME && f.slot === S.slot && (f.z || 'kanto-meadow') === S.rz && enc && throwsQ.length < 40){ lastAct[f.u] = Date.now(); known(f.u, f.mon); throwsQ.push({u: f.u, ball: f.ball || 'poke', res: {ok: f.ok, shakes: f.id % 3}}); } }
       first = false; ui_(); zBar();
     } catch(e){ msg('Connection problem, retrying…'); }
   }
@@ -3644,13 +3672,15 @@ if (WEB){
     $('live').style.display = S.live ? 'block' : 'none';
     const fe = S.feed.slice(0, 8);
     $('wfeed').innerHTML = fe.length ? fe.map(f => `<div class="wr ${f.ok ? 'ok' : ''} ${f.ok && f.sh ? 'sh' : ''}"><span><b>${esc(f.u)}</b> ${f.ok ? 'caught' : 'missed'} ${f.sh ? 'shiny ' : ''}${esc(A.mons[f.mon] ? A.mons[f.mon].name : '#' + f.mon)}${f.ball && f.ball !== 'poke' ? ' <small style="color:#9aa3c0">(' + f.ball + ')</small>' : ''}${f.z && f.z !== ZONE && ZP[f.z] ? '<small class="z">· ' + zParts(f.z)[0].charAt(0) + zParts(f.z)[0].slice(1).toLowerCase() + ' ' + ZN[zParts(f.z)[1]][0].charAt(0) + ZN[zParts(f.z)[1]][0].slice(1).toLowerCase() + '</small>' : ''}</span><span class="r">${f.ok ? '✓' : '✗'}</span></div>`).join('') : '<div class="wr">Nobody has thrown yet. Be the first!</div>';
-    const me = S.me; if (!me || !AUTH) return; const h = me.have || {}, dis = busy || me.caught;
-    $('bC').disabled = dis || me.left <= 0; $('lC').textContent = me.caught ? 'caught!' : me.left > 0 ? me.left + ' left today' : 'none left today';
+    const me = S.me; if (!me || !AUTH) return; const h = me.have || {}, fight = raidFight(), rOut = !!(S.raid && !fight && !(S.raid.me > 0)), dis = busy || me.caught || fight || rOut;
+    $('bC').firstChild.nodeValue = fight ? 'ATTACK!' : 'THROW'; $('bC').classList.toggle('atk', fight);
+    $('bC').disabled = fight ? false : dis || me.left <= 0; $('lC').textContent = fight ? 'tap fast!' : rOut ? 'attackers only' : me.caught ? 'caught!' : me.left > 0 ? me.left + ' left today' : 'none left today';
     if (!GUEST) for (const [b, k, nm] of [['bG', 'great', 'Great'], ['bU', 'ultra', 'Ultra'], ['bM', 'master', 'Master']]){ $(b).disabled = dis || !(h[k] > 0); $('l' + b[1]).textContent = nm + ' x' + (h[k] || 0); }
     const au = $('auto'); if (GUEST){} else if (h.auto){ au.style.display = 'block'; au.textContent = autoOnW ? 'AUTO ' + h.auto.toUpperCase() + ' · ON (tap to stop)' : 'AUTO ' + h.auto.toUpperCase() + ' · tap to start'; au.className = autoOnW ? 'on' : ''; }
     else { au.style.display = 'none'; autoOnW = false; }
   }
   async function wthrow(ball){
+    if (raidFight()){ if (ball === 'poke') attack(); return; }
     if (busy || !S || !S.me || S.me.caught || !enc || phase !== 'enc') return; busy = true; ui_();
     try { const r = await rpc('play_throw', {p_token: AUTH.token, p_slot: S.slot, p_ball: ball, p_zone: ZONE});
       lastAct[ME] = Date.now(); throwsQ.push({u: ME, ball: r.ball, res: r});
@@ -3660,8 +3690,8 @@ if (WEB){
   }
   if (AUTH){ $('bC').onclick = () => wthrow('poke'); $('bG').onclick = () => wthrow('great'); $('bU').onclick = () => wthrow('ultra'); $('bM').onclick = () => wthrow('master');
     $('auto').onclick = () => { autoOnW = !autoOnW; ui_(); }; }
-  setInterval(() => { if (autoOnW && S && S.me && !S.me.caught && document.visibilityState === 'visible' && enc && enc.t > 1.5 && enc.t < enc.dur - 1) wthrow('auto'); }, 2600);
-  setInterval(() => { if (!S) return; const left = Math.max(0, S.ends - (Date.now() + off)); $('wtime').textContent = left > 0 ? 'next Pokémon in ' + Math.ceil(left / 1000) + 's' : 'next Pokémon…'; if (left <= 0) poll(); }, 250);
+  setInterval(() => { if (autoOnW && S && S.me && !S.me.caught && !raidFight() && !(S.raid && !(S.raid.me > 0)) && document.visibilityState === 'visible' && enc && enc.t > 1.5 && enc.t < enc.dur - 1) wthrow('auto'); }, 2600);
+  setInterval(() => { if (!S) return; const left = Math.max(0, S.ends - (Date.now() + off)); $('wtime').textContent = left > 0 ? (S.raid ? 'raid ends in ' : 'next Pokémon in ') + Math.ceil(left / 1000) + 's' : 'next Pokémon…'; if (left <= 0) poll(); }, 250);
   async function board(){ try {  const b = await rpc('play_board', {}); $('wboard').innerHTML = b.length ? b.slice(0, 10).map((x, i) => `<div class="wr"><b style="width:24px">${i + 1}.</b><a href="index.html#/t/${encodeURIComponent(x.u)}" style="color:#fff;text-decoration:none;font-weight:900">${esc(x.u)}</a><span class="r">${x.catches} caught${x.shinies ? ' · ' + x.shinies + '★' : ''}</span></div>`).join('') : '<div class="wr">No catches yet. Be the first!</div>'; } catch(e){} }
   async function live(){ if (DEMO) return; try { const r = await fetch(HOME_CFG.url + '/rest/v1/snapshot?select=live:data->live&id=eq.1', {headers: {apikey: HOME_CFG.key, Authorization: 'Bearer ' + HOME_CFG.key}}); const j = await r.json(); if (S) S.live = !!(j && j[0] && j[0].live); ui_(); } catch(e){} }
   // eventi (SUPABASE_SEASON): Community Day / tipo / stagione, con l'ora di chi guarda
@@ -3671,6 +3701,67 @@ if (WEB){
       else if (e.kind === 'type' && on) H.push(`<div style="background:#9fe7ff;color:#062030">${esc(e.name)}</div>`); }
     if (j.season) H.push(`<div style="background:#2a1f4a;color:#c08cff">SEASON ${esc(String(j.season.id).slice(1))} · ${esc(j.season.name)} · ends ${tf(Date.parse(j.season.ends))} · <a href="index.html" style="color:#fff">season pass</a></div>`);
     $('wev').innerHTML = H.join(''); } catch(e){} }
+  // ---------- 06/11 PLAY UGUALE ALLA LIVE (SUPABASE_PLAY_LIVE.sql): raid condivisi, orde, mystery, golden ball, shiny zone, roulette. Tutto deciso dal server. ----------
+  let atkPend = 0, atkBusy = false, RD = null, raidWarn = 0, szWarn = 0, szKey = 0, goldSeen = 0, stoneSeen = 0, roulKey = '';
+  const raidFight = () => !!(S && S.raid && !S.raid.beaten && !S.raid.escaped && enc && enc.raid);
+  function raidSync(first){
+    const r = S.raid, e = enc; if (!r || !e || !e.raid) return; const o = RD; RD = r;
+    const er = e.raid; er.hp = r.hp; er.max = r.max; er.shield = r.shield; er.shieldMax = r.smax || r.shield; er.beaten = r.beaten;
+    er.dmgBy = {}; for (const t of r.top) er.dmgBy[t.u] = t.dmg; if (ME && r.me) er.dmgBy[ME] = r.me; er.hitters = new Set(Object.keys(er.dmgBy));
+    if (r.stone && stoneSeen !== r.rid && !first){ stoneSeen = r.rid; banner('MEGA STONE FOUND!', r.stone + ' found a MEGA STONE - use it in the live: MEGA + a Pokemon', '#ff5ad0'); jingle([784, 988, 1175, 1568, 2093], 90, 0.15); }
+    if (r.stone) stoneSeen = r.rid;
+    if (!o || first) return;
+    // gli attacchi degli altri: palle d'attacco di chi ha fatto danni dall'ultimo giro
+    for (const t of r.top){ const p = o.top.find(x => x.u === t.u); if (t.u !== ME && t.dmg > (p ? p.dmg : 0) && throwsQ.length < 30){ known(t.u, e.id); lastAct[t.u] = Date.now(); throwsQ.push({u: t.u, ball: 'poke', attack: true}); } }
+    if (r.shield > 0 && !(o.shield > 0)){ banner('MAX SHIELD!', 'attacks are blocked - everybody TAP ATTACK to break it!', '#c86aff'); jingle([220, 330, 440], 120, 0.14); shake = 0.6; }
+    if (o.shield > 0 && !(r.shield > 0) && !r.beaten){ banner('MAX SHIELD BROKEN!', 'attack now!', '#7dff9a'); flashT = 0.4; shake = 0.7; jingle([523, 784, 1046, 1568], 80, 0.14); }
+    if (r.beaten && !o.beaten){ flashT = 0.5; jingle([523, 659, 784, 1046, 1319, 1568], 90, 0.14); banner('RAID BOSS DEFEATED!', r.me > 0 ? 'catch it now: the top 5 attackers get a bonus!' : 'only the attackers can catch it - join the next raid!', '#7dff9a'); }
+    if (r.escaped && !o.escaped){ banner('THE RAID BOSS ESCAPED!', 'not enough damage - a new raid every 30 minutes', '#ff3048'); e.dur = Math.max(0, e.t); }
+  }
+  function attack(){ if (!raidFight() || !AUTH) return; atkPend = Math.min(10, atkPend + 1); if (throwsQ.filter(q => q.u === ME).length < 3) throwsQ.push({u: ME, ball: 'poke', attack: true}); lastAct[ME] = Date.now(); }
+  setInterval(async () => { if (!atkPend || atkBusy || !S || !S.raid || !AUTH) return; const n = Math.min(5, atkPend); atkPend = 0; atkBusy = true;
+    try { const r = await rpc('play_attack', {p_token: AUTH.token, p_rid: S.raid.rid, p_n: n}); if (r && S.raid && r.rid === S.raid.rid){ S.raid = r; raidSync(); raidPanel(); ui_(); } } catch(e){ msg(e.message, 2500); }
+    atkBusy = false; }, 1000);
+  function raidPanel(){
+    const el = $('wraid'); if (!el) return; const now = Date.now() + off;
+    if (S && S.raid){ const r = S.raid, nm = A.mons[r.id] ? A.mons[r.id].name : '', fight = !r.beaten && !r.escaped, tl = Math.max(0, Math.ceil(((fight ? S.round.fight : S.round.ends) - now) / 1000)), top5 = r.top.some(t => t.u === ME);
+      el.style.display = 'block'; el.className = r.dmax ? 'dm' : '';
+      el.innerHTML = `<div class="rt"><span>${r.dmax ? 'DYNAMAX RAID' : 'LEGENDARY RAID'} · ${esc((r.sh ? 'SHINY ' : '') + nm.toUpperCase())}</span><span>${fight ? tl + 's to beat it' : r.beaten ? (r.me > 0 ? 'CATCH IT! ' + tl + 's' : 'defeated') : 'escaped'}</span></div>
+        <div class="hp"><i style="width:${Math.max(0, r.hp / r.max * 100)}%"></i><b>${r.hp} / ${r.max} HP</b></div>
+        ${r.shield > 0 ? `<div class="hp shd"><i style="width:${r.shield / Math.max(1, r.smax) * 100}%"></i><b>MAX SHIELD ${r.shield} · tap ATTACK to break it</b></div>` : ''}
+        <div class="rk">${r.top.map((t, i) => `<span>${i + 1}. ${esc(t.u)} <b>${t.dmg}</b></span>`).join('') || '<span>be the first to attack!</span>'}</div>
+        <div class="rm">${r.me > 0 ? 'your damage: <b>' + r.me + '</b>' + (top5 ? ' · TOP 5: +5% catch' : ' · +2% catch') : fight ? 'tap ATTACK (or the screen) as fast as you can!' : 'only the attackers can catch it'} · ${r.n} trainer${r.n === 1 ? '' : 's'}</div>`; return; }
+    el.style.display = 'none';
+  }
+  // prossimo raid / shiny zone: riga sotto la zona + annunci 1 minuto prima (come in live)
+  function nextLine(){ if (!S || !S.next_raid) return; const now = Date.now() + off, f = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+    const dm = Math.floor(S.next_raid / 30000 / 60) % 2 === 1, szOnNow = !!S.sz;
+    $('wnext').innerHTML = (S.raid ? '' : `⚔️ next ${dm ? 'DYNAMAX ' : ''}RAID in <b>${f(S.next_raid - now)}</b>`) + (szOnNow ? ` <span class="sz">✨ SHINY ZONE · ${f(S.sz.end - now)} left</span>` : S.sz_next - now < 3600e3 ? ` · ✨ shiny zone in <b>${f(S.sz_next - now)}</b>` : '');
+    if (!S.raid && S.next_raid - now < 60000 && raidWarn !== S.next_raid){ raidWarn = S.next_raid; banner(dm ? 'DYNAMAX RAID INCOMING!' : 'LEGENDARY RAID INCOMING!', 'in 1 minute - everybody tap ATTACK together!', '#ff3048'); jingle([330, 440, 330, 440], 120, 0.12); }
+    if (!szOnNow && S.sz_next - now < 60000 && szWarn !== S.sz_next){ szWarn = S.sz_next; banner('SHINY ZONE IN 1 MINUTE!', 'for 15 minutes shinies are 14x more common', '#ffd23f'); jingle([1319, 1568, 2093], 90, 0.12); } }
+  function szSync(){ const now = Date.now() + off, st = S.sz ? S.sz.start : S.sz_next - now < 60000 ? S.sz_next : 0; if (!st){ szStart = szEnd = 0; return; } if (st !== szKey){ szKey = st; szAnn = 0; } szStart = st - off; szEnd = szStart + 15 * 60000; }
+  // GOLDEN BALL: cade per 20 s, il primo che la tocca vince una MASTER BALL
+  function goldSync(){ const G0 = S.gold; if (!G0) return; const now = Date.now() + off;
+    if (goldSeen !== G0.gid && now >= G0.start && now < G0.end - 1000){ goldSeen = G0.gid; gold = {t: Math.max(0, (now - G0.start) / 1000), x: 220 + (G0.gid % 7) * 100, win: null, gid: G0.gid}; jingle([1319, 1568, 2093, 2637], 80, 0.12); banner('GOLDEN BALL!', 'tap it first: +1 MASTER BALL', '#ffd23f'); }
+    if (gold && gold.gid === G0.gid && G0.win && !gold.win) grabGold(G0.win); }
+  async function grab(){ if (!gold || gold.win || !AUTH) return;
+    try { const r = await rpc('play_gold', {p_token: AUTH.token, p_gid: gold.gid}); if (r.first){ msg('You grabbed the GOLDEN BALL: +1 MASTER BALL!', 4000); if (S.me && S.me.have) S.me.have.master = (S.me.have.master || 0) + 1; } else msg(r.win + ' was faster!', 3000); if (gold && !gold.win && r.win) grabGold(r.win); ui_(); } catch(e){ msg(e.message, 3000); } }
+  // WHO'S THAT POKEMON: scrivi il nome, il primo nella zona vince una GREAT BALL
+  async function guess(){ const t = $('wgin').value.trim(); if (!t || !enc || !enc.mystery || enc.revealed || !AUTH) return; const id = +(findMonExact(t) || findMon(t)); if (!id){ msg('unknown Pokémon - check the name', 2000); return; }
+    try { const r = await rpc('play_guess', {p_token: AUTH.token, p_slot: S.slot, p_id: id, p_zone: ZONE}); if (!r.ok) msg('Nope, try again!', 2000); else { $('wgin').value = ''; msg(r.first ? 'You guessed it! +1 GREAT BALL' : r.win + ' was faster!', 3500); if (enc && enc.mystery && !enc.revealed) revealMyst(r.win === ME || r.first ? ME : r.win); } } catch(e){ msg(e.message, 2500); } }
+  // ROULETTE: 1 shiny gratis al giorno + premio dei 1000 catture (targhetta "Prize")
+  async function roulGo(kind){ if (roul || !AUTH) return;
+    try { const r = await rpc('play_roulette', {p_token: AUTH.token, p_kind: kind}); const pool = COMMON.concat(RARE), list = []; for (let i = 0; i < 26; i++) list.push(+pick(pool)); list[22] = +r.id; list.forEach(id => MON(id));
+      roul = {kind: 'shiny', list, win: +r.id, t: 0, idx: -1, donor: null, web: kind === 'prize' ? r.n + ' CATCHES PRIZE!' : 'YOUR DAILY SHINY!'}; jingle([392, 523, 659, 784, 1046], 110, 0.16); shake = 0.5;
+      if (S.me){ if (kind === 'daily') S.me.daily = false; else S.me.prize = 0; } if (ME && DEX[ME]){ const d = DEX[ME]; d.c[r.id] = (d.c[r.id] || 0) + 1; } ui_(); } catch(e){ msg(e.message, 3000); } }
+  function extraUi(){
+    const me = S && S.me, rk = me ? (me.daily ? 'd' : '') + (me.prize || '') : ''; if (rk !== roulKey){ roulKey = rk; $('wroul').innerHTML = (me && me.daily ? '<button id="rD">🎰 DAILY SHINY ROULETTE<small>free, once a day</small></button>' : '') + (me && me.prize ? `<button id="rP">🏆 ${me.prize} CATCHES PRIZE<small>shiny roulette with a special tag</small></button>` : '');
+      if ($('rD')) $('rD').onclick = () => roulGo('daily'); if ($('rP')) $('rP').onclick = () => roulGo('prize'); }
+    $('wguess').style.display = AUTH && enc && enc.mystery && !enc.revealed && phase === 'enc' ? 'flex' : 'none';
+    $('wgold').style.display = AUTH && !GUEST && gold && !gold.win ? 'block' : 'none'; }
+  setInterval(() => { raidPanel(); nextLine(); if (S) extraUi(); }, 300);
+  if (AUTH){ $('wgb').onclick = guess; $('wgin').onkeydown = ev => { if (ev.key === 'Enter') guess(); }; $('wgold').onclick = grab; }
+  $('scn').addEventListener('pointerdown', () => { if (raidFight()) attack(); else if (gold && !gold.win) grab(); });
   $('zmapb').onclick = zOpen; $('zxm').onclick = zClose; zBar();
   myDex().then(() => { zBar(); }); zinfo(); poll(); board(); live(); setInterval(poll, 2000); setInterval(zinfo, 60000); wEvents(); setInterval(wEvents, 5 * 60000); setInterval(board, 60000); setInterval(live, 60000);
 
