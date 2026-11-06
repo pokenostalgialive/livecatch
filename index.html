@@ -1189,7 +1189,7 @@ function goalsHtml(t){
   const line = (title, sub, miss) => `<div class="goal"><div class="goalh"><b>${title}</b><span>${sub}</span></div><div class="gmiss">${miss.slice(0, miss.length > 6 ? 5 : 6).map(id => `<span class="gm" title="${esc(name(id))}">${img(id, false)}</span>`).join('')}${miss.length > 6 ? `<span class="gmore">+${miss.length - 5}</span>` : ''}</div></div>`;
   let h = rows.map(x => line(`${x.miss.length} left for the ${x.r.n} badge`, `${x.r.ids.length - x.miss.length}/${x.r.ids.length}`, x.miss)).join('');
   if (t.mg && mg.length) h += line(`${mg.length} Mega left`, `${t.mg}/${MEGAIDS.length}`, mg);
-  return h ? `<h2>Next goals</h2><div class="card goals">${h}<p class="hint" style="text-align:left;margin-top:8px">Catch them in the next live!</p></div>` : '';
+  return h ? `<h2>Next goals</h2><div class="card goals">${h}<p class="hint" style="text-align:left;margin-top:8px">Catch them on Play!</p></div>` : '';
 }
 
 /* ===== SHARE CARD: image to post on TikTok / stories ===== */
@@ -1433,10 +1433,10 @@ function drawSeason(){
     <h2>Season pass</h2><div class="card" style="padding:0">${rows}</div>
     <h2>Season ranking</h2>${board}
     <h2>How to get points</h2><div class="card"><div class="spinfo"><div><span>Every catch in the live</span><b>+1</b></div><div><span>Every catch on Play (max 50 a day)</span><b>+1</b></div><div><span>Every new species</span><b>+5</b></div><div><span>Every shiny</span><b>+20</b></div><div><span>Every mission claimed on the site</span><b>+10</b></div></div>
-      <p class="hint" style="text-align:left">Points count from the start of the season. Balls arrive in the live like the other rewards. Pokémon from the pass get a tag and go to your special box. Unclaimed rewards are lost when the season ends.</p></div>`;
+      <p class="hint" style="text-align:left">Points count from the start of the season. Balls go straight into your bag, ready on Play. Pokémon from the pass get a tag and go to your special box. Unclaimed rewards are lost when the season ends.</p></div>`;
   el.querySelectorAll('[data-claim]').forEach(b => b.onclick = async () => { b.disabled = true;
     try { const r = await rpc('season_claim', {p_token: AUTH.token, p_lv: +b.dataset.claim});
-      toast(r && r.id ? `${r.spec && +r.spec.sh ? '✦ Shiny ' : ''}${name(r.id)} is in your special box!` : 'Claimed! The balls arrive in the live.');
+      toast(r && r.id ? `${r.spec && +r.spec.sh ? '✦ Shiny ' : ''}${name(r.id)} is in your special box!` : 'Claimed! The balls are in your bag, ready on Play.');
       if (r && r.id && !DEMO){ try { build(await load()); } catch(e){} }
       SEA = await rpc('season_me', {p_token: AUTH.token}); drawSeason(); loadSeasonTitles(); }
     catch(e){ toast(e.message); b.disabled = false; } });
@@ -1530,7 +1530,7 @@ function bindDex(){
 }
 
 /* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
-const BUILD = '20261106110344';
+const BUILD = '20261106111619';
 async function checkUpdate(){
   if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
   try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
@@ -1646,7 +1646,7 @@ function towerHtml(){
     <div class="tstk"><div><b>${T0.streak}</b><span>current streak</span></div><div><b>${T0.best}</b><span>best streak</span></div></div>
     <div class="tpz">${Object.entries(pz).map(([m, p]) => `<div class="${cl.has(+m) ? 'ok' : ''}">${img(p.mon, false)}<b>${m} wins</b><small>${esc(name(p.mon))}${p.title ? '<br>' + esc(p.title) : ''}</small></div>`).join('')}</div>
     <button class="btn" id="tgo" style="width:100%">${T0.streak ? 'Next battle (' + nx + ')' : 'Start the Tower'}</button>
-    <p class="hint" style="text-align:left">Prizes (once each): Pokémon with the TOWER tag + balls in the next live. 25 wins = title TOWER ACE · 100 wins = TOWER LEGEND.</p>
+    <p class="hint" style="text-align:left">Prizes (once each): Pokémon with the TOWER tag + balls straight into your bag. 25 wins = title TOWER ACE · 100 wins = TOWER LEGEND.</p>
     ${top.length ? `<div class="list tbd">${top.map((x, i) => { const t = BY[x.u.toLowerCase()]; return `<a class="row" href="${link(x.u)}" style="text-decoration:none;color:inherit"><span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>${t ? avatar(t) : ''}<span class="who"><b>${esc(x.u)}</b><small>now ${x.streak}</small></span><span class="val">${x.best}<small>best</small></span></a>`; }).join('')}</div>` : ''}</div>`;
 }
 function towerOpp(n){
@@ -1931,9 +1931,9 @@ function drawMissions(){
       <div class="sk2">${(MST.streak_list || []).map(x => { const r = STRK.find(y => y[0] === x.m); return `<div class="skm ${x.claimed ? 'mcl' : x.ok ? 'ok' : ''}"><b>${x.m} days</b><small>${r ? r[1] : ''}</small>${x.claimed ? '<span>✓</span>' : x.ok ? `<button class="mini" data-cl="s:${x.m}">Claim</button>` : `<span>${Math.min(MST.streak, x.m)}/${x.m}</span>`}</div>`; }).join('')}</div></div>
     <div class="lgday">Daily missions · ${dd}/5 · new in ${left(MST.day_ends)}</div><div class="list">${MST.day.map(m => row(m, 'd', '2 Great')).join('')}${bonus('db', dd, 5, MST.day_bonus, '+1 Ultra Ball')}</div>
     <div class="lgday">Weekly missions · ${wd}/7 · new in ${left(MST.week_ends)}</div><div class="list">${MST.week.map(m => row(m, 'w', '5 Ultra')).join('')}${bonus('wb', wd, 7, MST.week_bonus, '+2 Ultra Balls · a new ball trail in the live · WEEKLY CHAMP badge next week')}</div>
-    <p class="hint" style="margin-top:12px">Rewards arrive in your bag the next time you are active in the live. Weeks completed: ${MST.weeks_done || 0} (4 = keep a trail forever).</p>`;
+    <p class="hint" style="margin-top:12px">Rewards go straight into your bag: use them on Play right away. Weeks completed: ${MST.weeks_done || 0} (4 = keep a trail forever).</p>`;
   el.querySelectorAll('[data-cl]').forEach(b => b.onclick = async () => { const [sc, i] = b.dataset.cl.split(':'); b.disabled = true;
-    try { const r = await rpc('mission_claim', {p_token: AUTH.token, p_scope: sc, p_idx: +i}); toast(`+${r.qty} ${r.item[0].toUpperCase() + r.item.slice(1)} Ball${r.qty > 1 ? 's' : ''}! It arrives in the next live.`); await loadMissions(); }
+    try { const r = await rpc('mission_claim', {p_token: AUTH.token, p_scope: sc, p_idx: +i}); toast(`+${r.qty} ${r.item[0].toUpperCase() + r.item.slice(1)} Ball${r.qty > 1 ? 's' : ''}! It is in your bag, ready on Play.`); await loadMissions(); }
     catch(e){ toast(e.message); b.disabled = false; } });
 }
 let DEMOM = null;
@@ -2201,7 +2201,7 @@ function viewBattle(){
   return `<div class="rankg"><h2>Battles</h2>
     <div class="card"><div class="bhead"><div><b>${BPROG.badges}/32 badges</b><small>${fmt(BPROG.wins)} wins${BPROG.cleared ? ' · ' + BPROG.cleared + ' League' + (BPROG.cleared > 1 ? 's' : '') + ' cleared' : ''}${myChampLeagues().length ? ' · ♛ ' + champTitle(ME.u) : ''}</small></div>${badgesRow(BPROG.badges)}</div>
       <button class="btn" id="rndt" style="width:100%;margin-top:12px">Battle a random trainer</button>
-      <p class="hint" style="text-align:left">3 vs 3 · opponents are Lv 100 · Legendary and Mega = Lv 100 · others: 1 copy Lv 80, 2 copies Lv 90, 3+ copies Lv 100. Each badge = an Ultra Ball in the next live. Your first Champion title = a Master Ball.</p></div>
+      <p class="hint" style="text-align:left">3 vs 3 · opponents are Lv 100 · Legendary and Mega = Lv 100 · others: 1 copy Lv 80, 2 copies Lv 90, 3+ copies Lv 100. Each badge = an Ultra Ball in your bag. Your first Champion title = a Master Ball.</p></div>
     <div id="towerbox">${towerHtml()}</div>
     <h2>Leagues</h2><div class="chips" id="ltabs">${tabs}</div>
     <div class="gyms"><div class="lname" style="--c:${L.c}">${esc(L.n)} · ${nb}/8 badges${done ? ' · cleared' : ''}</div>${gy}${elite}<div class="lname" style="--c:${L.c}">Champion</div>${cc}</div>
@@ -2365,10 +2365,10 @@ async function runBattle(opp, mine, onEnd){
       catch(e){ msg += ' (' + e.message + ')'; } log = msg; busy = false; render('Continue'); return; }
     try { const r = await rpc('battle_win', {p_token: AUTH.token, p_kind: opp.kind, p_gym: opp.gym !== undefined ? opp.gym + 1 : 0, p_league: (opp.league || 0) + 1, p_team: opp.kind === 'champ' ? opp.snap : null});
       if (r){ const nb = r.badges > BPROG.badges; BPROG = r; if (CHAMPS !== undefined && r.became){ await loadBattle(); }
-        if (nb) msg += ` You earned the ${LEAGUES[opp.league].gyms[opp.gym].b}! Reward: an Ultra Ball in the next live.`;
+        if (nb) msg += ` You earned the ${LEAGUES[opp.league].gyms[opp.gym].b}! Reward: an Ultra Ball, already in your bag.`;
         if (opp.kind === 'elite') msg += opp.gym < 3 ? ` Next: ${LEAGUES[opp.league].elite[opp.gym + 1].n}.` : ' Now the Champion awaits!';
         if (r.became) msg += ` You are the new ${LEAGUES[opp.league].n} Champion! Your team stays here to defend the title.`;
-        if (r.reward === 'master') msg += ' Reward: a Master Ball in the next live!'; } } catch(e){ if (opp.kind === 'champ') msg += ' (' + e.message + ')'; }
+        if (r.reward === 'master') msg += ' Reward: a Master Ball, already in your bag!'; } } catch(e){ if (opp.kind === 'champ') msg += ' (' + e.message + ')'; }
     log = msg; busy = false; render('Continue');
   }
   async function lose(){ ended = true; result = false; if (opp.kind === 'tower'){ const n = (TOWER && TOWER.streak) || 0; try { await rpc('tower_lose', {p_token: AUTH.token}); } catch(e){} if (TOWER) TOWER.streak = 0; log = `Your Battle Tower run ended at ${n} win${n === 1 ? '' : 's'}. Best: ${(TOWER && TOWER.best) || n}.`; render('Continue'); return; }
