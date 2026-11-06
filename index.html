@@ -952,7 +952,7 @@ function viewTrainer(u){
     ${evoHtml(t)}
     ${wish.length ? `<h2>Looking for</h2><div class="card"><div class="wish">${wish.map(id => `<button class="tm ${t.c[id] > 0 ? '' : 'want'}" data-id="${id}" title="${esc(name(id))}">${img(id, false)}</button>`).join('')}</div></div>` : ''}
     ${goalsHtml(t)}
-    <h2>Regions</h2><div class="card regs">${regs}</div>${playMapHtml(t)}
+    <h2>Regions</h2><div class="card regs">${regs}</div>
     ${hwOn() ? '' : skinsHtml(t)}
   </div><div>
     <h2>Pokémon box</h2><div class="chips" id="bf">${F.map(([k, l]) => `<button class="chip ${k === BOXSTATE.f ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div>
@@ -1529,7 +1529,7 @@ function bindDex(){
 }
 
 /* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
-const BUILD = '20261106104055';
+const BUILD = '20261106105939';
 async function checkUpdate(){
   if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
   try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
