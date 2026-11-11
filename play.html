@@ -56,7 +56,7 @@ const store = {
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ window.__saveFail = k; } }
 };
 const CFG = Object.assign({ws: 'ws://localhost:21213/', music: 0.3, sfx: 0.6, voice: true, cooldown: 4, encSec: 25, bigSec: 32, gap: 6}, store.get('plc_cfg', {}));
-CFG.upg = false; CFG.safe = true; CFG.news = false;
+CFG.upg = false; CFG.safe = true; CFG.news = false; if (CFG.comm === undefined) CFG.comm = true;
 CFG.gap = 6;
 CFG.cooldown = 2.2;
 
@@ -422,6 +422,7 @@ function spawn(){
   enc = {roul: fromRoul, mile: fromMile, raid: null, id, m: MON(id), rar, shiny, t: -intro, intro, dur: big ? CFG.bigSec : (rar === 'common' && !shiny && kind === 'random' ? COMMON_SEC : CFG.encSec), caught: [], throws: 0, miss: {}, key: Date.now() + '_' + id, donor, kind,
     hard: sp && sp.type === 'pick' && sp.hard !== null ? sp.hard : rar !== 'legend' && Math.random() < 0.3, bg: TYPE_OF[id] || 'classic'};
   if (kind === 'random' && !isMega(id) && !FORMBASE[id] && Math.random() < 1 / 500){ enc.alpha = true; enc.dur = Math.max(enc.dur, CFG.encSec); banner('ALPHA POKEMON!', 'a huge ALPHA ' + A.mons[id].name + ' appeared!', '#ff3a3a'); jingle([196, 247, 294, 392, 494], 110, 0.14); shake = 0.6; }
+  if (kind === 'random' && Date.now() < rainEnd && !enc.alpha) enc.dur = Math.min(enc.dur, 8);
   if (isMega(id)){ enc.mega = MEGABASE[id]; MON(enc.mega); enc.cine = 3.4; enc.t = -(enc.intro + enc.cine); enc.hard = false; }
   if (kind === 'horde'){ enc.horde = {n: sp.n, of: 5}; enc.dur = 10; enc.hard = false; }
   else if (kind === 'random' && !shiny && rar === 'common' && Date.now() > hordeNext && !LOUNGE && HORDEBASE.length){ hordeNext = Date.now() + 20 * 60000;
@@ -630,7 +631,10 @@ function rouletteUpdate(dt){
 }
 
 const AUTO_AWAY = 10 * 60000;
-const autoOn = u => users[u] && users[u].auto > Date.now() && Date.now() - (lastAct[u] || 0) < AUTO_AWAY;
+let commAutoEnd = 0, rainEnd = 0;
+const COMM_WIN = 10 * 60000, COMM_MAX = 10 * 60000;
+const commAutoOn = u => Date.now() < commAutoEnd && Date.now() - (lastAct[u] || 0) < COMM_WIN;
+const autoOn = u => ((!!users[u] && users[u].auto > Date.now() && Date.now() - (lastAct[u] || 0) < AUTO_AWAY) || commAutoOn(u));
 function autoParts(st){ const R = Math.max(0, (st.auto || 0) - Date.now()), low = Math.min(st.aLow ?? Infinity, R), p = Math.min(st.aP ?? Infinity, low); return {u: R - low, g: low - p, p}; }
 function autoTier(u){ const st = users[u]; if (!st) return 'poke'; const a = autoParts(st); return a.u > 0 ? 'ultra' : a.g > 0 ? 'great' : 'poke'; }
 function autoStore(st, a){ st.aP = a.p; st.aLow = a.p + a.g; st.auto = Date.now() + a.p + a.g + a.u; }
@@ -675,7 +679,20 @@ function arrival(u){ if (arrived.has(u)) return; arrived.add(u); if (!isSupAll(u
 function bigThanks(u, coins){ const o = bigThx.find(b => b.u === u); if (o){ o.t = Math.min(o.t, 0.5); o.lvl = Math.max(o.lvl, coins); return; } if (bigThx.length < 4) bigThx.push({u, t: 0, lvl: coins}); jingle([784, 988, 1175, 1568, 2093], 90, 0.14); speak('Thank you so much ' + u + '!'); }
 
 const GIFT_DELAY = () => 30000 + Math.floor(Math.random() * 30000);
-function gift(u, per, count, gname, pic, streakTot){ lastAct[u] = Date.now(); setTimeout(() => giftNow(u, per, count, gname, pic, streakTot), GIFT_DELAY()); }
+function commGift(u, per, count){
+  const now = Date.now();
+  if (per < 30){ const was = now < commAutoEnd; commAutoEnd = Math.min(Math.max(commAutoEnd, now) + per * count * 60000, now + COMM_MAX);
+    if (!was){ banner('AUTO-THROW FOR EVERYONE!', 'everyone who chatted in the last 10 minutes throws automatically', '#ffd23f'); jingle([659, 880, 1175], 90, 0.1); } return; }
+  setTimeout(() => { const t = Date.now();
+    if (per >= 1000){ special.unshift({type: 'raid', dmax: false}); hurry(); raidSchedule(); banner('LEGENDARY RAID!', 'a legendary raid boss is coming - attack together!', '#ff6a4a'); }
+    else if (per >= 500){ if (szOn()) szEnd += 5 * 60000; else { szStart = t; szEnd = t + 5 * 60000; } store.set('plc_sz', [szStart, szEnd]); szAnn = 1; banner('SHINY ZONE!', 'for 5 minutes shinies are 10x more common', '#ffd23f'); jingle([1319, 1568, 2093], 90, 0.12); }
+    else if (per >= 100){ let k = 0; while (special[k] && (special[k].type === 'horde' || special[k].type === 'raid')) k++; special.splice(k, 0, {type: 'mega'}); if (k === 0) hurry(); banner('MEGA POKEMON!', 'a Mega Evolution is coming for everyone', '#c03ab0'); }
+    else { rainEnd = Math.max(rainEnd, t) + 60000; hurry(); banner('POKEMON RAIN!', 'for 1 minute a new Pokemon every 10 seconds', '#4ac8ff'); }
+  }, GIFT_DELAY());
+}
+function gift(u, per, count, gname, pic, streakTot){ lastAct[u] = Date.now();
+  if (CFG.comm){ supporter(u, per * count); if (/heart\s*me/i.test(gname || '')) fanJoin(u); commGift(u, per, count); return; }
+  setTimeout(() => giftNow(u, per, count, gname, pic, streakTot), GIFT_DELAY()); }
 function giftNow(u, per, count, gname, pic, streakTot){
   if (/heart\s*me/i.test(gname || '')) fanJoin(u);
   supporter(u, per * count); supDay(u); giftBoost(u, per * count); if (per * count >= 100) sponsorRaid(u, per * count);
@@ -1632,7 +1649,7 @@ function update(dt){
   if (LOUNGE){ raidNext += dt * 1000; raidStart += dt * 1000; const now = Date.now(); for (const u in users) if (users[u].auto > now) users[u].auto += dt * 1000; }
   { const now = Date.now();
     for (const u in users){ const st = users[u]; if (st.auto > now && !(now - (lastAct[u] || 0) < AUTO_AWAY)) st.auto += dt * 1000; }
-    if (phase === 'enc' && enc && enc.t > 1.5 && enc.t < enc.dur && tick % 6 === 0) for (const u in users) if (autoOn(u)) catchCmd(u, 'auto', true);
+    if (phase === 'enc' && enc && enc.t > 1.5 && enc.t < enc.dur && tick % 6 === 0) for (const u in lastAct) if (autoOn(u)) catchCmd(u, 'auto', true);
     if (phase === 'enc' && enc && enc.t < enc.dur){ const pn = nowS(); for (const u in users){ const pd = users[u].pend; if (!pd) continue; if (pd.e !== enc || pn - pd.at > 8){ users[u].pend = null; continue; } catchCmd(u, pd.pick, true); } } }
   while (!tradePause && throwsQ.length && phase === 'enc' && enc && enc.t > 1.5){ if (!launch(throwsQ[0])) break; throwsQ.shift(); }
   if (phase !== 'enc'){ for (const q of throwsQ) if (!q.sure && !q.attack && !q.free && q.ball !== 'poke') U(q.u)[q.ball]++; throwsQ = throwsQ.filter(q => q.sure); }
@@ -2866,6 +2883,7 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyV'){ CFG.voice = !CFG.voice; store.set('plc_cfg', CFG); try { speechSynthesis.cancel(); } catch(_){} banner('VOICE', CFG.voice ? 'ON' : 'OFF', INK); }
   if (e.code === 'KeyM'){ musOn = !musOn; CFG.musicOn = musOn; store.set('plc_cfg', CFG); if (mus) mus.volume = musOn ? CFG.music : 0; }
   if (e.code === 'KeyJ'){ trackI++; playTrack(); }
+  if (e.code === 'Digit0'){ CFG.comm = !CFG.comm; store.set('plc_cfg', CFG); hostMsg = {s: 'GIFTS = EVENTS FOR EVERYONE: ' + (CFG.comm ? 'ON' : 'OFF (old personal rewards)'), t: 0}; }
   if (e.code === 'KeyT'){ CFG.safe = !CFG.safe; store.set('plc_cfg', CFG); if (CFG.safe){ fanCard = null; autoCard = null; news = null; } hostMsg = {s: 'FAN CLUB + NEWS + AUTO-THROW ' + (CFG.safe ? 'OFF' : 'ON'), t: 0}; }
   if (e.code === 'KeyU'){ CFG.upg = CFG.upg === false; store.set('plc_cfg', CFG); hostMsg = {s: 'UPGRADES ' + (CFG.upg === false ? 'OFF' : 'ON'), t: 0}; }
   if (e.code === 'KeyI'){ startRaid(!!e.shiftKey); }
