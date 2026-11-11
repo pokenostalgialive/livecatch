@@ -543,7 +543,7 @@ function resolve(f){
     if (!e.caught.includes(f.u)) e.caught.push(f.u);
     addCatch(f.u, e.id, e.shiny);
     if (e.roul && e.mile && e.donor === f.u) specAdd(f.u, {uid: 'p' + e.mile + '_' + Date.now().toString(36), id: e.id, sh: e.shiny ? 1 : 0, k: 'MILE', ev: 'Prize · ' + e.mile + ' catches', why: 'reward for ' + e.mile + ' catches', d: isoDay(), ot: f.u});
-    else if (e.roul && !e.mile) specAdd(f.u, {uid: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: e.id, sh: e.shiny ? 1 : 0, k: 'GIFT', ev: 'Roulette', why: 'Community roulette', d: isoDay(), ot: f.u});
+    else if (e.roul && !e.mile) specAdd(f.u, {uid: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: e.id, sh: e.shiny ? 1 : 0, k: 'GIFT', ev: 'Roulette', why: e.donor ? (e.donor === f.u ? 'gifted by @' : 'Gift from @') + e.donor : 'Community roulette', d: isoDay(), ot: f.u});
     if (e.alpha){ const da = DEX[f.u]; (da.ac || (da.ac = {}))[e.id] = (da.ac[e.id] || 0) + 1; dexDirty = true; mile(f.u, 'ALPHA ' + (e.shiny ? 'SHINY ' : '') + A.mons[e.id].name, '#ff3a3a', e.id); if (e.caught[0] === f.u) homeLog('alpha', f.u, e.id, e.shiny); }
     for (let i = 0; i < 18; i++) parts.push({x: f.tx, y: f.ty - 10, vx: (Math.random() - .5) * 360, vy: -Math.random() * 360, life: .9, c: e.shiny ? '#ffd23f' : '#ffffff'});
     jingle([988, 1319], 70, 0.08);
