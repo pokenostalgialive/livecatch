@@ -654,6 +654,7 @@ html.lobh{overflow:hidden;height:100%;overscroll-behavior:none}.nx.lob .top,.nx.
 .lgtop{display:flex;gap:8px;margin-top:16px}.lgtop a{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:#fff;background:rgba(10,16,48,.7);border-radius:14px;padding:8px 10px;min-width:90px;box-shadow:0 3px 0 #070b22}
 .lgtop small{font-size:10px;font-weight:900;color:var(--gold)}.lgtop b{font-size:12px;font-weight:900;max-width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(min-width:900px){.nx.lob .lby{top:10px;bottom:calc(var(--navh,66px) + 0px);border-radius:24px;box-shadow:0 0 0 3px #070b22,0 20px 60px rgba(0,0,0,.5)}.nx.lob .btabs{max-width:520px;margin:0 auto;border-radius:0 0 24px 24px}}
+.trm.wq{display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:var(--mute)}
 </style>
 </head>
 <body>
@@ -1017,7 +1018,7 @@ function demoRpc(fn, b){      // ?demo only: fakes the server (verification comp
   if (/^spec_trade|^my_spec_trades$/.test(fn)) return demoSpec(fn, b);
   if (/^season_|^events_now$/.test(fn)) return demoSeason(fn, b);
   if (/^tower_/.test(fn)) return demoTower(fn);
-  if (/trade/.test(fn)) return demoTrades(fn, b);
+  if (/trade|wonder/.test(fn)) return demoTrades(fn, b);
   if (/battle|champions/.test(fn)) return demoBattle(fn, b);
   if (fn === 'my_skins'){ const t = BY[ME.u.toLowerCase()]; return {choice: Object.assign({ball: 'auto', trail: 'auto', name: 'auto', frame: 'auto', aura: 'auto'}, SKINCH[ME.u.toLowerCase()] || {}), unlocked: {lv: t.lv, ball: ['auto', 'normal', 'pumpkin'], trail: ['auto', 'none', 'stars', 'fire'], name: ['auto', 'white', 'blue', 'gold'], frame: ['auto', 'none', 'silver', 'gold'].concat(REGIONS.filter(r => regLv(t)[r.n].lv >= 1).map(r => r.n.toLowerCase())), aura: ['auto', 'none']}}; }
   if (fn === 'skin_choices') return [];
@@ -1310,17 +1311,72 @@ function openPropose(other){
   };
   draw();
 }
+/* ===== WONDER TRADE: give one of your Pokémon, get a random one from another trainer (same kind: normal / legendary / Mega, shiny for shiny) ===== */
+let WT = null;
+const wonderOk = id => !(id >= 1251 && id <= 1299) && !MYTHID.has(id) && !EVENT.has(id);
+async function loadWonder(){ if (!AUTH || !ME) return; try { WT = await rpc('wonder_state', {p_token: AUTH.token}); } catch(e){ return; }
+  const el = document.getElementById('wtbox'); if (el){ el.innerHTML = wonderHtml(); bindWonder(); } }
+function wonderHtml(){
+  const left = WT ? Math.max(0, 10 - WT.today) : 10, L = (WT && WT.list) || [];
+  const row = x => `<div class="trow st-${x.status === 'done' ? 'done' : 'open'}"><div class="trx">${trMon(x.mon, x.sh)}<span class="arr">⇄</span>${x.status === 'done' ? trMon(x.got, x.got_sh) : '<span class="trm wq">?</span>'}</div>
+    <div class="trinfo">${x.status === 'done' ? `<b>You got ${esc(name(x.got))}${x.got_sh ? ' ✦' : ''}</b><small>from <a href="${link(x.partner)}">@${esc(x.partner)}</a></small>`
+      : x.status === 'gone' ? `<b>${esc(name(x.mon))} left the Wonder Trade</b><small>It was not in your box anymore</small>` : `<b>Waiting...</b><small>${esc(name(x.mon))}${x.sh ? ' ✦' : ''} is in the Wonder Trade. You get a Pokémon as soon as someone trades one of the same kind.</small>`}</div>
+    <div class="trb">${x.status === 'wait' ? `<button class="mini ghost" data-wtx="${x.id}">Take back</button>` : ''}</div></div>`;
+  return `<p class="hint" style="text-align:left;margin:0 0 8px">Send one of your Pokémon and get a random one from another trainer. Same kind only (normal, legendary or Mega, shiny for shiny). Mythicals, Arceus and tagged Pokémon stay home.</p>
+    <button class="btn" id="wtgo" ${left ? '' : 'disabled'} style="width:100%">${left ? 'Wonder Trade a Pokémon' : 'Come back tomorrow'}</button>
+    <p class="hint" style="margin:6px 0 0">${left} of 10 left today${WT && WT.waiting ? ' · ' + WT.waiting + ' Pokémon waiting' : ''}</p>
+    ${L.length ? `<div class="trades" style="margin-top:10px">${L.slice(0, 8).map(row).join('')}</div>` : ''}`;
+}
+function bindWonder(){
+  const go = document.getElementById('wtgo'); if (go) go.onclick = () => openWonder();
+  document.querySelectorAll('[data-wtx]').forEach(b => b.onclick = async () => { b.disabled = true; try { await rpc('wonder_cancel', {p_token: AUTH.token, p_pool: +b.dataset.wtx}); toast('Back in your box'); } catch(e){ toast(e.message); } loadWonder(); });
+}
+function openWonder(){
+  const me = ME && BY[ME.u.toLowerCase()]; if (!me){ toast('Your page has no Pokémon yet'); return; }
+  const st = {q: '', pick: null};
+  const free = x => (x.sh ? freeSh(me, x.id) : freeNr(me, x.id)) > 0;
+  const bg = openSheet('', 'edit'), sh = bg.querySelector('.sheet');
+  const draw = () => {
+    if (st.pick){ const x = st.pick;
+      sh.innerHTML = `<div class="grab"></div><h3>Wonder Trade ${esc(name(x.id))}${x.sh ? ' ✦' : ''}?</h3><p class="sub">You get a random ${x.sh ? 'shiny ' : ''}${CATN[CAT(x.id)]} Pokémon from another trainer</p>
+        <div class="trbig">${trMon(x.id, x.sh)}<span class="arr">⇄</span><span class="trm wq">?</span></div>
+        <p class="hint">If nobody is waiting, your Pokémon waits in the Wonder Trade (you can take it back).</p>
+        <div class="savebar"><button class="btn ghost" id="back">Back</button><button class="btn" id="send">Trade!</button></div>`;
+      sh.querySelector('#back').onclick = () => { st.pick = null; draw(); };
+      const sd = sh.querySelector('#send'); sd.onclick = async () => { sd.disabled = true; sd.textContent = 'Trading...';
+        try { const r = await rpc('wonder_trade', {p_token: AUTH.token, p_id: x.id, p_sh: x.sh}); bg.close();
+          if (r && r.matched){ toast(`You got ${name(r.got)}${r.sh ? ' ✦' : ''} from @${r.from}!`); if (!DEMO){ try { build(await load()); } catch(e){} } }
+          else toast('In the Wonder Trade! You get a Pokémon when someone trades.');
+          loadWonder(); }
+        catch(e){ sd.disabled = false; sd.textContent = 'Trade!'; toast(e.message); } };
+      return; }
+    const q = st.q.trim().toLowerCase(), list = boxList(me, 'caught').filter(x => wonderOk(x.id) && free(x) && (!q || name(x.id).toLowerCase().includes(q))).slice(0, 120);
+    sh.innerHTML = `<div class="grab"></div><h3>Wonder Trade</h3><p class="sub">Pick the Pokémon to send</p>
+      <div class="search sm">${ICON.home}<input id="pq" type="search" placeholder="Search" value="${esc(st.q)}" autocomplete="off"></div>
+      <div class="picker">${list.map(x => `<button class="slot pk ${x.sh ? 'shy' : ''} ${isMega(x.id) ? 'mg' : ''}" data-id="${x.id}" data-sh="${x.sh ? 1 : 0}">${img(x.id, x.sh)}<span>${x.sh ? '✦ ' : ''}${esc(name(x.id))}${x.cnt > 1 ? ' x' + x.cnt : ''}</span></button>`).join('') || '<p class="hint">No Pokémon found</p>'}</div>
+      <div class="savebar"><button class="btn ghost" id="back">Cancel</button></div>`;
+    sh.querySelectorAll('.pk').forEach(b => b.onclick = () => { st.pick = {id: +b.dataset.id, sh: b.dataset.sh === '1'}; draw(); });
+    const pq = sh.querySelector('#pq'); pq.oninput = () => { st.q = pq.value; const p = pq.selectionStart; draw(); const n = sh.querySelector('#pq'); n.focus(); n.setSelectionRange(p, p); };
+    sh.querySelector('#back').onclick = () => bg.close();
+  };
+  draw();
+}
 async function recentHtml(){
   try { RECENT = await rpc('recent_trades', {}); } catch(e){ RECENT = []; }
   const el = document.getElementById('recent'); if (!el) return;
   el.innerHTML = RECENT && RECENT.length ? `<div class="list">${RECENT.map(x => `<div class="row"><div class="trx">${trMon(x.a_id, x.a_sh)}<span class="arr">⇄</span>${trMon(x.b_id, x.b_sh)}</div><span class="who"><b><a href="${link(x.a)}">@${esc(x.a)}</a> ⇄ <a href="${link(x.b)}">@${esc(x.b)}</a></b><small style="color:var(--mute)">${esc(name(x.a_id))} for ${esc(name(x.b_id))}</small></span></div>`).join('')}</div>` : `<div class="card empty" style="margin:0">No trades yet. Verify your page and propose the first one!</div>`;
 }
+const demoWt = [];
 function demoTrades(fn, b){      // ?demo only
   const me = (b.p_token || '').replace(/^demo-/, '');
   if (fn === 'my_trades') return {today: demoTr.filter(x => (x.a === me || x.b === me) && x.status === 'accepted').length, list: demoTr.filter(x => x.a === me || x.b === me).slice().reverse()};
   if (fn === 'propose_trade'){ demoTr.push({id: demoTrId++, a: me, b: b.p_to, a_id: b.p_give, a_sh: b.p_give_sh, b_id: b.p_want, b_sh: b.p_want_sh, status: 'open'}); demoTr.push({id: demoTrId++, a: b.p_to, b: me, a_id: b.p_want, a_sh: b.p_want_sh, b_id: b.p_give, b_sh: b.p_give_sh, status: 'open'}); return 1; }
   if (fn === 'respond_trade'){ const x = demoTr.find(x => x.id === b.p_id); x.status = b.p_accept ? 'accepted' : 'declined'; return x.status; }
   if (fn === 'cancel_trade'){ const x = demoTr.find(x => x.id === b.p_id); x.status = 'cancelled'; return null; }
+  if (fn === 'wonder_state') return {today: demoWt.filter(x => x.status !== 'cancelled').length, waiting: 4, list: demoWt.slice().reverse()};
+  if (fn === 'wonder_cancel'){ const x = demoWt.find(x => x.id === b.p_pool); if (x) x.status = 'cancelled'; return null; }
+  if (fn === 'wonder_trade'){ const hit = demoWt.length % 2 === 0, x = {id: demoWt.length + 1, mon: b.p_id, sh: b.p_sh, status: hit ? 'done' : 'wait', got: hit ? 133 : null, got_sh: false, partner: hit ? 'giulia_shinyhunt' : null};
+    demoWt.push(x); return hit ? {matched: true, got: 133, sh: false, from: 'giulia_shinyhunt'} : {matched: false}; }
   if (fn === 'recent_trades') return [{a: 'pkmn.luca', b: 'giulia_shinyhunt', a_id: 445, a_sh: false, b_id: 448, b_sh: false}, {a: 'marco.trainer98', b: 'sara.pokefan', a_id: 133, a_sh: true, b_id: 25, b_sh: true}];
   return null;
 }
@@ -1484,7 +1540,7 @@ function viewTrades(){
   nav('');
   const back = `<a class="back" href="#/">${ICON.left}Lobby</a>`;
   if (!AUTH || !ME) return `<div class="rankg">${back}<h2>Trades</h2><div class="card"><p class="empty" style="text-align:left">${GUEST ? 'Link your TikTok name to trade: open your box and tap <b>This is me</b>.' : 'Sign in and link your TikTok name to trade with other trainers.'}</p>${GUEST ? '' : '<button class="btn" onclick="openAccount()">Sign in</button>'}</div></div>`;
-  return `<div class="rankg">${back}<h2>New trade</h2><div class="card"><p class="hint" style="text-align:left;margin:0 0 8px">Search a trainer and pick what to trade.</p>
+  return `<div class="rankg">${back}<h2>Wonder Trade</h2><div class="card" id="wtbox">${wonderHtml()}</div><h2>New trade</h2><div class="card"><p class="hint" style="text-align:left;margin:0 0 8px">Search a trainer and pick what to trade.</p>
       <div class="search sm">${ICON.home}<input id="tq" type="search" placeholder="Trainer name" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="sugg" id="tsugg" hidden></div></div></div>
     <div id="trbox">${tradesHtml()}${specOffersHtml()}</div></div>`;
 }
@@ -1495,7 +1551,7 @@ function bindTradesView(){
       sg.innerHTML = hit.length ? hit.map(t => `<button data-u="${esc(t.u)}">${avatar(t)}<span>${esc(t.u)}</span><small>Trade</small></button>`).join('') : `<div class="none">No trainer found</div>`; sg.hidden = false; };
     q.addEventListener('input', run); q.addEventListener('blur', () => setTimeout(() => sg.hidden = true, 250));
     sg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const t = BY[b.dataset.u.toLowerCase()]; if (t){ sg.hidden = true; q.value = ''; openPropose(t); } }); }
-  bindTrades(); bindSpecOffers();
+  bindTrades(); bindSpecOffers(); bindWonder(); loadWonder();
   Promise.all([loadTrades(), loadSpecTrades()]).then(() => { const el = document.getElementById('trbox'); if (el && location.hash.startsWith('#/trades')){ el.innerHTML = tradesHtml() + specOffersHtml(); bindTrades(); bindSpecOffers(); } });
 }
 
@@ -1530,7 +1586,7 @@ function bindDex(){
 }
 
 /* ===== AUTO-UPDATE: the installed app (home screen) stays open for days, so it checks for a new version and reloads by itself ===== */
-const BUILD = '20261106112034';
+const BUILD = '20261111143812';
 async function checkUpdate(){
   if (DEMO || location.protocol !== 'https:' || document.querySelector('.sheet-bg') || document.querySelector('.bov')) return;
   try { const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); const j = await r.json(); if (j && j.v && j.v !== BUILD) location.reload(); } catch(e){}
